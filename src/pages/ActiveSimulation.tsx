@@ -191,11 +191,34 @@ const ActiveSimulation = () => {
                 placeholder="Write your campaign performance report here..."
                 className="min-h-[200px] mb-4 bg-secondary/30 border-border"
               />
+              {/* Attached Files */}
+              {attachedFiles.length > 0 && (
+                <div className="mb-4 space-y-2">
+                  {attachedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center gap-2 bg-secondary/30 rounded-lg px-3 py-2 text-sm">
+                      <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      <span className="truncate flex-1">{file.name}</span>
+                      <span className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(0)} KB</span>
+                      <button onClick={() => removeFile(index)} className="text-muted-foreground hover:text-foreground">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={handleFileSelect}
+                accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.png,.jpg,.jpeg"
+              />
               <div className="flex items-center gap-3">
-                <Button variant="hero" onClick={handleSubmit} disabled={!submission.trim()}>
-                  <Send className="w-4 h-4 mr-1" /> Submit Work
+                <Button variant="hero" onClick={handleSubmit} disabled={(!submission.trim() && attachedFiles.length === 0) || uploading}>
+                  <Send className="w-4 h-4 mr-1" /> {uploading ? "Uploading..." : "Submit Work"}
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                   <Upload className="w-4 h-4 mr-1" /> Attach File
                 </Button>
               </div>
