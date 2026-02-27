@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Zap, Send, Lightbulb, MessageCircle, Upload, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Zap, Send, Lightbulb, MessageCircle, Upload, CheckCircle, Clock, AlertCircle, X, FileText } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const tasks = [
   { id: 1, title: "Competitive Analysis Brief", status: "reviewed" as const },
@@ -27,12 +29,59 @@ const ActiveSimulation = () => {
   const [showChat, setShowChat] = useState(false);
   const [chatMessage, setChatMessage] = useState("");
   const [hintsUsed, setHintsUsed] = useState(0);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const newFiles = Array.from(files);
+    const oversized = newFiles.filter(f => f.size > 10 * 1024 * 1024);
+    if (oversized.length) {
+      toast.error("File terlalu besar. Maksimal 10MB per file.");
+      return;
+    }
+    setAttachedFiles(prev => [...prev, ...newFiles]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadFiles = async () => {
+    const uploaded: string[] = [];
+    for (const file of attachedFiles) {
+      const filePath = `submissions/${Date.now()}_${file.name}`;
+      const { error } = await supabase.storage
+        .from("task-submissions")
+        .upload(filePath, file);
+      if (error) {
+        toast.error(`Gagal upload ${file.name}: ${error.message}`);
+        return null;
+      }
+      uploaded.push(filePath);
+    }
+    return uploaded;
+  };
 
   const currentTask = tasks[2]; // Task 3 active
   const progress = (2 / 5) * 100;
 
-  const handleSubmit = () => {
-    if (submission.trim()) setShowFeedback(true);
+  const handleSubmit = async () => {
+    if (!submission.trim() && attachedFiles.length === 0) return;
+    setUploading(true);
+    if (attachedFiles.length > 0) {
+      const result = await uploadFiles();
+      if (!result) {
+        setUploading(false);
+        return;
+      }
+      toast.success(`${result.length} file berhasil diupload!`);
+    }
+    setUploading(false);
+    setShowFeedback(true);
   };
 
   return (
@@ -142,11 +191,34 @@ const ActiveSimulation = () => {
                 placeholder="Write your campaign performance report here..."
                 className="min-h-[200px] mb-4 bg-secondary/30 border-border"
               />
+              {/* Attached Files */}
+              {attachedFiles.length > 0 && (
+                <div className="mb-4 space-y-2">
+                  {attachedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center gap-2 bg-secondary/30 rounded-lg px-3 py-2 text-sm">
+                      <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      <span className="truncate flex-1">{file.name}</span>
+                      <span className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(0)} KB</span>
+                      <button onClick={() => removeFile(index)} className="text-muted-foreground hover:text-foreground">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={handleFileSelect}
+                accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.png,.jpg,.jpeg"
+              />
               <div className="flex items-center gap-3">
-                <Button variant="hero" onClick={handleSubmit} disabled={!submission.trim()}>
-                  <Send className="w-4 h-4 mr-1" /> Submit Work
+                <Button variant="hero" onClick={handleSubmit} disabled={(!submission.trim() && attachedFiles.length === 0) || uploading}>
+                  <Send className="w-4 h-4 mr-1" /> {uploading ? "Uploading..." : "Submit Work"}
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                   <Upload className="w-4 h-4 mr-1" /> Attach File
                 </Button>
               </div>
