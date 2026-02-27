@@ -29,6 +29,42 @@ const ActiveSimulation = () => {
   const [showChat, setShowChat] = useState(false);
   const [chatMessage, setChatMessage] = useState("");
   const [hintsUsed, setHintsUsed] = useState(0);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const newFiles = Array.from(files);
+    const oversized = newFiles.filter(f => f.size > 10 * 1024 * 1024);
+    if (oversized.length) {
+      toast.error("File terlalu besar. Maksimal 10MB per file.");
+      return;
+    }
+    setAttachedFiles(prev => [...prev, ...newFiles]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadFiles = async () => {
+    const uploaded: string[] = [];
+    for (const file of attachedFiles) {
+      const filePath = `submissions/${Date.now()}_${file.name}`;
+      const { error } = await supabase.storage
+        .from("task-submissions")
+        .upload(filePath, file);
+      if (error) {
+        toast.error(`Gagal upload ${file.name}: ${error.message}`);
+        return null;
+      }
+      uploaded.push(filePath);
+    }
+    return uploaded;
+  };
 
   const currentTask = tasks[2]; // Task 3 active
   const progress = (2 / 5) * 100;
