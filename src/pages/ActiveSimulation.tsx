@@ -1,12 +1,30 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Zap, Send, Lightbulb, MessageCircle, Upload, CheckCircle, Clock, AlertCircle, X, FileText } from "lucide-react";
+import { Zap, Send, Lightbulb, MessageCircle, Upload, CheckCircle, Clock, AlertCircle, X, FileText, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+const ALLOWED_TYPES = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "image/png",
+  "image/jpeg",
+];
+const ALLOWED_EXTENSIONS = [".pdf", ".doc", ".docx", ".png", ".jpg", ".jpeg"];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+interface FileUploadState {
+  file: File;
+  progress: number;
+  status: "pending" | "uploading" | "success" | "error";
+  error?: string;
+  storagePath?: string;
+}
 
 const tasks = [
   { id: 1, title: "Competitive Analysis Brief", status: "reviewed" as const },
@@ -29,59 +47,169 @@ const ActiveSimulation = () => {
   const [showChat, setShowChat] = useState(false);
   const [chatMessage, setChatMessage] = useState("");
   const [hintsUsed, setHintsUsed] = useState(0);
-  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [fileStates, setFileStates] = useState<FileUploadState[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
+
+  const currentTask = tasks[2];
+  const progress = (2 / 5) * 100;
+  const currentTaskId = "task-3"; // mock task ID
+
+  const validateFile = (file: File): string | null => {
+    if (file.size > MAX_FILE_SIZE) {
+      return `File "${file.name}" terlalu besar. Maksimal 10MB.`;
+    }
+    const ext = "." + file.name.split(".").pop()?.toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(ext) && !ALLOWED_TYPES.includes(file.type)) {
+      return `Format file "${file.name}" tidak didukung. Gunakan: PDF, DOCX, PNG, JPG.`;
+    }
+    return null;
+  };
+
+  const addFiles = useCallback((newFiles: File[]) => {
+    const validFiles: FileUploadState[] = [];
+    for (const file of newFiles) {
+      const error = validateFile(file);
+      if (error) {
+        toast.error(error);
+      } else {
+        // Check for duplicate
+        if (fileStates.some(fs => fs.file.name === file.name && fs.file.size === file.size)) {
+          toast.error(`File "${file.name}" sudah ditambahkan.`);
+          continue;
+        }
+        validFiles.push({ file, progress: 0, status: "pending" });
+      }
+    }
+    if (validFiles.length > 0) {
+      setFileStates(prev => [...prev, ...validFiles]);
+    }
+  }, [fileStates]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-    const newFiles = Array.from(files);
-    const oversized = newFiles.filter(f => f.size > 10 * 1024 * 1024);
-    if (oversized.length) {
-      toast.error("File terlalu besar. Maksimal 10MB per file.");
-      return;
-    }
-    setAttachedFiles(prev => [...prev, ...newFiles]);
+    addFiles(Array.from(files));
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const removeFile = (index: number) => {
-    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+    setFileStates(prev => prev.filter((_, i) => i !== index));
   };
 
-  const uploadFiles = async () => {
-    const uploaded: string[] = [];
-    for (const file of attachedFiles) {
-      const filePath = `submissions/${Date.now()}_${file.name}`;
-      const { error } = await supabase.storage
-        .from("task-submissions")
-        .upload(filePath, file);
-      if (error) {
-        toast.error(`Gagal upload ${file.name}: ${error.message}`);
-        return null;
-      }
-      uploaded.push(filePath);
+  // Drag & drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      addFiles(Array.from(files));
     }
-    return uploaded;
-  };
+  }, [addFiles]);
 
-  const currentTask = tasks[2]; // Task 3 active
-  const progress = (2 / 5) * 100;
+  const uploadAllFiles = async (userId: string): Promise<boolean> => {
+    let allSuccess = true;
+    for (let i = 0; i < fileStates.length; i++) {
+      const fs = fileStates[i];
+      if (fs.status === "success") continue; // Already uploaded
+
+      // Update status to uploading
+      setFileStates(prev => prev.map((f, idx) => idx === i ? { ...f, status: "uploading" as const, progress: 10 } : f));
+
+      const storagePath = `${userId}/${currentTaskId}/${Date.now()}_${fs.file.name}`;
+
+      const { error } = await supabase.storage
+        .from("submissions")
+        .upload(storagePath, fs.file);
+
+      if (error) {
+        setFileStates(prev => prev.map((f, idx) => idx === i ? { ...f, status: "error" as const, error: error.message, progress: 0 } : f));
+        toast.error(`Gagal upload "${fs.file.name}": ${error.message}`);
+        allSuccess = false;
+        continue;
+      }
+
+      // Update progress to 70%
+      setFileStates(prev => prev.map((f, idx) => idx === i ? { ...f, progress: 70 } : f));
+
+      // Save metadata to DB
+      const { error: dbError } = await supabase
+        .from("submissions_files")
+        .insert({
+          user_id: userId,
+          task_id: currentTaskId,
+          file_name: fs.file.name,
+          file_path: storagePath,
+          file_size: fs.file.size,
+        });
+
+      if (dbError) {
+        setFileStates(prev => prev.map((f, idx) => idx === i ? { ...f, status: "error" as const, error: dbError.message, progress: 0 } : f));
+        toast.error(`Gagal menyimpan metadata "${fs.file.name}": ${dbError.message}`);
+        allSuccess = false;
+        continue;
+      }
+
+      // Success
+      setFileStates(prev => prev.map((f, idx) => idx === i ? { ...f, status: "success" as const, progress: 100, storagePath } : f));
+    }
+    return allSuccess;
+  };
 
   const handleSubmit = async () => {
-    if (!submission.trim() && attachedFiles.length === 0) return;
+    if (!submission.trim() && fileStates.length === 0) return;
     setUploading(true);
-    if (attachedFiles.length > 0) {
-      const result = await uploadFiles();
-      if (!result) {
+
+    // Check auth
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Kamu harus login terlebih dahulu untuk submit.");
+      setUploading(false);
+      return;
+    }
+
+    if (fileStates.length > 0) {
+      const success = await uploadAllFiles(user.id);
+      if (!success) {
+        toast.error("Beberapa file gagal diupload. Coba lagi.");
         setUploading(false);
         return;
       }
-      toast.success(`${result.length} file berhasil diupload!`);
+      toast.success(`${fileStates.length} file berhasil diupload!`);
     }
+
     setUploading(false);
     setShowFeedback(true);
+  };
+
+  const getFileStatusIcon = (status: FileUploadState["status"]) => {
+    switch (status) {
+      case "uploading": return <Loader2 className="w-4 h-4 text-primary animate-spin" />;
+      case "success": return <CheckCircle className="w-4 h-4 text-accent" />;
+      case "error": return <AlertCircle className="w-4 h-4 text-destructive" />;
+      default: return <FileText className="w-4 h-4 text-muted-foreground" />;
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
@@ -183,7 +311,17 @@ const ActiveSimulation = () => {
 
           {/* Submission Area */}
           {!showFeedback ? (
-            <div className="bg-card border border-border rounded-xl p-5 shadow-card">
+            <div
+              ref={dropZoneRef}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`bg-card border-2 rounded-xl p-5 shadow-card transition-colors ${
+                isDragging
+                  ? "border-primary border-dashed bg-primary/5"
+                  : "border-border"
+              }`}
+            >
               <h3 className="font-semibold mb-3">Your Submission</h3>
               <Textarea
                 value={submission}
@@ -191,36 +329,73 @@ const ActiveSimulation = () => {
                 placeholder="Write your campaign performance report here..."
                 className="min-h-[200px] mb-4 bg-secondary/30 border-border"
               />
-              {/* Attached Files */}
-              {attachedFiles.length > 0 && (
+
+              {/* Drag & Drop Zone */}
+              {isDragging && (
+                <div className="mb-4 border-2 border-dashed border-primary rounded-lg p-8 text-center animate-fade-in">
+                  <Upload className="w-8 h-8 text-primary mx-auto mb-2" />
+                  <p className="text-sm text-primary font-medium">Lepaskan file di sini</p>
+                </div>
+              )}
+
+              {/* Attached Files List */}
+              {fileStates.length > 0 && (
                 <div className="mb-4 space-y-2">
-                  {attachedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center gap-2 bg-secondary/30 rounded-lg px-3 py-2 text-sm">
-                      <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                      <span className="truncate flex-1">{file.name}</span>
-                      <span className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(0)} KB</span>
-                      <button onClick={() => removeFile(index)} className="text-muted-foreground hover:text-foreground">
-                        <X className="w-4 h-4" />
-                      </button>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">
+                    {fileStates.length} file terlampir
+                  </p>
+                  {fileStates.map((fs, index) => (
+                    <div key={index} className="bg-secondary/30 rounded-lg px-3 py-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        {getFileStatusIcon(fs.status)}
+                        <span className="truncate flex-1">{fs.file.name}</span>
+                        <span className="text-xs text-muted-foreground">{formatFileSize(fs.file.size)}</span>
+                        {fs.status !== "uploading" && (
+                          <button onClick={() => removeFile(index)} className="text-muted-foreground hover:text-foreground transition-colors">
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                      {/* Progress bar per file */}
+                      {(fs.status === "uploading" || fs.status === "success") && (
+                        <div className="mt-2">
+                          <Progress value={fs.progress} className="h-1.5" />
+                        </div>
+                      )}
+                      {fs.status === "error" && fs.error && (
+                        <p className="text-xs text-destructive mt-1">{fs.error}</p>
+                      )}
                     </div>
                   ))}
                 </div>
               )}
+
               <input
                 ref={fileInputRef}
                 type="file"
                 multiple
                 className="hidden"
                 onChange={handleFileSelect}
-                accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.png,.jpg,.jpeg"
+                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
               />
               <div className="flex items-center gap-3">
-                <Button variant="hero" onClick={handleSubmit} disabled={(!submission.trim() && attachedFiles.length === 0) || uploading}>
-                  <Send className="w-4 h-4 mr-1" /> {uploading ? "Uploading..." : "Submit Work"}
+                <Button
+                  variant="hero"
+                  onClick={handleSubmit}
+                  disabled={(!submission.trim() && fileStates.length === 0) || uploading}
+                >
+                  {uploading ? (
+                    <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Uploading...</>
+                  ) : (
+                    <><Send className="w-4 h-4 mr-1" /> Submit Work</>
+                  )}
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
                   <Upload className="w-4 h-4 mr-1" /> Attach File
                 </Button>
+                <span className="text-xs text-muted-foreground hidden md:inline">
+                  atau drag & drop file ke area ini
+                </span>
               </div>
             </div>
           ) : (
