@@ -69,8 +69,19 @@ const ActiveSimulation = () => {
   const currentTask = tasks[2]; // Task 3 active
   const progress = (2 / 5) * 100;
 
-  const handleSubmit = () => {
-    if (submission.trim()) setShowFeedback(true);
+  const handleSubmit = async () => {
+    if (!submission.trim() && attachedFiles.length === 0) return;
+    setUploading(true);
+    if (attachedFiles.length > 0) {
+      const result = await uploadFiles();
+      if (!result) {
+        setUploading(false);
+        return;
+      }
+      toast.success(`${result.length} file berhasil diupload!`);
+    }
+    setUploading(false);
+    setShowFeedback(true);
   };
 
   return (
