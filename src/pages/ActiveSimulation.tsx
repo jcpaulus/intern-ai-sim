@@ -209,7 +209,32 @@ const ActiveSimulation = () => {
     }
 
     setUploading(false);
-    setShowFeedback(true);
+
+    // Get AI feedback
+    if (submission.trim()) {
+      setLoadingFeedback(true);
+      setShowFeedback(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("evaluate-submission", {
+          body: {
+            submission: submission.trim(),
+            taskTitle: currentTask.title,
+            taskBrief: "Create a campaign performance report for Q1 social media campaigns. Include: overview of key metrics (impressions, engagement rate, CTR), top 3 performing posts with analysis, and Q2 recommendations based on data.",
+          },
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        setFeedback(data.feedback);
+      } catch (err: any) {
+        console.error("Feedback error:", err);
+        toast.error("Gagal mendapatkan feedback: " + (err.message || "Unknown error"));
+        setShowFeedback(false);
+      } finally {
+        setLoadingFeedback(false);
+      }
+    } else {
+      setShowFeedback(true);
+    }
   };
 
   const getFileStatusIcon = (status: FileUploadState["status"]) => {
