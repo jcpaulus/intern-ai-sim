@@ -1,9 +1,23 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Zap, Play, BarChart3, CheckCircle, BookOpen, Trophy } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("Gagal sign out: " + error.message);
+      return;
+    }
+    toast.success("Berhasil sign out");
+    navigate("/login");
+  };
+
   const activeSimulation = {
     role: "Marketing Analyst",
     progress: 40,
@@ -33,8 +47,8 @@ const Dashboard = () => {
           </Link>
           <div className="flex items-center gap-4">
             <Link to="/roles" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Roles</Link>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/login">Sign Out</Link>
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              Sign Out
             </Button>
           </div>
         </div>
