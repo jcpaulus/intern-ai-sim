@@ -63,6 +63,8 @@ const ActiveSimulation = () => {
   const [fileStates, setFileStates] = useState<FileUploadState[]>([]);
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [feedback, setFeedback] = useState<FeedbackData | null>(null);
+  const [loadingFeedback, setLoadingFeedback] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
