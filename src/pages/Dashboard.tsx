@@ -6,6 +6,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("Gagal sign out: " + error.message);
+      return;
+    }
+    toast.success("Berhasil sign out");
+    navigate("/login");
+  };
+
   const activeSimulation = {
     role: "Marketing Analyst",
     progress: 40,
