@@ -438,8 +438,12 @@ const ActiveSimulation = () => {
                 </span>
               </div>
             </div>
-          ) : (
-            /* Feedback - Email Reply Style */
+          ) : loadingFeedback ? (
+            <div className="bg-card border border-border rounded-xl p-10 shadow-card animate-fade-in text-center">
+              <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+              <p className="text-muted-foreground">Sarah is reviewing your submission...</p>
+            </div>
+          ) : feedback ? (
             <div className="bg-card border border-border rounded-xl overflow-hidden shadow-card animate-fade-in">
               <div className="p-5 border-b border-border">
                 <div className="flex items-center gap-3 mb-3">
@@ -449,21 +453,61 @@ const ActiveSimulation = () => {
                     <div className="text-xs text-muted-foreground">Feedback on Task 3</div>
                   </div>
                   <div className="ml-auto flex gap-2">
-                    <Badge className="bg-accent/20 text-accent border-0">8/10</Badge>
+                    <Badge className="bg-accent/20 text-accent border-0">{feedback.overall_score}/10</Badge>
                   </div>
                 </div>
                 <div className="font-semibold">Re: Campaign Performance Report — Feedback</div>
               </div>
-              <div className="p-5 text-sm leading-relaxed text-muted-foreground space-y-3">
-                <p>Hey, thanks for getting this in on time!</p>
-                <p><span className="text-foreground font-medium">What you did well:</span> Your analysis of the top-performing posts was insightful. I especially liked how you connected engagement spikes to content themes — that shows strong analytical thinking.</p>
-                <p><span className="text-foreground font-medium">Areas to improve:</span></p>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>The Q2 recommendations could be more specific — tie them to actual metrics</li>
-                  <li>Consider adding visual data representations next time</li>
-                </ul>
-                <p><span className="text-foreground font-medium">Next step:</span> For your next task, try using a framework like SMART goals when writing recommendations.</p>
-                <p>Keep it up! 💪<br />Sarah</p>
+              <div className="p-5 text-sm leading-relaxed space-y-5">
+                {/* Scores */}
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.entries(feedback.scores).map(([key, val]) => (
+                    <div key={key} className="bg-secondary/30 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium text-foreground capitalize">{key.replace(/_/g, " ")}</span>
+                        <span className="text-xs font-bold text-accent">{val.score}/10</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{val.reason}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Strengths */}
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">✅ Strengths</h4>
+                  <div className="space-y-3">
+                    {feedback.strengths.map((s, i) => (
+                      <div key={i} className="border-l-2 border-accent pl-3">
+                        <p className="text-foreground font-medium text-sm">{s.point}</p>
+                        <p className="text-xs text-muted-foreground italic mt-1">"{s.quote}"</p>
+                        <p className="text-xs text-muted-foreground mt-1">{s.why}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Improvements */}
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">🔧 Areas for Improvement</h4>
+                  <div className="space-y-4">
+                    {feedback.improvements.map((imp, i) => (
+                      <div key={i} className="border-l-2 border-primary pl-3">
+                        <p className="text-foreground font-medium text-sm">{imp.point}</p>
+                        <p className="text-xs text-muted-foreground italic mt-1">Your words: "{imp.quote}"</p>
+                        <p className="text-xs text-muted-foreground mt-1">Why: {imp.why}</p>
+                        <div className="bg-secondary/50 rounded-md p-2 mt-2">
+                          <p className="text-xs text-foreground">💡 <span className="font-medium">Suggested revision:</span> {imp.suggestion}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Final Summary */}
+                <div className="bg-secondary/30 rounded-lg p-4 border border-border">
+                  <p className="text-sm text-foreground font-medium">{feedback.final_summary}</p>
+                  <p className="text-xs text-muted-foreground mt-2">— Sarah</p>
+                </div>
               </div>
               <div className="p-5 border-t border-border flex gap-3">
                 <Button variant="hero" asChild>
@@ -473,6 +517,10 @@ const ActiveSimulation = () => {
                   <MessageCircle className="w-4 h-4 mr-1" /> Ask Manager
                 </Button>
               </div>
+            </div>
+          ) : (
+            <div className="bg-card border border-border rounded-xl p-10 shadow-card text-center">
+              <p className="text-muted-foreground">Files uploaded successfully. Write a text submission to receive AI feedback.</p>
             </div>
           )}
 
