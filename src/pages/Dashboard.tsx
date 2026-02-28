@@ -47,8 +47,8 @@ const Dashboard = () => {
           </Link>
           <div className="flex items-center gap-4">
             <Link to="/roles" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Roles</Link>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/login">Sign Out</Link>
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              Sign Out
             </Button>
           </div>
         </div>
