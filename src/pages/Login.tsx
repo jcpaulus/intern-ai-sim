@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,12 +7,22 @@ import { Zap, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (!authLoading && user) {
+      console.log("[Login] User already authenticated, redirecting to dashboard");
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, authLoading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +34,7 @@ const Login = () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
+      console.error("[Login] Email login error:", error.message);
       toast.error(error.message);
       return;
     }
@@ -33,14 +44,30 @@ const Login = () => {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    const { error } = await lovable.auth.signInWithOAuth("google", {
+    console.log("[Login] Starting Google OAuth...");
+    const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
-    setLoading(false);
-    if (error) {
-      toast.error("Gagal login dengan Google: " + (error as Error).message);
+    console.log("[Login] Google OAuth result:", result);
+    if (result.error) {
+      console.error("[Login] Google OAuth error:", result.error);
+      toast.error("Gagal login dengan Google: " + (result.error as Error).message);
+      setLoading(false);
     }
+    // If redirected, the page will reload and useAuth will pick up the session
   };
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Don't render login form if user is already authenticated
+  if (user) return null;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6">
