@@ -8,6 +8,19 @@ import { Zap, Send, Lightbulb, MessageCircle, Upload, CheckCircle, Clock, AlertC
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+interface FeedbackData {
+  overall_score: number;
+  strengths: { point: string; quote: string; why: string }[];
+  improvements: { point: string; quote: string; why: string; suggestion: string }[];
+  scores: {
+    clarity: { score: number; reason: string };
+    depth_of_insight: { score: number; reason: string };
+    use_of_data: { score: number; reason: string };
+    actionability: { score: number; reason: string };
+  };
+  final_summary: string;
+}
+
 const ALLOWED_TYPES = [
   "application/pdf",
   "application/msword",
