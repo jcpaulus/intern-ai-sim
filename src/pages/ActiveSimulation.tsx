@@ -21,6 +21,30 @@ interface FeedbackData {
   final_summary: string;
 }
 
+const normalizeFeedback = (raw: unknown): FeedbackData | null => {
+  if (!raw || typeof raw !== "object") return null;
+  const data = raw as Record<string, any>;
+  const scores = data.scores && typeof data.scores === "object" ? data.scores : {};
+
+  const normalizeScore = (scoreData: any) => ({
+    score: typeof scoreData?.score === "number" ? scoreData.score : 0,
+    reason: typeof scoreData?.reason === "string" ? scoreData.reason : "No reason provided",
+  });
+
+  return {
+    overall_score: typeof data.overall_score === "number" ? data.overall_score : 0,
+    strengths: Array.isArray(data.strengths) ? data.strengths : [],
+    improvements: Array.isArray(data.improvements) ? data.improvements : [],
+    scores: {
+      clarity: normalizeScore(scores.clarity),
+      depth_of_insight: normalizeScore(scores.depth_of_insight),
+      use_of_data: normalizeScore(scores.use_of_data),
+      actionability: normalizeScore(scores.actionability),
+    },
+    final_summary: typeof data.final_summary === "string" ? data.final_summary : "Feedback tidak tersedia.",
+  };
+};
+
 const ALLOWED_TYPES = [
   "application/pdf",
   "application/msword",
@@ -188,52 +212,58 @@ const ActiveSimulation = () => {
 
   const handleSubmit = async () => {
     if (!submission.trim() && fileStates.length === 0) return;
+
     setUploading(true);
 
-    // Check auth
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("Kamu harus login terlebih dahulu untuk submit.");
-      setUploading(false);
-      return;
-    }
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (fileStates.length > 0) {
-      const success = await uploadAllFiles(user.id);
-      if (!success) {
-        toast.error("Beberapa file gagal diupload. Coba lagi.");
-        setUploading(false);
+      if (userError) throw userError;
+
+      if (!user) {
+        toast.error("Kamu harus login terlebih dahulu untuk submit.");
         return;
       }
-      toast.success(`${fileStates.length} file berhasil diupload!`);
-    }
 
-    setUploading(false);
+      if (fileStates.length > 0) {
+        const success = await uploadAllFiles(user.id);
+        if (!success) {
+          toast.error("Beberapa file gagal diupload. Coba lagi.");
+          return;
+        }
+        toast.success(`${fileStates.length} file berhasil diupload!`);
+      }
 
-    // Get AI feedback
-    if (submission.trim()) {
+      if (!submission.trim()) {
+        setShowFeedback(true);
+        return;
+      }
+
       setLoadingFeedback(true);
       setShowFeedback(true);
-      try {
-        const { data, error } = await supabase.functions.invoke("evaluate-submission", {
-          body: {
-            submission: submission.trim(),
-            taskTitle: currentTask.title,
-            taskBrief: "Create a campaign performance report for Q1 social media campaigns. Include: overview of key metrics (impressions, engagement rate, CTR), top 3 performing posts with analysis, and Q2 recommendations based on data.",
-          },
-        });
-        if (error) throw error;
-        if (data?.error) throw new Error(data.error);
-        setFeedback(data.feedback);
-      } catch (err: any) {
-        console.error("Feedback error:", err);
-        toast.error("Gagal mendapatkan feedback: " + (err.message || "Unknown error"));
-        setShowFeedback(false);
-      } finally {
-        setLoadingFeedback(false);
-      }
-    } else {
-      setShowFeedback(true);
+
+      const { data, error } = await supabase.functions.invoke("evaluate-submission", {
+        body: {
+          submission: submission.trim(),
+          taskTitle: currentTask.title,
+          taskBrief: "Create a campaign performance report for Q1 social media campaigns. Include: overview of key metrics (impressions, engagement rate, CTR), top 3 performing posts with analysis, and Q2 recommendations based on data.",
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      const safeFeedback = normalizeFeedback(data?.feedback);
+      if (!safeFeedback) throw new Error("Format feedback AI tidak valid.");
+
+      setFeedback(safeFeedback);
+    } catch (err: any) {
+      console.error("Feedback error:", err);
+      toast.error("Gagal mendapatkan feedback: " + (err?.message || "Unknown error"));
+      setShowFeedback(false);
+    } finally {
+      setUploading(false);
+      setLoadingFeedback(false);
     }
   };
 
