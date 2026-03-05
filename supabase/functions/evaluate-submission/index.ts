@@ -52,9 +52,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { submission, taskTitle, taskBrief } = await req.json();
+    const { submission, taskTitle, taskBrief, fileContent, fileName } = await req.json();
 
-    if (!submission || submission.trim().length === 0) {
+    if ((!submission || submission.trim().length === 0) && !fileContent) {
       return new Response(JSON.stringify({ error: "No submission provided" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -64,13 +64,18 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    let fileSection = "";
+    if (fileContent && fileName) {
+      fileSection = `\n\nATTACHED FILE (${fileName}):\n"""\n${fileContent}\n"""`;
+    }
+
     const userMessage = `TASK: "${taskTitle}"
 TASK BRIEF: ${taskBrief}
 
 INTERN'S SUBMISSION:
 """
-${submission}
-"""
+${submission || "(No text answer provided — see attached file)"}
+"""${fileSection}
 
 Evaluate this submission thoroughly. Reference specific parts of their work.`;
 
