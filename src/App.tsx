@@ -37,6 +37,7 @@ const App = () => (
               <Route path="/simulation/setup/:roleId" element={<SimulationSetup />} />
               <Route path="/simulation/active" element={<ActiveSimulation />} />
               <Route path="/report" element={<PerformanceReport />} />
+              <Route path="/internship-simulation" element={<InternshipSimulation />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
