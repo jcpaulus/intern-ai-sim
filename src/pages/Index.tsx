@@ -137,6 +137,7 @@ const Footer = () => (
       </div>
       <div className="flex gap-8 text-sm text-muted-foreground">
         <Link to="/roles" className="hover:text-foreground transition-colors">Roles</Link>
+        <Link to="/internship-simulation" className="hover:text-foreground transition-colors">Simulation</Link>
         <Link to="/login" className="hover:text-foreground transition-colors">Login</Link>
         <span className="cursor-pointer hover:text-foreground transition-colors">Privacy</span>
         <span className="cursor-pointer hover:text-foreground transition-colors">Terms</span>
