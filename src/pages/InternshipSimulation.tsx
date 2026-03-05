@@ -74,9 +74,62 @@ const InternshipSimulation = () => {
     }
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!ext || !ALLOWED_EXTENSIONS.includes(ext)) {
+      toast.error("Only PDF, DOCX, and TXT files are allowed.");
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File size must be under 10MB.");
+      return;
+    }
+    setUploadedFile(file);
+    toast.success(`File "${file.name}" selected.`);
+  };
+
+  const removeFile = () => {
+    setUploadedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const readFileAsText = async (file: File): Promise<string> => {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (ext === "txt") {
+      return await file.text();
+    }
+    // For PDF/DOCX, convert to base64 and let the edge function know
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return `[FILE:${ext}:${file.name}]\n${btoa(binary)}`;
+  };
+
+  const uploadFileToStorage = async (file: File): Promise<string | null> => {
+    try {
+      const timestamp = Date.now();
+      const filePath = `internship-sim/${timestamp}_${file.name}`;
+      const { error } = await supabase.storage
+        .from("submissions")
+        .upload(filePath, file);
+      if (error) throw error;
+      return filePath;
+    } catch (e) {
+      console.error("File upload error:", e);
+      toast.error("Failed to upload file.");
+      return null;
+    }
+  };
+
   const handleSubmitAnswer = async () => {
-    if (!answer.trim()) {
-      toast.error("Please write your answer first.");
+    if (!answer.trim() && !uploadedFile) {
+      toast.error("Please write your answer or upload a file.");
       return;
     }
     if (!task) {
@@ -88,11 +141,24 @@ const InternshipSimulation = () => {
     setFeedback(null);
 
     try {
+      let fileContent: string | undefined;
+      let fileName: string | undefined;
+
+      if (uploadedFile) {
+        // Upload to storage
+        await uploadFileToStorage(uploadedFile);
+        // Read content for AI evaluation
+        fileContent = await readFileAsText(uploadedFile);
+        fileName = uploadedFile.name;
+      }
+
       const { data, error } = await supabase.functions.invoke("evaluate-submission", {
         body: {
           submission: answer,
           taskTitle: task.title,
           taskBrief: task.brief,
+          fileContent,
+          fileName,
         },
       });
 
