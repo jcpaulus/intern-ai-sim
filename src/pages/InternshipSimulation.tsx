@@ -273,6 +273,42 @@ const InternshipSimulation = () => {
               className="min-h-[180px] resize-y"
               disabled={!task}
             />
+
+            {/* File Upload */}
+            <div className="space-y-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.docx,.txt"
+                onChange={handleFileSelect}
+                className="hidden"
+                disabled={!task}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={!task}
+                className="gap-2"
+              >
+                <Upload className="w-4 h-4" /> Upload File
+              </Button>
+              <p className="text-xs text-muted-foreground">Supported: PDF, DOCX, TXT (max 10MB)</p>
+
+              {uploadedFile && (
+                <div className="flex items-center gap-2 bg-secondary/50 rounded-lg px-3 py-2 w-fit">
+                  <FileText className="w-4 h-4 text-accent" />
+                  <span className="text-sm font-medium">{uploadedFile.name}</span>
+                  <button
+                    onClick={removeFile}
+                    className="ml-1 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+
             <Button
               variant="hero"
               onClick={handleSubmitAnswer}
