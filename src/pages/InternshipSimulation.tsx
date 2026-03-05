@@ -42,6 +42,8 @@ const InternshipSimulation = () => {
   const [feedback, setFeedback] = useState<any>(null);
   const [generatingTask, setGeneratingTask] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleGenerateTask = async () => {
     if (!selectedRole) {
