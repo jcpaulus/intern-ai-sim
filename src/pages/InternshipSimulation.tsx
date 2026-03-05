@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,9 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Zap, Loader2, Send, Sparkles, CheckCircle, AlertTriangle } from "lucide-react";
+import { Zap, Loader2, Send, Sparkles, CheckCircle, AlertTriangle, Upload, FileText, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+const ALLOWED_EXTENSIONS = ["pdf", "docx", "txt"];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 const INTERNSHIP_ROLES = [
   {
@@ -39,6 +42,8 @@ const InternshipSimulation = () => {
   const [feedback, setFeedback] = useState<any>(null);
   const [generatingTask, setGeneratingTask] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleGenerateTask = async () => {
     if (!selectedRole) {
@@ -69,9 +74,62 @@ const InternshipSimulation = () => {
     }
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!ext || !ALLOWED_EXTENSIONS.includes(ext)) {
+      toast.error("Only PDF, DOCX, and TXT files are allowed.");
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File size must be under 10MB.");
+      return;
+    }
+    setUploadedFile(file);
+    toast.success(`File "${file.name}" selected.`);
+  };
+
+  const removeFile = () => {
+    setUploadedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const readFileAsText = async (file: File): Promise<string> => {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (ext === "txt") {
+      return await file.text();
+    }
+    // For PDF/DOCX, convert to base64 and let the edge function know
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return `[FILE:${ext}:${file.name}]\n${btoa(binary)}`;
+  };
+
+  const uploadFileToStorage = async (file: File): Promise<string | null> => {
+    try {
+      const timestamp = Date.now();
+      const filePath = `internship-sim/${timestamp}_${file.name}`;
+      const { error } = await supabase.storage
+        .from("submissions")
+        .upload(filePath, file);
+      if (error) throw error;
+      return filePath;
+    } catch (e) {
+      console.error("File upload error:", e);
+      toast.error("Failed to upload file.");
+      return null;
+    }
+  };
+
   const handleSubmitAnswer = async () => {
-    if (!answer.trim()) {
-      toast.error("Please write your answer first.");
+    if (!answer.trim() && !uploadedFile) {
+      toast.error("Please write your answer or upload a file.");
       return;
     }
     if (!task) {
@@ -83,11 +141,24 @@ const InternshipSimulation = () => {
     setFeedback(null);
 
     try {
+      let fileContent: string | undefined;
+      let fileName: string | undefined;
+
+      if (uploadedFile) {
+        // Upload to storage
+        await uploadFileToStorage(uploadedFile);
+        // Read content for AI evaluation
+        fileContent = await readFileAsText(uploadedFile);
+        fileName = uploadedFile.name;
+      }
+
       const { data, error } = await supabase.functions.invoke("evaluate-submission", {
         body: {
           submission: answer,
           taskTitle: task.title,
           taskBrief: task.brief,
+          fileContent,
+          fileName,
         },
       });
 
@@ -202,6 +273,42 @@ const InternshipSimulation = () => {
               className="min-h-[180px] resize-y"
               disabled={!task}
             />
+
+            {/* File Upload */}
+            <div className="space-y-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.docx,.txt"
+                onChange={handleFileSelect}
+                className="hidden"
+                disabled={!task}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={!task}
+                className="gap-2"
+              >
+                <Upload className="w-4 h-4" /> Upload File
+              </Button>
+              <p className="text-xs text-muted-foreground">Supported: PDF, DOCX, TXT (max 10MB)</p>
+
+              {uploadedFile && (
+                <div className="flex items-center gap-2 bg-secondary/50 rounded-lg px-3 py-2 w-fit">
+                  <FileText className="w-4 h-4 text-accent" />
+                  <span className="text-sm font-medium">{uploadedFile.name}</span>
+                  <button
+                    onClick={removeFile}
+                    className="ml-1 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+
             <Button
               variant="hero"
               onClick={handleSubmitAnswer}
