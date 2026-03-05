@@ -1,0 +1,323 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Zap, Loader2, Send, Sparkles, CheckCircle, AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+const INTERNSHIP_ROLES = [
+  {
+    value: "marketing-intern",
+    label: "Marketing Intern",
+    context: "You are assigning tasks to a Marketing Intern at a digital agency. Create realistic marketing tasks involving campaign planning, copywriting, social media strategy, or data reporting.",
+  },
+  {
+    value: "product-manager-intern",
+    label: "Product Manager Intern",
+    context: "You are assigning tasks to a Product Manager Intern at a tech startup. Create realistic PM tasks involving user research, feature prioritization, PRD writing, or stakeholder communication.",
+  },
+  {
+    value: "startup-founder-intern",
+    label: "Startup Founder Intern",
+    context: "You are assigning tasks to a Startup Founder Intern in a venture studio. Create realistic founder tasks involving market validation, pitch deck creation, business model design, or customer discovery.",
+  },
+];
+
+const InternshipSimulation = () => {
+  const [selectedRole, setSelectedRole] = useState("");
+  const [task, setTask] = useState<{ title: string; brief: string } | null>(null);
+  const [answer, setAnswer] = useState("");
+  const [feedback, setFeedback] = useState<any>(null);
+  const [generatingTask, setGeneratingTask] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleGenerateTask = async () => {
+    if (!selectedRole) {
+      toast.error("Please choose an internship first.");
+      return;
+    }
+
+    const role = INTERNSHIP_ROLES.find((r) => r.value === selectedRole);
+    if (!role) return;
+
+    setGeneratingTask(true);
+    setTask(null);
+    setFeedback(null);
+    setAnswer("");
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-task", {
+        body: { role: role.value, context: role.context },
+      });
+
+      if (error) throw error;
+      setTask(data.task);
+    } catch (e: any) {
+      console.error("Generate task error:", e);
+      toast.error("Failed to generate task. Please try again.");
+    } finally {
+      setGeneratingTask(false);
+    }
+  };
+
+  const handleSubmitAnswer = async () => {
+    if (!answer.trim()) {
+      toast.error("Please write your answer first.");
+      return;
+    }
+    if (!task) {
+      toast.error("No task to submit against.");
+      return;
+    }
+
+    setSubmitting(true);
+    setFeedback(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("evaluate-submission", {
+        body: {
+          submission: answer,
+          taskTitle: task.title,
+          taskBrief: task.brief,
+        },
+      });
+
+      if (error) throw error;
+      setFeedback(data.feedback);
+      toast.success("Feedback received!");
+    } catch (e: any) {
+      console.error("Submit error:", e);
+      toast.error("Failed to get feedback. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Navigation */}
+      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+        <div className="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <Zap className="w-6 h-6 text-accent" />
+            <span className="text-xl font-bold">Internly</span>
+          </Link>
+          <div className="flex items-center gap-4">
+            <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Dashboard
+            </Link>
+            <Link to="/roles" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Roles
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-6 py-12 space-y-8">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Internship Simulation</h1>
+          <p className="text-muted-foreground text-lg">
+            Pick a role, get an AI-generated task, and submit your work for instant feedback.
+          </p>
+        </div>
+
+        {/* Role Selection + Generate */}
+        <Card className="border-border">
+          <CardContent className="pt-6 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Choose Internship</label>
+              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a role..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {INTERNSHIP_ROLES.map((role) => (
+                    <SelectItem key={role.value} value={role.value}>
+                      {role.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              variant="hero"
+              onClick={handleGenerateTask}
+              disabled={generatingTask || !selectedRole}
+              className="w-full sm:w-auto"
+            >
+              {generatingTask ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" /> Generate Task
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Task Card */}
+        <Card className={`border-border transition-opacity ${task ? "opacity-100" : "opacity-40"}`}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Sparkles className="w-5 h-5 text-accent" /> Task
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {task ? (
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg">{task.title}</h3>
+                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{task.brief}</p>
+              </div>
+            ) : (
+              <p className="text-muted-foreground italic">
+                {generatingTask ? "Generating your task..." : "Select a role and click Generate Task to begin."}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Answer Section */}
+        <Card className={`border-border transition-opacity ${task ? "opacity-100" : "opacity-40 pointer-events-none"}`}>
+          <CardHeader>
+            <CardTitle className="text-xl">Your Answer</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Textarea
+              placeholder="Write your answer here..."
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              className="min-h-[180px] resize-y"
+              disabled={!task}
+            />
+            <Button
+              variant="hero"
+              onClick={handleSubmitAnswer}
+              disabled={submitting || !task || !answer.trim()}
+              className="w-full sm:w-auto"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Evaluating...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" /> Submit Answer
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* AI Feedback Card */}
+        <Card className={`border-border transition-opacity ${feedback ? "opacity-100" : "opacity-40"}`}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Zap className="w-5 h-5 text-accent" /> AI Feedback
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {feedback ? (
+              <div className="space-y-6">
+                {/* Overall Score */}
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 rounded-xl gradient-primary flex items-center justify-center">
+                    <span className="text-2xl font-bold text-foreground">{feedback.overall_score ?? "–"}</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold">Overall Score</p>
+                    <p className="text-sm text-muted-foreground">out of 10</p>
+                  </div>
+                </div>
+
+                {/* Dimension Scores */}
+                {feedback.scores && (
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {Object.entries(feedback.scores).map(([key, val]: [string, any]) => (
+                      <div key={key} className="bg-secondary/50 rounded-lg p-3">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-sm font-medium capitalize">{key.replace(/_/g, " ")}</span>
+                          <span className="text-sm font-bold text-accent">{val?.score ?? "–"}/10</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{val?.reason}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Strengths */}
+                {feedback.strengths?.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-semibold flex items-center gap-1.5 text-sm">
+                      <CheckCircle className="w-4 h-4 text-green-500" /> Strengths
+                    </h4>
+                    {feedback.strengths.map((s: any, i: number) => (
+                      <div key={i} className="bg-secondary/30 rounded-lg p-3 space-y-1">
+                        <p className="text-sm font-medium">{s.point}</p>
+                        {s.quote && (
+                          <blockquote className="text-xs text-muted-foreground border-l-2 border-accent pl-2 italic">
+                            "{s.quote}"
+                          </blockquote>
+                        )}
+                        {s.why && <p className="text-xs text-muted-foreground">{s.why}</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Improvements */}
+                {feedback.improvements?.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-semibold flex items-center gap-1.5 text-sm">
+                      <AlertTriangle className="w-4 h-4 text-yellow-500" /> Areas for Improvement
+                    </h4>
+                    {feedback.improvements.map((imp: any, i: number) => (
+                      <div key={i} className="bg-secondary/30 rounded-lg p-3 space-y-1">
+                        <p className="text-sm font-medium">{imp.point}</p>
+                        {imp.quote && (
+                          <blockquote className="text-xs text-muted-foreground border-l-2 border-destructive pl-2 italic">
+                            "{imp.quote}"
+                          </blockquote>
+                        )}
+                        {imp.why && <p className="text-xs text-muted-foreground">{imp.why}</p>}
+                        {imp.suggestion && (
+                          <p className="text-xs text-accent font-medium">💡 {imp.suggestion}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Final Summary */}
+                {feedback.final_summary && (
+                  <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
+                    <p className="text-sm font-medium italic">"{feedback.final_summary}"</p>
+                    <p className="text-xs text-muted-foreground mt-1">— Sarah Martinez, Marketing Manager</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-muted-foreground italic">
+                {submitting ? "Analyzing your submission..." : "Submit your answer to receive AI feedback."}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default InternshipSimulation;
