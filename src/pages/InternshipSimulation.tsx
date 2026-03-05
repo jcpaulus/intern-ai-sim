@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,9 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Zap, Loader2, Send, Sparkles, CheckCircle, AlertTriangle } from "lucide-react";
+import { Zap, Loader2, Send, Sparkles, CheckCircle, AlertTriangle, Upload, FileText, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+const ALLOWED_EXTENSIONS = ["pdf", "docx", "txt"];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 const INTERNSHIP_ROLES = [
   {
