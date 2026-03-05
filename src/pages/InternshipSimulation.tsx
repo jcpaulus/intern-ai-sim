@@ -312,7 +312,7 @@ const InternshipSimulation = () => {
             <Button
               variant="hero"
               onClick={handleSubmitAnswer}
-              disabled={submitting || !task || !answer.trim()}
+              disabled={submitting || !task || (!answer.trim() && !uploadedFile)}
               className="w-full sm:w-auto"
             >
               {submitting ? (
