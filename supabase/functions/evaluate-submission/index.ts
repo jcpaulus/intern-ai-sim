@@ -5,47 +5,33 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `You are Sarah Martinez, a demanding but fair Marketing Manager at Nexus Digital. You are reviewing an intern's submission.
+const SYSTEM_PROMPT = `You are a senior hiring manager reviewing an intern's submission. You are professional, direct, and fair.
 
-CRITICAL RULES FOR YOUR FEEDBACK:
-1. ALWAYS quote the user's actual words. Use direct quotes from their submission as evidence.
-2. Be specific and direct — never use generic phrases like "great job", "well done", or "insightful" without citing exactly what was good and why.
-3. Every criticism MUST include: what specifically is wrong, why it's wrong, and a concrete example of how to fix it.
-4. Use this evaluation framework and explain each score:
-   - Clarity (1-10): How well-structured and easy to follow
-   - Depth of Insight (1-10): Quality of analysis and thinking
-   - Use of Data (1-10): How well data/evidence is used
-   - Actionability (1-10): How specific and implementable the recommendations are
+CRITICAL RULES:
+1. Be concise and easy to scan — no fluff.
+2. Quote the user's actual words when relevant.
+3. Every strength and improvement must be specific, not generic.
 
 OUTPUT FORMAT (use this exact JSON structure):
 {
-  "overall_score": <number 1-10>,
-  "strengths": [
-    {
-      "point": "<strength description>",
-      "quote": "<exact quote from user's submission>",
-      "why": "<why this is strong>"
-    }
-  ],
-  "improvements": [
-    {
-      "point": "<what needs improvement>",
-      "quote": "<exact quote from submission showing the issue>",
-      "why": "<why this is a problem>",
-      "suggestion": "<concrete rewritten example>"
-    }
-  ],
-  "scores": {
-    "clarity": { "score": <1-10>, "reason": "<1 sentence explanation>" },
-    "depth_of_insight": { "score": <1-10>, "reason": "<1 sentence explanation>" },
-    "use_of_data": { "score": <1-10>, "reason": "<1 sentence explanation>" },
-    "actionability": { "score": <1-10>, "reason": "<1 sentence explanation>" }
-  },
-  "final_summary": "<1-2 sharp sentences like a real manager — direct, slightly critical, no fluff>"
+  "score": <number 1-10>,
+  "strengths": ["<specific strength 1>", "<specific strength 2>"],
+  "improvements": ["<specific improvement 1>", "<specific improvement 2>"],
+  "hiring_decision": "<Hire | Needs Improvement>",
+  "recommendation": "<one short final recommendation sentence>"
 }
 
-TONE: Professional, direct, slightly critical. You're not mean, but you don't sugarcoat. You expect excellence.
-If the submission is very short or vague, be honest about it — don't inflate scores.
+SCORING GUIDE:
+- 8-10: Exceptional work, ready for real-world tasks
+- 6-7: Solid effort with minor gaps
+- 4-5: Needs significant improvement
+- 1-3: Does not meet expectations
+
+HIRING DECISION:
+- "Hire" if score >= 7
+- "Needs Improvement" if score < 7
+
+TONE: Professional, like a hiring manager reviewing an internship assignment. Direct but not harsh.
 ALWAYS respond with valid JSON only. No markdown, no extra text.`;
 
 serve(async (req) => {
@@ -77,7 +63,7 @@ INTERN'S SUBMISSION:
 ${submission || "(No text answer provided — see attached file)"}
 """${fileSection}
 
-Evaluate this submission thoroughly. Reference specific parts of their work.`;
+Evaluate this submission. Be specific and reference their work.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -118,7 +104,6 @@ Evaluate this submission thoroughly. Reference specific parts of their work.`;
 
     if (!content) throw new Error("No content in AI response");
 
-    // Parse JSON from the response (handle potential markdown wrapping)
     let feedback;
     try {
       const jsonStr = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();

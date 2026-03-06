@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Zap, Loader2, Send, Sparkles, CheckCircle, AlertTriangle, Upload, FileText, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -352,31 +353,27 @@ const InternshipSimulation = () => {
           <CardContent>
             {feedback ? (
               <div className="space-y-6">
-                {/* Overall Score */}
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-xl gradient-primary flex items-center justify-center">
-                    <span className="text-2xl font-bold text-foreground">{feedback.overall_score ?? "–"}</span>
+                {/* Score + Hiring Decision */}
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="w-16 h-16 rounded-2xl gradient-hero flex items-center justify-center shadow-glow">
+                    <span className="text-3xl font-black text-foreground">{feedback.score ?? "–"}</span>
                   </div>
                   <div>
-                    <p className="font-semibold">Overall Score</p>
+                    <p className="font-semibold text-lg">Score</p>
                     <p className="text-sm text-muted-foreground">out of 10</p>
                   </div>
-                </div>
-
-                {/* Dimension Scores */}
-                {feedback.scores && (
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {Object.entries(feedback.scores).map(([key, val]: [string, any]) => (
-                      <div key={key} className="bg-secondary/50 rounded-lg p-3">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-sm font-medium capitalize">{key.replace(/_/g, " ")}</span>
-                          <span className="text-sm font-bold text-accent">{val?.score ?? "–"}/10</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{val?.reason}</p>
-                      </div>
-                    ))}
+                  <div className="ml-auto">
+                    <Badge
+                      className={`text-sm px-4 py-1.5 font-bold ${
+                        feedback.hiring_decision === "Hire"
+                          ? "bg-green-500/15 text-green-400 border-green-500/30"
+                          : "bg-yellow-500/15 text-yellow-400 border-yellow-500/30"
+                      }`}
+                    >
+                      {feedback.hiring_decision === "Hire" ? "✓ Hire" : "⚠ Needs Improvement"}
+                    </Badge>
                   </div>
-                )}
+                </div>
 
                 {/* Strengths */}
                 {feedback.strengths?.length > 0 && (
@@ -384,17 +381,14 @@ const InternshipSimulation = () => {
                     <h4 className="font-semibold flex items-center gap-1.5 text-sm">
                       <CheckCircle className="w-4 h-4 text-green-500" /> Strengths
                     </h4>
-                    {feedback.strengths.map((s: any, i: number) => (
-                      <div key={i} className="bg-secondary/30 rounded-lg p-3 space-y-1">
-                        <p className="text-sm font-medium">{s.point}</p>
-                        {s.quote && (
-                          <blockquote className="text-xs text-muted-foreground border-l-2 border-accent pl-2 italic">
-                            "{s.quote}"
-                          </blockquote>
-                        )}
-                        {s.why && <p className="text-xs text-muted-foreground">{s.why}</p>}
-                      </div>
-                    ))}
+                    <ul className="space-y-1.5">
+                      {feedback.strengths.map((s: string, i: number) => (
+                        <li key={i} className="flex items-start gap-2 bg-secondary/30 rounded-lg px-3 py-2">
+                          <span className="text-green-500 mt-0.5 shrink-0">•</span>
+                          <span className="text-sm">{s}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
 
@@ -404,28 +398,22 @@ const InternshipSimulation = () => {
                     <h4 className="font-semibold flex items-center gap-1.5 text-sm">
                       <AlertTriangle className="w-4 h-4 text-yellow-500" /> Areas for Improvement
                     </h4>
-                    {feedback.improvements.map((imp: any, i: number) => (
-                      <div key={i} className="bg-secondary/30 rounded-lg p-3 space-y-1">
-                        <p className="text-sm font-medium">{imp.point}</p>
-                        {imp.quote && (
-                          <blockquote className="text-xs text-muted-foreground border-l-2 border-destructive pl-2 italic">
-                            "{imp.quote}"
-                          </blockquote>
-                        )}
-                        {imp.why && <p className="text-xs text-muted-foreground">{imp.why}</p>}
-                        {imp.suggestion && (
-                          <p className="text-xs text-accent font-medium">💡 {imp.suggestion}</p>
-                        )}
-                      </div>
-                    ))}
+                    <ul className="space-y-1.5">
+                      {feedback.improvements.map((imp: string, i: number) => (
+                        <li key={i} className="flex items-start gap-2 bg-secondary/30 rounded-lg px-3 py-2">
+                          <span className="text-yellow-500 mt-0.5 shrink-0">•</span>
+                          <span className="text-sm">{imp}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
 
-                {/* Final Summary */}
-                {feedback.final_summary && (
+                {/* Recommendation */}
+                {feedback.recommendation && (
                   <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
-                    <p className="text-sm font-medium italic">"{feedback.final_summary}"</p>
-                    <p className="text-xs text-muted-foreground mt-1">— Sarah Martinez, Marketing Manager</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Recommendation</p>
+                    <p className="text-sm font-medium">{feedback.recommendation}</p>
                   </div>
                 )}
               </div>
