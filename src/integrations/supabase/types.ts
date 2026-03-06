@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      simulation_runs: {
+        Row: {
+          answer: string | null
+          created_at: string
+          feedback: string
+          id: string
+          role: string
+          task: string
+          user_id: string
+        }
+        Insert: {
+          answer?: string | null
+          created_at?: string
+          feedback: string
+          id?: string
+          role: string
+          task: string
+          user_id: string
+        }
+        Update: {
+          answer?: string | null
+          created_at?: string
+          feedback?: string
+          id?: string
+          role?: string
+          task?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       submissions_files: {
         Row: {
           created_at: string | null
