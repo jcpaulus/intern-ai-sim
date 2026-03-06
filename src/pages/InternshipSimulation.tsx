@@ -164,6 +164,20 @@ const InternshipSimulation = () => {
 
       if (error) throw error;
       setFeedback(data.feedback);
+
+      // Save simulation run to database
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { error: insertError } = await supabase.from("simulation_runs" as any).insert({
+          user_id: session.user.id,
+          role: selectedRole,
+          task: JSON.stringify(task),
+          answer: answer || null,
+          feedback: JSON.stringify(data.feedback),
+        } as any);
+        if (insertError) console.error("Failed to save simulation run:", insertError);
+      }
+
       toast.success("Feedback received!");
     } catch (e: any) {
       console.error("Submit error:", e);
