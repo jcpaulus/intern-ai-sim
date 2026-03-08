@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import {
   Zap, ArrowRight, ArrowLeft, Building2, Briefcase, Shield, GraduationCap,
   CalendarDays, CheckCircle2, Clock, Users, Target, BookOpen, FileCheck,
+  Crown, UserCircle2, ArrowDown,
 } from "lucide-react";
 
 interface CompanyData {
