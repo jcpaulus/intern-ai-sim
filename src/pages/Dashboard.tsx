@@ -8,6 +8,8 @@ import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { profile, user } = useAuth();
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || "Student";
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
