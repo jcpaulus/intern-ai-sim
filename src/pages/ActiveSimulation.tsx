@@ -210,6 +210,21 @@ const ActiveSimulation = () => {
     return allSuccess;
   };
 
+  const readFileAsText = async (file: File): Promise<string> => {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (ext === "txt") {
+      return await file.text();
+    }
+    // For PDF/DOCX/images, convert to base64
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return `[FILE:${ext}:${file.name}]\n${btoa(binary)}`;
+  };
+
   const handleSubmit = async () => {
     if (!submission.trim() && fileStates.length === 0) return;
 
@@ -221,32 +236,52 @@ const ActiveSimulation = () => {
       if (userError) throw userError;
 
       if (!user) {
-        toast.error("Kamu harus login terlebih dahulu untuk submit.");
+        toast.error("You must be logged in to submit.");
         return;
       }
 
+      // Upload files to storage
       if (fileStates.length > 0) {
         const success = await uploadAllFiles(user.id);
         if (!success) {
-          toast.error("Beberapa file gagal diupload. Coba lagi.");
+          toast.error("Some files failed to upload. Please try again.");
           return;
         }
-        toast.success(`${fileStates.length} file berhasil diupload!`);
       }
 
-      if (!submission.trim()) {
-        setShowFeedback(true);
-        return;
+      // Extract file content for AI evaluation
+      let fileContent: string | undefined;
+      let fileName: string | undefined;
+
+      if (fileStates.length > 0) {
+        try {
+          const fileTexts: string[] = [];
+          for (const fs of fileStates) {
+            const text = await readFileAsText(fs.file);
+            fileTexts.push(`--- ${fs.file.name} ---\n${text}`);
+          }
+          fileContent = fileTexts.join("\n\n");
+          fileName = fileStates.map(fs => fs.file.name).join(", ");
+        } catch (parseErr: any) {
+          console.error("File parsing error:", parseErr);
+          toast.error("Failed to parse file content: " + (parseErr?.message || "Unknown error"));
+          return;
+        }
       }
 
+      // Always trigger AI feedback if we have text or file content
       setLoadingFeedback(true);
       setShowFeedback(true);
 
+      const taskBrief = "Create a campaign performance report for Q1 social media campaigns. Include: overview of key metrics (impressions, engagement rate, CTR), top 3 performing posts with analysis, and Q2 recommendations based on data.";
+
       const { data, error } = await supabase.functions.invoke("evaluate-submission", {
         body: {
-          submission: submission.trim(),
+          submission: submission.trim() || undefined,
           taskTitle: currentTask.title,
-          taskBrief: "Create a campaign performance report for Q1 social media campaigns. Include: overview of key metrics (impressions, engagement rate, CTR), top 3 performing posts with analysis, and Q2 recommendations based on data.",
+          taskBrief,
+          fileContent,
+          fileName,
         },
       });
 
@@ -254,12 +289,29 @@ const ActiveSimulation = () => {
       if (data?.error) throw new Error(data.error);
 
       const safeFeedback = normalizeFeedback(data?.feedback);
-      if (!safeFeedback) throw new Error("Format feedback AI tidak valid.");
+      if (!safeFeedback) throw new Error("Invalid AI feedback format.");
 
       setFeedback(safeFeedback);
+
+      // Save to simulation_runs
+      const { error: insertError } = await supabase
+        .from("simulation_runs")
+        .insert({
+          user_id: user.id,
+          role: "marketing-analyst",
+          task: JSON.stringify({ title: currentTask.title, brief: taskBrief }),
+          answer: submission.trim() || (fileName ? `[File upload: ${fileName}]` : null),
+          feedback: JSON.stringify(data.feedback),
+        });
+
+      if (insertError) {
+        console.error("Failed to save simulation run:", insertError);
+      } else {
+        toast.success("Feedback received and saved!");
+      }
     } catch (err: any) {
       console.error("Feedback error:", err);
-      toast.error("Gagal mendapatkan feedback: " + (err?.message || "Unknown error"));
+      toast.error("Failed to get feedback: " + (err?.message || "Unknown error"));
       setShowFeedback(false);
     } finally {
       setUploading(false);
