@@ -184,7 +184,7 @@ const SimulationSetup = () => {
 
           <Button variant="hero" size="lg" className="w-full text-lg py-6" onClick={() => {
             const company = companies.find(c => c.id === selectedCompany)!;
-            navigate("/simulation/active", {
+            navigate("/simulation/orientation", {
               state: {
                 roleId: roleId || "marketing-analyst",
                 roleTitle: role.title,
