@@ -203,7 +203,7 @@ const InternshipSimulation = () => {
       }
     } catch (e: any) {
       console.error("Submit error:", e);
-      toast.error("Failed to get feedback. Please try again.");
+      toast.error(e?.message || "Failed to get feedback. Please try again.");
     } finally {
       setSubmitting(false);
     }
