@@ -26,21 +26,33 @@ const SignUp = () => {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { full_name: name },
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: `${window.location.origin}/onboarding`,
       },
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      console.error("[SignUp] Error:", error.message, error);
+      if (error.message.includes("already registered")) {
+        toast.error("This email is already registered. Please sign in instead.");
+      } else if (error.message.includes("valid email")) {
+        toast.error("Please enter a valid email address.");
+      } else {
+        toast.error(error.message);
+      }
       return;
     }
-    toast.success("Akun berhasil dibuat!");
-    navigate("/onboarding");
+    // Check if email confirmation is needed
+    if (data.user && !data.session) {
+      toast.success("Account created! Please check your email to confirm your account.");
+    } else {
+      toast.success("Account created successfully!");
+      navigate("/onboarding");
+    }
   };
 
   const handleGoogleSignUp = async () => {

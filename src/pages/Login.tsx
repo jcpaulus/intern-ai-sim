@@ -30,18 +30,27 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Masukkan email dan password.");
+      toast.error("Please enter both email and password.");
       return;
     }
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      console.error("[Login] Email login error:", error.message);
-      toast.error(error.message);
+      console.error("[Login] Email login error:", error.message, error);
+      // Provide clear, user-friendly error messages
+      if (error.message.includes("Invalid login credentials")) {
+        toast.error("Invalid email or password. Please check your credentials or sign up first.");
+      } else if (error.message.includes("Email not confirmed")) {
+        toast.error("Your email is not confirmed yet. Please check your inbox for a verification link.");
+      } else if (error.message.includes("Invalid Refresh Token") || error.message.includes("refresh_token")) {
+        toast.error("Your session has expired. Please sign in again.");
+      } else {
+        toast.error(error.message);
+      }
       return;
     }
-    toast.success("Login berhasil!");
+    toast.success("Login successful!");
     // Redirect will be handled by useEffect above after profile loads
   };
 
