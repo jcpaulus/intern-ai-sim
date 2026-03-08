@@ -166,20 +166,37 @@ const InternshipSimulation = () => {
       if (error) throw error;
       setFeedback(data.feedback);
 
+      // Log which Supabase project URL is being used
+      console.log("[Supabase] Project URL:", import.meta.env.VITE_SUPABASE_URL);
+
       // Save simulation run to database
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        const { error: insertError } = await supabase.from("simulation_runs" as any).insert({
+        const insertPayload = {
           user_id: session.user.id,
           role: selectedRole,
           task: JSON.stringify(task),
           answer: answer || null,
           feedback: JSON.stringify(data.feedback),
-        } as any);
-        if (insertError) console.error("Failed to save simulation run:", insertError);
-      }
+        };
+        console.log("[Supabase] Inserting into simulation_runs:", insertPayload);
 
-      toast.success("Feedback received!");
+        const { data: insertData, error: insertError } = await supabase
+          .from("simulation_runs")
+          .insert(insertPayload)
+          .select();
+
+        if (insertError) {
+          console.error("[Supabase] Insert error:", insertError);
+          toast.error("Failed to save simulation run.");
+        } else {
+          console.log("[Supabase] Insert success:", insertData);
+          toast.success("Feedback received and saved!");
+        }
+      } else {
+        console.warn("[Supabase] No active session — simulation run not saved.");
+        toast.success("Feedback received! (Sign in to save your results)");
+      }
     } catch (e: any) {
       console.error("Submit error:", e);
       toast.error("Failed to get feedback. Please try again.");
