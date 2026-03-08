@@ -24,7 +24,7 @@ const quizSteps = [
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
 
@@ -50,7 +50,9 @@ const Onboarding = () => {
       if (error) {
         console.error("[Onboarding] Failed to update profile:", error);
         toast.error("Failed to save onboarding status.");
+        return;
       }
+      await refreshProfile();
       navigate("/roles");
     }
   };
