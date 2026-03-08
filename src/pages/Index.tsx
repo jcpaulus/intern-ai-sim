@@ -1,5 +1,7 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
 import { ArrowRight, Sparkles, BarChart3, Users, CheckCircle, Star, Zap, Shield } from "lucide-react";
 
 const LandingHero = () => (
@@ -147,30 +149,49 @@ const Footer = () => (
   </footer>
 );
 
-const Index = () => (
-  <div className="min-h-screen bg-background">
-    <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-border">
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <Zap className="w-6 h-6 text-accent" />
-          <span className="text-xl font-bold">Internly</span>
-        </Link>
-        <div className="hidden md:flex items-center gap-8">
-          <Link to="/roles" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Roles</Link>
-          <Link to="/internship-simulation" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Simulation</Link>
-          <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Login</Link>
-          <Button variant="hero" size="sm" asChild>
-            <Link to="/signup">Get Started</Link>
-          </Button>
-        </div>
+const Index = () => {
+  const { user, profile, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
-    </nav>
-    <LandingHero />
-    <HowItWorks />
-    <SocialProof />
-    <Pricing />
-    <Footer />
-  </div>
-);
+    );
+  }
+
+  if (user && profile) {
+    if (profile.onboarding_completed) {
+      return <Navigate to="/dashboard" replace />;
+    }
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <Zap className="w-6 h-6 text-accent" />
+            <span className="text-xl font-bold">Internly</span>
+          </Link>
+          <div className="hidden md:flex items-center gap-8">
+            <Link to="/roles" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Roles</Link>
+            <Link to="/internship-simulation" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Simulation</Link>
+            <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Login</Link>
+            <Button variant="hero" size="sm" asChild>
+              <Link to="/signup">Get Started</Link>
+            </Button>
+          </div>
+        </div>
+      </nav>
+      <LandingHero />
+      <HowItWorks />
+      <SocialProof />
+      <Pricing />
+      <Footer />
+    </div>
+  );
+};
 
 export default Index;
