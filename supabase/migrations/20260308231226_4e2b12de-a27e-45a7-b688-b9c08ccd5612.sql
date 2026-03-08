@@ -1,0 +1,1 @@
+CREATE POLICY "Users can update own runs" ON public.simulation_runs FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
