@@ -389,8 +389,10 @@ const InternshipOnboarding = () => {
                   );
                 })()}
               </div>
+            )}
+
             {/* ROLE */}
-            {currentSection === 1 && (
+            {currentSection === 2 && (
               <div className="space-y-6">
                 <div>
                   <h2 className="text-xl font-bold mb-1 flex items-center gap-2"><Briefcase className="w-5 h-5 text-accent" /> {roleTitle}</h2>
