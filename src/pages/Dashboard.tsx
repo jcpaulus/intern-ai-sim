@@ -50,6 +50,9 @@ const Dashboard = () => {
           </Link>
           <div className="flex items-center gap-4">
             <Link to="/roles" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Roles</Link>
+            <Link to="/profile" className="text-muted-foreground hover:text-foreground transition-colors">
+              <User className="w-5 h-5" />
+            </Link>
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               Sign Out
             </Button>
