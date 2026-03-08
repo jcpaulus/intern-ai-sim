@@ -24,6 +24,7 @@ const quizSteps = [
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
 
