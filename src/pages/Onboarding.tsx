@@ -50,7 +50,9 @@ const Onboarding = () => {
       if (error) {
         console.error("[Onboarding] Failed to update profile:", error);
         toast.error("Failed to save onboarding status.");
+        return;
       }
+      await refreshProfile();
       navigate("/roles");
     }
   };
