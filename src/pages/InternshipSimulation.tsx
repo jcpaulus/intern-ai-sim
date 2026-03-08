@@ -164,7 +164,13 @@ const InternshipSimulation = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Try to extract backend error message
+        const backendMsg = data?.error || error?.message || "Edge Function error";
+        throw new Error(backendMsg);
+      }
+      if (data?.error) throw new Error(data.error);
+      if (!data?.feedback) throw new Error("No feedback returned from AI");
       setFeedback(data.feedback);
 
       // Save simulation run to database
