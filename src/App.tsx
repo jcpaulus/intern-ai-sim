@@ -53,6 +53,9 @@ const App = () => (
               <Route path="/simulation/setup/:roleId" element={
                 <ProtectedRoute><SimulationSetup /></ProtectedRoute>
               } />
+              <Route path="/simulation/orientation" element={
+                <ProtectedRoute><InternshipOnboarding /></ProtectedRoute>
+              } />
               <Route path="/simulation/active" element={
                 <ProtectedRoute><ActiveSimulation /></ProtectedRoute>
               } />
