@@ -10,7 +10,7 @@ const roles = [
     title: "Marketing Analyst",
     icon: TrendingUp,
     skills: ["Campaign planning", "Copywriting", "Data reporting"],
-    duration: "1–4 weeks",
+    duration: "2–12 weeks",
     difficulty: "Beginner",
     description: "Plan campaigns, write copy, and analyze marketing data for a fictional brand.",
   },
