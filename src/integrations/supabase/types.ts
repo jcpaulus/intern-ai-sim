@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          onboarding_completed: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id: string
+          onboarding_completed?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          onboarding_completed?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       simulation_runs: {
         Row: {
           answer: string | null

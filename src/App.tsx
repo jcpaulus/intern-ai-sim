@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/hooks/useAuth";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
@@ -31,13 +32,29 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/roles" element={<RoleCatalog />} />
-              <Route path="/simulation/setup/:roleId" element={<SimulationSetup />} />
-              <Route path="/simulation/active" element={<ActiveSimulation />} />
-              <Route path="/report" element={<PerformanceReport />} />
-              <Route path="/internship-simulation" element={<InternshipSimulation />} />
+              <Route path="/onboarding" element={
+                <ProtectedRoute requireOnboarding>
+                  <Onboarding />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard" element={
+                <ProtectedRoute><Dashboard /></ProtectedRoute>
+              } />
+              <Route path="/roles" element={
+                <ProtectedRoute><RoleCatalog /></ProtectedRoute>
+              } />
+              <Route path="/simulation/setup/:roleId" element={
+                <ProtectedRoute><SimulationSetup /></ProtectedRoute>
+              } />
+              <Route path="/simulation/active" element={
+                <ProtectedRoute><ActiveSimulation /></ProtectedRoute>
+              } />
+              <Route path="/report" element={
+                <ProtectedRoute><PerformanceReport /></ProtectedRoute>
+              } />
+              <Route path="/internship-simulation" element={
+                <ProtectedRoute><InternshipSimulation /></ProtectedRoute>
+              } />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

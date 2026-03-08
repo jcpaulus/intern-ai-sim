@@ -11,18 +11,21 @@ import { useAuth } from "@/hooks/useAuth";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Redirect to dashboard if already logged in
+  // Redirect based on profile, not just session
   useEffect(() => {
-    if (!authLoading && user) {
-      console.log("[Login] User already authenticated, redirecting to dashboard");
-      navigate("/dashboard", { replace: true });
+    if (!authLoading && user && profile) {
+      if (profile.onboarding_completed) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        navigate("/onboarding", { replace: true });
+      }
     }
-  }, [user, authLoading, navigate]);
+  }, [user, profile, authLoading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +42,7 @@ const Login = () => {
       return;
     }
     toast.success("Login berhasil!");
-    navigate("/dashboard");
+    // Redirect will be handled by useEffect above after profile loads
   };
 
   const handleGoogleLogin = async () => {
@@ -54,10 +57,8 @@ const Login = () => {
       toast.error("Gagal login dengan Google: " + (result.error as Error).message);
       setLoading(false);
     }
-    // If redirected, the page will reload and useAuth will pick up the session
   };
 
-  // Show loading while checking auth
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -66,7 +67,6 @@ const Login = () => {
     );
   }
 
-  // Don't render login form if user is already authenticated
   if (user) return null;
 
   return (

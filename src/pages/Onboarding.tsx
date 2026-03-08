@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Zap, ArrowRight, ArrowLeft } from "lucide-react";
@@ -21,6 +24,7 @@ const quizSteps = [
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
 
@@ -34,10 +38,19 @@ const Onboarding = () => {
     setAnswers(next);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < quizSteps.length - 1) {
       setStep(step + 1);
     } else {
+      // Mark onboarding as completed
+      const { error } = await supabase
+        .from("profiles")
+        .update({ onboarding_completed: true, updated_at: new Date().toISOString() })
+        .eq("id", user?.id ?? "");
+      if (error) {
+        console.error("[Onboarding] Failed to update profile:", error);
+        toast.error("Failed to save onboarding status.");
+      }
       navigate("/roles");
     }
   };
