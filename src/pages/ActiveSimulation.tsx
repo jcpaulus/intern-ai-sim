@@ -79,6 +79,20 @@ const statusIcon = {
 };
 
 const ActiveSimulation = () => {
+  const location = useLocation();
+  const simState = location.state as {
+    roleId?: string;
+    roleTitle?: string;
+    company?: { id: string; name: string; industry: string; size: string; description: string; culture: string };
+    duration?: string;
+    difficulty?: string;
+    managerStyle?: string;
+  } | null;
+
+  const roleId = simState?.roleId || "marketing-analyst";
+  const roleTitle = simState?.roleTitle || "Marketing Analyst";
+  const company = simState?.company || { id: "nexora", name: "Nexora", industry: "Fintech Startup", size: "50 employees", description: "A fast-growing digital payments startup.", culture: "Move fast, data-driven" };
+
   const [submission, setSubmission] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -94,7 +108,7 @@ const ActiveSimulation = () => {
 
   const currentTask = tasks[2];
   const progress = (2 / 5) * 100;
-  const currentTaskId = "task-3"; // mock task ID
+  const currentTaskId = "task-3";
 
   const validateFile = (file: File): string | null => {
     if (file.size > MAX_FILE_SIZE) {
