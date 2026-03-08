@@ -105,7 +105,7 @@ const SimulationSetup = () => {
           {/* Duration */}
           <div>
             <Label className="text-base font-semibold mb-3 block">Duration</Label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-5 gap-3">
               {durations.map((d) => (
                 <button
                   key={d.value}
