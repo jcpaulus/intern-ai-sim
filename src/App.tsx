@@ -60,6 +60,9 @@ const App = () => (
               <Route path="/internship-simulation" element={
                 <ProtectedRoute><InternshipSimulation /></ProtectedRoute>
               } />
+              <Route path="/profile" element={
+                <ProtectedRoute><Profile /></ProtectedRoute>
+              } />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
