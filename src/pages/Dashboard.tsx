@@ -61,7 +61,7 @@ const Dashboard = () => {
       </nav>
 
       <div className="max-w-6xl mx-auto px-6 py-12">
-        <h1 className="text-3xl font-bold mb-2 animate-fade-in">Welcome back, Alex! 👋</h1>
+        <h1 className="text-3xl font-bold mb-2 animate-fade-in">Welcome back, {displayName}! 👋</h1>
         <p className="text-muted-foreground mb-10">Here's your internship progress</p>
 
         {/* Stats */}
