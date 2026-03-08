@@ -111,6 +111,11 @@ const Login = () => {
             <div>
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-1" />
+              <div className="text-right mt-1">
+                <Link to="/forgot-password" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                  Forgot password?
+                </Link>
+              </div>
             </div>
             <Button variant="hero" className="w-full h-11" type="submit" disabled={loading}>
               {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
