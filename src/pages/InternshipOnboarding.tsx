@@ -422,7 +422,7 @@ const InternshipOnboarding = () => {
             )}
 
             {/* POLICIES */}
-            {currentSection === 2 && (
+            {currentSection === 3 && (
               <div className="space-y-6">
                 <div>
                   <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Shield className="w-5 h-5 text-accent" /> Company Policies</h2>
