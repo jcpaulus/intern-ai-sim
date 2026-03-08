@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
@@ -79,6 +79,20 @@ const statusIcon = {
 };
 
 const ActiveSimulation = () => {
+  const location = useLocation();
+  const simState = location.state as {
+    roleId?: string;
+    roleTitle?: string;
+    company?: { id: string; name: string; industry: string; size: string; description: string; culture: string };
+    duration?: string;
+    difficulty?: string;
+    managerStyle?: string;
+  } | null;
+
+  const roleId = simState?.roleId || "marketing-analyst";
+  const roleTitle = simState?.roleTitle || "Marketing Analyst";
+  const company = simState?.company || { id: "nexora", name: "Nexora", industry: "Fintech Startup", size: "50 employees", description: "A fast-growing digital payments startup.", culture: "Move fast, data-driven" };
+
   const [submission, setSubmission] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -94,7 +108,7 @@ const ActiveSimulation = () => {
 
   const currentTask = tasks[2];
   const progress = (2 / 5) * 100;
-  const currentTaskId = "task-3"; // mock task ID
+  const currentTaskId = "task-3";
 
   const validateFile = (file: File): string | null => {
     if (file.size > MAX_FILE_SIZE) {
@@ -273,7 +287,7 @@ const ActiveSimulation = () => {
       setLoadingFeedback(true);
       setShowFeedback(true);
 
-      const taskBrief = "Create a campaign performance report for Q1 social media campaigns. Include: overview of key metrics (impressions, engagement rate, CTR), top 3 performing posts with analysis, and Q2 recommendations based on data.";
+      const taskBrief = `You are a ${roleTitle} at ${company.name} (${company.industry}, ${company.size}). ${company.description} Culture: ${company.culture}. Create a campaign performance report for Q1 social media campaigns. Include: overview of key metrics (impressions, engagement rate, CTR), top 3 performing posts with analysis, and Q2 recommendations based on data.`;
 
       let feedbackResult: any = null;
       let edgeFunctionError: string | null = null;
@@ -281,8 +295,8 @@ const ActiveSimulation = () => {
       // Insert immediately on Send (before edge function)
       const initialInsertPayload = {
         user_id: user.id,
-        role: "marketing-analyst",
-        task: JSON.stringify({ title: currentTask.title, brief: taskBrief }),
+        role: roleId,
+        task: JSON.stringify({ title: currentTask.title, brief: taskBrief, company: company.name }),
         answer: submission.trim() || (fileName ? `[File upload: ${fileName}]` : null),
         feedback: null,
       } as any;

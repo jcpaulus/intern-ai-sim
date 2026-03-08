@@ -2,13 +2,56 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Zap, ArrowRight } from "lucide-react";
+import { Zap, ArrowRight, Building2 } from "lucide-react";
 
 const roleData: Record<string, { title: string; description: string }> = {
-  "marketing-analyst": { title: "Marketing Analyst", description: "Plan campaigns, write copy, and analyze marketing data for a fictional tech startup." },
-  "data-analyst": { title: "Data Analyst", description: "Analyze datasets, create visualizations, and present insights to the leadership team." },
-  "ui-ux-designer": { title: "UI/UX Designer", description: "Conduct user research, create wireframes, and iterate on design based on manager feedback." },
+  "marketing-analyst": { title: "Marketing Analyst", description: "Plan campaigns, write copy, and analyze marketing data." },
+  "data-analyst": { title: "Data Analyst", description: "Analyze datasets, create visualizations, and present insights." },
+  "ui-ux-designer": { title: "UI/UX Designer", description: "Conduct user research, create wireframes, and iterate on design." },
 };
+
+const companies = [
+  {
+    id: "nexora",
+    name: "Nexora",
+    industry: "Fintech Startup",
+    size: "50 employees",
+    description: "A fast-growing digital payments startup disrupting cross-border remittances in Southeast Asia.",
+    culture: "Move fast, data-driven, flat hierarchy",
+  },
+  {
+    id: "greenleaf",
+    name: "GreenLeaf Health",
+    industry: "Health & Wellness NGO",
+    size: "200 employees",
+    description: "A global nonprofit improving maternal health outcomes through community programs and mobile tech.",
+    culture: "Mission-first, collaborative, impact-oriented",
+  },
+  {
+    id: "vividstyle",
+    name: "VividStyle",
+    industry: "Fashion E-commerce",
+    size: "120 employees",
+    description: "A DTC fashion brand blending streetwear with sustainable materials, selling across 30+ countries.",
+    culture: "Creative, brand-obsessed, trend-setting",
+  },
+  {
+    id: "atlas-robotics",
+    name: "Atlas Robotics",
+    industry: "Industrial Automation",
+    size: "500 employees",
+    description: "An enterprise robotics company building warehouse automation solutions for Fortune 500 logistics firms.",
+    culture: "Engineering-led, process-driven, quality-first",
+  },
+  {
+    id: "pulseplay",
+    name: "PulsePlay",
+    industry: "Gaming & Entertainment",
+    size: "80 employees",
+    description: "An indie game studio known for narrative-driven mobile RPGs with 10M+ monthly active players.",
+    culture: "Creative freedom, player-centric, agile sprints",
+  },
+];
 
 const SimulationSetup = () => {
   const { roleId } = useParams();
@@ -18,6 +61,7 @@ const SimulationSetup = () => {
   const [duration, setDuration] = useState("1");
   const [difficulty, setDifficulty] = useState("intern");
   const [managerStyle, setManagerStyle] = useState("supportive");
+  const [selectedCompany, setSelectedCompany] = useState("nexora");
 
   const durations = [
     { value: "1", label: "1 Week", tasks: "5 tasks" },
@@ -93,6 +137,32 @@ const SimulationSetup = () => {
             </div>
           </div>
 
+          {/* Company Setting */}
+          <div>
+            <Label className="text-base font-semibold mb-3 block">
+              <Building2 className="w-4 h-4 inline mr-1.5 -mt-0.5" />
+              Company Setting
+            </Label>
+            <div className="space-y-3">
+              {companies.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedCompany(c.id)}
+                  className={`w-full p-4 rounded-xl border text-left transition-all ${
+                    selectedCompany === c.id ? "border-primary bg-primary/10" : "border-border bg-card hover:border-muted-foreground"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="font-semibold">{c.name}</div>
+                    <span className="text-xs bg-secondary text-muted-foreground px-2 py-0.5 rounded-md">{c.industry}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-1">{c.description}</p>
+                  <p className="text-xs text-muted-foreground/70">{c.size} · {c.culture}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Manager Style */}
           <div>
             <Label className="text-base font-semibold mb-3 block">Manager Style</Label>
@@ -112,8 +182,20 @@ const SimulationSetup = () => {
             </div>
           </div>
 
-          <Button variant="hero" size="lg" className="w-full text-lg py-6" onClick={() => navigate("/simulation/active")}>
-            Begin Internship <ArrowRight className="w-5 h-5 ml-1" />
+          <Button variant="hero" size="lg" className="w-full text-lg py-6" onClick={() => {
+            const company = companies.find(c => c.id === selectedCompany)!;
+            navigate("/simulation/active", {
+              state: {
+                roleId: roleId || "marketing-analyst",
+                roleTitle: role.title,
+                company,
+                duration,
+                difficulty,
+                managerStyle,
+              },
+            });
+          }}>
+            Begin Internship at {companies.find(c => c.id === selectedCompany)?.name} <ArrowRight className="w-5 h-5 ml-1" />
           </Button>
         </div>
       </div>
