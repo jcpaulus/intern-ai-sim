@@ -602,7 +602,7 @@ const ActiveSimulation = () => {
             </div>
           ) : (
             <div className="bg-card border border-border rounded-xl p-10 shadow-card text-center">
-              <p className="text-muted-foreground">Files uploaded successfully. Write a text submission to receive AI feedback.</p>
+              <p className="text-muted-foreground">Submit your work to receive AI feedback.</p>
             </div>
           )}
 
