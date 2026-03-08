@@ -332,6 +332,63 @@ const InternshipOnboarding = () => {
               </div>
             )}
 
+            {/* MEET THE TEAM */}
+            {currentSection === 1 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-bold mb-1 flex items-center gap-2"><Users className="w-5 h-5 text-accent" /> Meet the Team</h2>
+                  <p className="text-muted-foreground text-sm">Here are the key people you'll work with at {company.name}.</p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-4 flex items-center gap-2"><Crown className="w-4 h-4 text-accent" /> Organization Hierarchy</h3>
+                  <div className="space-y-2">
+                    {(["executive", "director", "manager", "senior", "peer"] as const).map((level) => {
+                      const members = team.filter(m => m.level === level);
+                      if (members.length === 0) return null;
+                      return (
+                        <div key={level}>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className={`text-xs px-2 py-0.5 rounded-full border ${levelColors[level]}`}>{levelLabels[level]}</span>
+                            {level !== "executive" && <ArrowDown className="w-3 h-3 text-muted-foreground" />}
+                          </div>
+                          <div className="grid gap-2 mb-3 ml-4">
+                            {members.map((m, i) => (
+                              <div key={i} className={`flex items-start gap-3 p-4 rounded-lg border transition-all ${m.isYourManager ? "border-accent/40 bg-accent/5 ring-1 ring-accent/20" : "border-border bg-secondary/50"}`}>
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${m.isYourManager ? "bg-accent/20" : "bg-secondary"}`}>
+                                  <UserCircle2 className={`w-6 h-6 ${m.isYourManager ? "text-accent" : "text-muted-foreground"}`} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-medium text-sm">{m.name}</span>
+                                    {m.isYourManager && <span className="text-[10px] uppercase tracking-wider font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded">Your Manager</span>}
+                                  </div>
+                                  <p className="text-xs text-primary/80 font-medium">{m.role}</p>
+                                  <p className="text-xs text-muted-foreground mt-1">{m.bio}</p>
+                                  {m.reportsTo && <p className="text-[11px] text-muted-foreground/60 mt-1">Reports to {m.reportsTo}</p>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {(() => {
+                  const manager = team.find(m => m.isYourManager);
+                  if (!manager) return null;
+                  return (
+                    <div className="bg-accent/5 border border-accent/20 rounded-lg p-5">
+                      <h3 className="font-semibold mb-2 text-accent text-sm">💬 A note from your manager</h3>
+                      <p className="text-sm text-muted-foreground italic">
+                        "Welcome to the team! I'm {manager.name.split(" ")[0]}, your {manager.role}. I'm excited to have you on board. Don't hesitate to ask questions — that's what this internship is for. Let's have a great {weeks > 1 ? `${weeks} weeks` : "week"} together!"
+                      </p>
+                    </div>
+                  );
+                })()}
+              </div>
             {/* ROLE */}
             {currentSection === 1 && (
               <div className="space-y-6">
