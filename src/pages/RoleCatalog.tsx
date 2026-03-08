@@ -28,7 +28,7 @@ const roles = [
     title: "UI/UX Designer",
     icon: PenTool,
     skills: ["User research", "Wireframing", "Design critique"],
-    duration: "1–4 weeks",
+    duration: "2–12 weeks",
     difficulty: "Beginner",
     description: "Conduct user research, create wireframes, and iterate on design feedback.",
   },
