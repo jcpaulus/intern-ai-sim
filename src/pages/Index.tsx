@@ -1,5 +1,7 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
 import { ArrowRight, Sparkles, BarChart3, Users, CheckCircle, Star, Zap, Shield } from "lucide-react";
 
 const LandingHero = () => (
