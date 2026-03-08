@@ -166,9 +166,6 @@ const InternshipSimulation = () => {
       if (error) throw error;
       setFeedback(data.feedback);
 
-      // Log which Supabase project URL is being used
-      console.log("[Supabase] Project URL:", import.meta.env.VITE_SUPABASE_URL);
-
       // Save simulation run to database
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
@@ -176,7 +173,7 @@ const InternshipSimulation = () => {
           user_id: session.user.id,
           role: selectedRole,
           task: JSON.stringify(task),
-          answer: answer || null,
+          answer: answer || "(AI response attached)",
           feedback: JSON.stringify(data.feedback),
         };
         console.log("[Supabase] Inserting into simulation_runs:", insertPayload);
@@ -187,10 +184,10 @@ const InternshipSimulation = () => {
           .select();
 
         if (insertError) {
-          console.error("[Supabase] Insert error:", insertError);
+          console.error("[Supabase] simulation_runs insert FAILED:", insertError.message, insertError.details, insertError.hint);
           toast.error("Failed to save simulation run.");
         } else {
-          console.log("[Supabase] Insert success:", insertData);
+          console.log("[Supabase] simulation_runs insert SUCCESS:", insertData);
           toast.success("Feedback received and saved!");
         }
       } else {
