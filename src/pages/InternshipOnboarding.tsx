@@ -126,8 +126,76 @@ const generateSchedule = (weeks: number, roleTitle: string) => {
   return base;
 };
 
+interface TeamMember {
+  name: string;
+  role: string;
+  level: "executive" | "director" | "manager" | "senior" | "peer";
+  reportsTo?: string;
+  bio: string;
+  isYourManager?: boolean;
+}
+
+const companyTeams: Record<string, TeamMember[]> = {
+  nexora: [
+    { name: "Rina Patel", role: "CEO & Co-founder", level: "executive", bio: "Former Goldman Sachs VP. Founded Nexora in 2022 to make cross-border payments instant and affordable." },
+    { name: "James Okonkwo", role: "CTO", level: "executive", reportsTo: "Rina Patel", bio: "Ex-Stripe engineer. Leads the product and engineering org." },
+    { name: "Mei Chen", role: "VP of Marketing", level: "director", reportsTo: "Rina Patel", bio: "Built marketing teams at two fintech unicorns. Oversees brand, growth, and analytics." },
+    { name: "David Lim", role: "Marketing Manager", level: "manager", reportsTo: "Mei Chen", bio: "Your direct manager. 5 years in performance marketing. Runs the campaigns and analytics team.", isYourManager: true },
+    { name: "Aisha Rahman", role: "Senior Data Analyst", level: "senior", reportsTo: "Mei Chen", bio: "Specializes in funnel analytics. She'll be your go-to for data questions." },
+    { name: "Tom Rivera", role: "Marketing Analyst", level: "peer", reportsTo: "David Lim", bio: "Joined 3 months ago. Working on SEO and content analytics — your closest peer." },
+  ],
+  greenleaf: [
+    { name: "Dr. Amara Osei", role: "Executive Director", level: "executive", bio: "Public health physician with 20 years of NGO leadership across Sub-Saharan Africa." },
+    { name: "Fatima Zahra", role: "Director of Programs", level: "director", reportsTo: "Dr. Amara Osei", bio: "Manages all field programs across 12 countries. Coordinates with local health ministries." },
+    { name: "Carlos Mendez", role: "Head of Communications", level: "director", reportsTo: "Dr. Amara Osei", bio: "Former BBC journalist. Leads storytelling, impact reports, and public engagement." },
+    { name: "Sarah Nguyen", role: "Programs Manager", level: "manager", reportsTo: "Fatima Zahra", bio: "Your direct manager. Coordinates research and data collection for maternal health programs.", isYourManager: true },
+    { name: "Kwame Asante", role: "Field Data Lead", level: "senior", reportsTo: "Sarah Nguyen", bio: "Manages community health worker data pipelines. Great resource for field context." },
+    { name: "Priya Sharma", role: "Research Intern", level: "peer", reportsTo: "Sarah Nguyen", bio: "Started last month. Working on survey design — you'll collaborate on data projects." },
+  ],
+  vividstyle: [
+    { name: "Lena Kraft", role: "Founder & Creative Director", level: "executive", bio: "Fashion designer turned entrepreneur. Built VividStyle from a Depop side-hustle to a global DTC brand." },
+    { name: "Marcus Webb", role: "Head of Growth", level: "director", reportsTo: "Lena Kraft", bio: "Scaled two DTC brands to $50M+. Leads performance marketing, CRM, and partnerships." },
+    { name: "Yuki Tanaka", role: "Brand Manager", level: "manager", reportsTo: "Marcus Webb", bio: "Your direct manager. Oversees brand campaigns, social strategy, and influencer collabs.", isYourManager: true },
+    { name: "Zoe Adebayo", role: "Senior Designer", level: "senior", reportsTo: "Lena Kraft", bio: "Leads visual identity. You'll work with her on creative briefs and brand assets." },
+    { name: "Jake Morrison", role: "Content Creator", level: "peer", reportsTo: "Yuki Tanaka", bio: "Handles TikTok and Instagram Reels. Your fellow teammate on the social team." },
+  ],
+  "atlas-robotics": [
+    { name: "Dr. Heinrich Müller", role: "CEO", level: "executive", bio: "Robotics PhD from MIT. 15 years building industrial automation systems before founding Atlas." },
+    { name: "Lisa Park", role: "VP of Engineering", level: "director", reportsTo: "Dr. Heinrich Müller", bio: "Oversees all engineering teams — hardware, firmware, and software." },
+    { name: "Raj Venkatesh", role: "Director of Product", level: "director", reportsTo: "Dr. Heinrich Müller", bio: "Bridges customer needs with engineering. Manages roadmap and product analytics." },
+    { name: "Nadia Kowalski", role: "Engineering Manager", level: "manager", reportsTo: "Lisa Park", bio: "Your direct manager. Leads the analytics and QA team. Very detail-oriented and thorough.", isYourManager: true },
+    { name: "Ben Torres", role: "Senior Software Engineer", level: "senior", reportsTo: "Nadia Kowalski", bio: "Full-stack engineer who built the internal dashboard. Mentor for new team members." },
+    { name: "Amy Liu", role: "Junior Analyst", level: "peer", reportsTo: "Nadia Kowalski", bio: "Joined 2 months ago. Working on warehouse throughput analytics — you'll pair on projects." },
+  ],
+  pulseplay: [
+    { name: "Alex Dunn", role: "Studio Director & Co-founder", level: "executive", bio: "Game designer who shipped 3 hit mobile RPGs. Leads creative vision and studio culture." },
+    { name: "Sofia Reyes", role: "Lead Producer", level: "director", reportsTo: "Alex Dunn", bio: "Manages sprint cycles, team capacity, and release schedules across all projects." },
+    { name: "Kai Nakamura", role: "Art Director", level: "director", reportsTo: "Alex Dunn", bio: "Defines the visual style of all PulsePlay titles. Runs the art and UI team." },
+    { name: "Jordan Blake", role: "Product Manager", level: "manager", reportsTo: "Sofia Reyes", bio: "Your direct manager. Owns player engagement metrics and feature prioritization.", isYourManager: true },
+    { name: "Mia Chang", role: "Senior Game Designer", level: "senior", reportsTo: "Jordan Blake", bio: "Designs narrative quests and economy systems. She'll review your game design work." },
+    { name: "Luca Ferreira", role: "QA & Analytics Intern", level: "peer", reportsTo: "Jordan Blake", bio: "Your fellow intern. Focuses on player behavior analytics and bug triage." },
+  ],
+};
+
+const levelColors: Record<string, string> = {
+  executive: "bg-accent/20 text-accent border-accent/30",
+  director: "bg-primary/20 text-primary border-primary/30",
+  manager: "bg-accent/15 text-accent border-accent/25",
+  senior: "bg-secondary text-muted-foreground border-border",
+  peer: "bg-secondary text-muted-foreground border-border",
+};
+
+const levelLabels: Record<string, string> = {
+  executive: "Executive",
+  director: "Director",
+  manager: "Manager",
+  senior: "Senior",
+  peer: "Your Peer",
+};
+
 const sections = [
   { id: "welcome", label: "Welcome", icon: Building2 },
+  { id: "team", label: "Meet the Team", icon: Users },
   { id: "role", label: "Your Role", icon: Briefcase },
   { id: "policies", label: "Policies & Values", icon: Shield },
   { id: "training", label: "Training & Tools", icon: GraduationCap },
