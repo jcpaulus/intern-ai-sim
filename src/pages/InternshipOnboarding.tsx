@@ -219,6 +219,7 @@ const InternshipOnboarding = () => {
 
   const jobDesc = roleJobDescriptions[roleId] || roleJobDescriptions["marketing-analyst"];
   const policies = companyPolicies[company.id] || companyPolicies["nexora"];
+  const team = companyTeams[company.id] || companyTeams["nexora"];
   const weeks = durationWeeks[duration] || 1;
   const schedule = generateSchedule(weeks, roleTitle);
 
