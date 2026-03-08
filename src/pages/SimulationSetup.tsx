@@ -137,6 +137,32 @@ const SimulationSetup = () => {
             </div>
           </div>
 
+          {/* Company Setting */}
+          <div>
+            <Label className="text-base font-semibold mb-3 block">
+              <Building2 className="w-4 h-4 inline mr-1.5 -mt-0.5" />
+              Company Setting
+            </Label>
+            <div className="space-y-3">
+              {companies.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedCompany(c.id)}
+                  className={`w-full p-4 rounded-xl border text-left transition-all ${
+                    selectedCompany === c.id ? "border-primary bg-primary/10" : "border-border bg-card hover:border-muted-foreground"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="font-semibold">{c.name}</div>
+                    <span className="text-xs bg-secondary text-muted-foreground px-2 py-0.5 rounded-md">{c.industry}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-1">{c.description}</p>
+                  <p className="text-xs text-muted-foreground/70">{c.size} · {c.culture}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Manager Style */}
           <div>
             <Label className="text-base font-semibold mb-3 block">Manager Style</Label>
@@ -156,8 +182,20 @@ const SimulationSetup = () => {
             </div>
           </div>
 
-          <Button variant="hero" size="lg" className="w-full text-lg py-6" onClick={() => navigate("/simulation/active")}>
-            Begin Internship <ArrowRight className="w-5 h-5 ml-1" />
+          <Button variant="hero" size="lg" className="w-full text-lg py-6" onClick={() => {
+            const company = companies.find(c => c.id === selectedCompany)!;
+            navigate("/simulation/active", {
+              state: {
+                roleId: roleId || "marketing-analyst",
+                roleTitle: role.title,
+                company,
+                duration,
+                difficulty,
+                managerStyle,
+              },
+            });
+          }}>
+            Begin Internship at {companies.find(c => c.id === selectedCompany)?.name} <ArrowRight className="w-5 h-5 ml-1" />
           </Button>
         </div>
       </div>
