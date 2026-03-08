@@ -1,9 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Zap, Play, BarChart3, CheckCircle, BookOpen, Trophy } from "lucide-react";
+import { Zap, Play, BarChart3, CheckCircle, BookOpen, Trophy, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
   const navigate = useNavigate();
