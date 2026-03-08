@@ -296,7 +296,7 @@ const ActiveSimulation = () => {
 
       if (initialInsertError || !insertedRuns?.id) {
         console.error("[handleSubmit] simulation_runs initial insert FAILED:", initialInsertError?.message, initialInsertError?.details, initialInsertError?.hint);
-        toast.error("Failed to save submission.");
+        toast.error("Failed to save submission: " + (initialInsertError?.message || "Unknown DB error"));
         return;
       }
 
