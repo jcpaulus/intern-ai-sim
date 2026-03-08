@@ -1,0 +1,1 @@
+ALTER TABLE public.simulation_runs ALTER COLUMN feedback DROP NOT NULL;

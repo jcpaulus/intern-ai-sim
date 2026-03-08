@@ -42,7 +42,7 @@ export type Database = {
         Row: {
           answer: string | null
           created_at: string
-          feedback: string
+          feedback: string | null
           id: string
           role: string
           task: string
@@ -51,7 +51,7 @@ export type Database = {
         Insert: {
           answer?: string | null
           created_at?: string
-          feedback: string
+          feedback?: string | null
           id?: string
           role: string
           task: string
@@ -60,7 +60,7 @@ export type Database = {
         Update: {
           answer?: string | null
           created_at?: string
-          feedback?: string
+          feedback?: string | null
           id?: string
           role?: string
           task?: string
