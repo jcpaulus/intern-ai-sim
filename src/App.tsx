@@ -18,6 +18,7 @@ import SimulationSetup from "./pages/SimulationSetup";
 import ActiveSimulation from "./pages/ActiveSimulation";
 import PerformanceReport from "./pages/PerformanceReport";
 import InternshipSimulation from "./pages/InternshipSimulation";
+import InternshipOnboarding from "./pages/InternshipOnboarding";
 import Profile from "./pages/Profile";
 import SimulationHistory from "./pages/SimulationHistory";
 import NotFound from "./pages/NotFound";
