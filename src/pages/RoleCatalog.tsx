@@ -19,7 +19,7 @@ const roles = [
     title: "Data Analyst",
     icon: BarChart3,
     skills: ["Data interpretation", "Visualization", "Reporting"],
-    duration: "1–4 weeks",
+    duration: "2–12 weeks",
     difficulty: "Intermediate",
     description: "Analyze datasets, create visualizations, and present insights to stakeholders.",
   },
