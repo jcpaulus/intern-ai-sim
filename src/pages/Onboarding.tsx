@@ -37,10 +37,19 @@ const Onboarding = () => {
     setAnswers(next);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < quizSteps.length - 1) {
       setStep(step + 1);
     } else {
+      // Mark onboarding as completed
+      const { error } = await supabase
+        .from("profiles")
+        .update({ onboarding_completed: true, updated_at: new Date().toISOString() })
+        .eq("id", user?.id ?? "");
+      if (error) {
+        console.error("[Onboarding] Failed to update profile:", error);
+        toast.error("Failed to save onboarding status.");
+      }
       navigate("/roles");
     }
   };
