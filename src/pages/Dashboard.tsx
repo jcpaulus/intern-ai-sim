@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Zap, Play, BarChart3, CheckCircle, BookOpen, Trophy, User } from "lucide-react";
+import { Zap, Play, BarChart3, CheckCircle, BookOpen, Trophy, User, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -50,6 +50,9 @@ const Dashboard = () => {
           </Link>
           <div className="flex items-center gap-4">
             <Link to="/roles" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Roles</Link>
+            <Link to="/history" className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1">
+              <History className="w-4 h-4" /> History
+            </Link>
             <Link to="/profile" className="text-muted-foreground hover:text-foreground transition-colors">
               <User className="w-5 h-5" />
             </Link>

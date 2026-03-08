@@ -19,6 +19,7 @@ import ActiveSimulation from "./pages/ActiveSimulation";
 import PerformanceReport from "./pages/PerformanceReport";
 import InternshipSimulation from "./pages/InternshipSimulation";
 import Profile from "./pages/Profile";
+import SimulationHistory from "./pages/SimulationHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,6 +63,9 @@ const App = () => (
               } />
               <Route path="/profile" element={
                 <ProtectedRoute><Profile /></ProtectedRoute>
+              } />
+              <Route path="/history" element={
+                <ProtectedRoute><SimulationHistory /></ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
             </Routes>
