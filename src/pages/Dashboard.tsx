@@ -1,12 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Zap, Play, BarChart3, CheckCircle, BookOpen, Trophy } from "lucide-react";
+import { Zap, Play, BarChart3, CheckCircle, BookOpen, Trophy, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { profile, user } = useAuth();
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || "Student";
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -47,6 +50,9 @@ const Dashboard = () => {
           </Link>
           <div className="flex items-center gap-4">
             <Link to="/roles" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Roles</Link>
+            <Link to="/profile" className="text-muted-foreground hover:text-foreground transition-colors">
+              <User className="w-5 h-5" />
+            </Link>
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               Sign Out
             </Button>
@@ -55,7 +61,7 @@ const Dashboard = () => {
       </nav>
 
       <div className="max-w-6xl mx-auto px-6 py-12">
-        <h1 className="text-3xl font-bold mb-2 animate-fade-in">Welcome back, Alex! 👋</h1>
+        <h1 className="text-3xl font-bold mb-2 animate-fade-in">Welcome back, {displayName}! 👋</h1>
         <p className="text-muted-foreground mb-10">Here's your internship progress</p>
 
         {/* Stats */}
