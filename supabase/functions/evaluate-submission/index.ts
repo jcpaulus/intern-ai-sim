@@ -5,55 +5,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `You are Sarah Martinez, a senior hiring manager reviewing an intern's submission. You are professional, direct, and fair.
-
-CRITICAL RULES:
-1. Be concise and easy to scan — no fluff.
-2. Quote the user's actual words when relevant.
-3. Every strength and improvement must be specific, not generic.
-4. If only a text answer is provided, evaluate the text.
-5. If only a file is provided, evaluate the file content.
-6. If both text and file are provided, evaluate them together as a combined submission.
-
-EVALUATION RUBRIC — Score each dimension 1-10:
-- Clarity: Is the writing clear, well-structured, and easy to follow?
-- Depth of Insight: Does the submission show critical thinking and nuanced understanding?
-- Use of Data: Does the submission reference specific data, examples, or evidence?
-- Actionability: Are the proposals concrete and implementable?
-
-OUTPUT FORMAT (use this exact JSON structure):
-{
-  "score": <number 1-10, average of dimension scores>,
-  "scores": {
-    "clarity": { "score": <1-10>, "reason": "<one sentence>" },
-    "depth_of_insight": { "score": <1-10>, "reason": "<one sentence>" },
-    "use_of_data": { "score": <1-10>, "reason": "<one sentence>" },
-    "actionable": { "score": <1-10>, "reason": "<one sentence>" }
-  },
-  "strengths": [
-    { "point": "<strength title>", "quote": "<quoted evidence from submission>", "why": "<why this matters>" }
-  ],
-  "improvements": [
-    { "point": "<area title>", "quote": "<quoted evidence or gap>", "why": "<why this matters>", "suggestion": "<concrete suggested revision>" }
-  ],
-  "suggested_improvements": ["<specific actionable suggestion 1>", "<specific actionable suggestion 2>"],
-  "hiring_decision": "<Hire | Needs Improvement>",
-  "recommendation": "<one short final recommendation sentence>"
-}
-
-SCORING GUIDE:
-- 8-10: Exceptional work, ready for real-world tasks
-- 6-7: Solid effort with minor gaps
-- 4-5: Needs significant improvement
-- 1-3: Does not meet expectations
-
-HIRING DECISION:
-- "Hire" if score >= 7
-- "Needs Improvement" if score < 7
-
-TONE: Professional, like a hiring manager reviewing an internship assignment. Direct but not harsh.
-ALWAYS respond with valid JSON only. No markdown, no extra text.`;
-
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -74,32 +25,11 @@ serve(async (req) => {
     let submissionSection = "";
     
     if (submission && submission.trim().length > 0 && fileContent) {
-      // Both text and file
-      submissionSection = `INTERN'S TEXT ANSWER:
-"""
-${submission}
-"""
-
-INTERN'S ATTACHED FILE (${fileName}):
-"""
-${fileContent}
-"""
-
-NOTE: Evaluate BOTH the text answer and the file content together as a combined submission.`;
+      submissionSection = `INTERN'S TEXT ANSWER:\n"""\n${submission}\n"""\n\nINTERN'S ATTACHED FILE (${fileName}):\n"""\n${fileContent}\n"""\n\nNOTE: Evaluate BOTH the text answer and the file content together as a combined submission.`;
     } else if (fileContent) {
-      // File only
-      submissionSection = `INTERN'S SUBMISSION (file upload: ${fileName}):
-"""
-${fileContent}
-"""
-
-NOTE: The intern submitted a file instead of a text answer. Evaluate the file content.`;
+      submissionSection = `INTERN'S SUBMISSION (file upload: ${fileName}):\n"""\n${fileContent}\n"""\n\nNOTE: The intern submitted a file instead of a text answer. Evaluate the file content.`;
     } else {
-      // Text only
-      submissionSection = `INTERN'S TEXT ANSWER:
-"""
-${submission}
-"""`;
+      submissionSection = `INTERN'S TEXT ANSWER:\n"""\n${submission}\n"""`;
     }
 
     const userMessage = `TASK: "${taskTitle}"
@@ -107,17 +37,11 @@ ${submission}
 TASK INSTRUCTIONS:
 ${taskBrief}
 
-EVALUATION RUBRIC:
-Score each of these dimensions 1-10:
-1. Clarity — Is it well-structured and easy to follow?
-2. Depth of Insight — Does it show critical thinking?
-3. Use of Data — Does it reference evidence or examples?
-4. Actionability — Are proposals concrete and implementable?
-
 ${submissionSection}
 
-Evaluate this submission against the task instructions and rubric. Be specific and reference their actual work.`;
+Evaluate this submission against the task instructions. Be specific and reference their actual work.`;
 
+    // Use tool calling for reliable structured output
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -127,14 +51,94 @@ Evaluate this submission against the task instructions and rubric. Be specific a
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          {
+            role: "system",
+            content: `You are Sarah Martinez, a senior hiring manager reviewing an intern's submission. You are professional, direct, and fair. Quote the user's actual words when relevant. Every strength and improvement must be specific, not generic. Score each dimension 1-10. "Hire" if average score >= 7, "Needs Improvement" otherwise.`,
+          },
           { role: "user", content: userMessage },
         ],
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "submit_evaluation",
+              description: "Submit the structured evaluation of the intern's work.",
+              parameters: {
+                type: "object",
+                properties: {
+                  score: { type: "number", description: "Overall score 1-10, average of dimension scores" },
+                  scores: {
+                    type: "object",
+                    properties: {
+                      clarity: {
+                        type: "object",
+                        properties: { score: { type: "number" }, reason: { type: "string" } },
+                        required: ["score", "reason"],
+                      },
+                      depth_of_insight: {
+                        type: "object",
+                        properties: { score: { type: "number" }, reason: { type: "string" } },
+                        required: ["score", "reason"],
+                      },
+                      use_of_data: {
+                        type: "object",
+                        properties: { score: { type: "number" }, reason: { type: "string" } },
+                        required: ["score", "reason"],
+                      },
+                      actionable: {
+                        type: "object",
+                        properties: { score: { type: "number" }, reason: { type: "string" } },
+                        required: ["score", "reason"],
+                      },
+                    },
+                    required: ["clarity", "depth_of_insight", "use_of_data", "actionable"],
+                  },
+                  strengths: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        point: { type: "string" },
+                        quote: { type: "string" },
+                        why: { type: "string" },
+                      },
+                      required: ["point", "quote", "why"],
+                    },
+                  },
+                  improvements: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        point: { type: "string" },
+                        quote: { type: "string" },
+                        why: { type: "string" },
+                        suggestion: { type: "string" },
+                      },
+                      required: ["point", "quote", "why", "suggestion"],
+                    },
+                  },
+                  suggested_improvements: {
+                    type: "array",
+                    items: { type: "string" },
+                  },
+                  hiring_decision: { type: "string", enum: ["Hire", "Needs Improvement"] },
+                  recommendation: { type: "string" },
+                },
+                required: ["score", "scores", "strengths", "improvements", "suggested_improvements", "hiring_decision", "recommendation"],
+                additionalProperties: false,
+              },
+            },
+          },
+        ],
+        tool_choice: { type: "function", function: { name: "submit_evaluation" } },
         stream: false,
       }),
     });
 
     if (!response.ok) {
+      const text = await response.text();
+      console.error("AI gateway error:", response.status, text);
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
           status: 429,
@@ -147,31 +151,39 @@ Evaluate this submission against the task instructions and rubric. Be specific a
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const text = await response.text();
-      console.error("AI gateway error:", response.status, text);
-      throw new Error("AI gateway error");
+      throw new Error(`AI gateway returned ${response.status}: ${text}`);
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
 
-    if (!content) throw new Error("No content in AI response");
+    // Extract from tool call response
+    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    if (!toolCall) {
+      // Fallback: try regular content
+      const content = data.choices?.[0]?.message?.content;
+      console.error("No tool call in response. Content:", content);
+      throw new Error("AI did not return structured feedback");
+    }
 
     let feedback;
     try {
-      const jsonStr = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      feedback = JSON.parse(jsonStr);
-    } catch {
-      console.error("Failed to parse AI response:", content);
-      throw new Error("Failed to parse feedback");
+      feedback = typeof toolCall.function.arguments === "string"
+        ? JSON.parse(toolCall.function.arguments)
+        : toolCall.function.arguments;
+    } catch (parseErr) {
+      console.error("Failed to parse tool call arguments:", toolCall.function.arguments);
+      throw new Error("Failed to parse AI feedback structure");
     }
+
+    console.log("Evaluation generated successfully, score:", feedback.score);
 
     return new Response(JSON.stringify({ feedback }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("evaluate-submission error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    const message = e instanceof Error ? e.message : "Unknown error";
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
