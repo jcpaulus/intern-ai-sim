@@ -278,6 +278,31 @@ const ActiveSimulation = () => {
       let feedbackResult: any = null;
       let edgeFunctionError: string | null = null;
 
+      // Insert immediately on Send (before edge function)
+      const initialInsertPayload = {
+        user_id: user.id,
+        role: "marketing-analyst",
+        task: JSON.stringify({ title: currentTask.title, brief: taskBrief }),
+        answer: submission.trim() || (fileName ? `[File upload: ${fileName}]` : null),
+        feedback: null,
+      } as any;
+      console.log("[handleSubmit] Initial insert into simulation_runs:", initialInsertPayload);
+
+      const { data: insertedRuns, error: initialInsertError } = await supabase
+        .from("simulation_runs")
+        .insert(initialInsertPayload)
+        .select("id")
+        .single();
+
+      if (initialInsertError || !insertedRuns?.id) {
+        console.error("[handleSubmit] simulation_runs initial insert FAILED:", initialInsertError?.message, initialInsertError?.details, initialInsertError?.hint);
+        toast.error("Failed to save submission.");
+        return;
+      }
+
+      const runId = insertedRuns.id;
+      console.log("[handleSubmit] simulation_runs initial insert SUCCESS:", insertedRuns);
+
       try {
         const { data, error } = await supabase.functions.invoke("evaluate-submission", {
           body: {
@@ -310,35 +335,32 @@ const ActiveSimulation = () => {
         console.error("[handleSubmit] Edge function exception:", fnErr);
       }
 
-      if (edgeFunctionError) {
-        toast.error("AI feedback failed: " + edgeFunctionError);
-        setShowFeedback(false);
-      }
-
-      // Always save to simulation_runs regardless of AI feedback success
-      const insertPayload = {
-        user_id: user.id,
-        role: "marketing-analyst",
-        task: JSON.stringify({ title: currentTask.title, brief: taskBrief }),
-        answer: submission.trim() || (fileName ? `[File upload: ${fileName}]` : null),
+      // Update the same inserted row with feedback result (or error payload)
+      const feedbackUpdatePayload = {
         feedback: feedbackResult
           ? JSON.stringify(feedbackResult)
           : JSON.stringify({ error: edgeFunctionError || "No feedback available" }),
       };
-      console.log("[handleSubmit] Inserting into simulation_runs:", insertPayload);
 
-      const { data: insertData, error: insertError } = await supabase
+      const { data: updatedRun, error: updateError } = await supabase
         .from("simulation_runs")
-        .insert(insertPayload)
-        .select();
+        .update(feedbackUpdatePayload)
+        .eq("id", runId)
+        .select("id")
+        .single();
 
-      if (insertError) {
-        console.error("[handleSubmit] simulation_runs insert FAILED:", insertError.message, insertError.details, insertError.hint);
-        toast.error("Failed to save submission.");
+      if (updateError) {
+        console.error("[handleSubmit] simulation_runs feedback update FAILED:", updateError.message, updateError.details, updateError.hint);
       } else {
-        console.log("[handleSubmit] simulation_runs insert SUCCESS:", insertData);
-        if (!edgeFunctionError) toast.success("Feedback received and saved!");
-        else toast.success("Submission saved (AI feedback unavailable).");
+        console.log("[handleSubmit] simulation_runs feedback update SUCCESS:", updatedRun);
+      }
+
+      if (edgeFunctionError) {
+        toast.error("AI feedback failed: " + edgeFunctionError);
+        setShowFeedback(false);
+        toast.success("Submission saved (AI feedback unavailable).");
+      } else {
+        toast.success("Feedback received and saved!");
       }
     } catch (err: any) {
       console.error("[handleSubmit] Unexpected error:", err);
