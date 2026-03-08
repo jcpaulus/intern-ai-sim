@@ -481,7 +481,7 @@ const InternshipSimulation = () => {
               <p className="text-muted-foreground italic">
                 {submitting ? "Analyzing your submission..." : "Submit your answer to receive AI feedback."}
               </p>
-            )
+            )}
           </CardContent>
         </Card>
       </div>
