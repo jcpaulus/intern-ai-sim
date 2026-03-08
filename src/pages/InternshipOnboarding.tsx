@@ -480,7 +480,7 @@ const InternshipOnboarding = () => {
             )}
 
             {/* SCHEDULE */}
-            {currentSection === 4 && (
+            {currentSection === 5 && (
               <div className="space-y-6">
                 <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-accent" /> Your {weeks}-Week Schedule</h2>
                 <div className="space-y-4">
