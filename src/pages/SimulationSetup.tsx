@@ -58,15 +58,17 @@ const SimulationSetup = () => {
   const navigate = useNavigate();
   const role = roleData[roleId || ""] || roleData["marketing-analyst"];
 
-  const [duration, setDuration] = useState("1");
+  const [duration, setDuration] = useState("4");
   const [difficulty, setDifficulty] = useState("intern");
   const [managerStyle, setManagerStyle] = useState("supportive");
   const [selectedCompany, setSelectedCompany] = useState("nexora");
 
   const durations = [
-    { value: "1", label: "1 Week", tasks: "5 tasks" },
     { value: "2", label: "2 Weeks", tasks: "10 tasks" },
     { value: "4", label: "4 Weeks", tasks: "20 tasks" },
+    { value: "6", label: "6 Weeks", tasks: "30 tasks" },
+    { value: "8", label: "8 Weeks", tasks: "40 tasks" },
+    { value: "12", label: "12 Weeks", tasks: "60 tasks" },
   ];
 
   const difficulties = [
@@ -103,7 +105,7 @@ const SimulationSetup = () => {
           {/* Duration */}
           <div>
             <Label className="text-base font-semibold mb-3 block">Duration</Label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-5 gap-3">
               {durations.map((d) => (
                 <button
                   key={d.value}

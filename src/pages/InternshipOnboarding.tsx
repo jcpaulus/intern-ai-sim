@@ -110,20 +110,32 @@ const companyPolicies: Record<string, { policies: string[]; values: string[] }> 
   },
 };
 
-const durationWeeks: Record<string, number> = { "1": 1, "2": 2, "4": 4 };
+const durationWeeks: Record<string, number> = { "2": 2, "4": 4, "6": 6, "8": 8, "12": 12 };
 
 const generateSchedule = (weeks: number, roleTitle: string) => {
-  const base = [
+  const schedule = [
     { week: 1, title: "Orientation & Setup", items: ["Complete onboarding checklist", "Meet your manager & team", "Set up tools & accounts", "Review first assignment brief"] },
+    { week: 2, title: "First Deliverable", items: [`Submit first ${roleTitle} deliverable`, "Attend team sync meeting", "Receive and apply feedback", "Begin second assignment"] },
   ];
-  if (weeks >= 2) {
-    base.push({ week: 2, title: "Deep Dive & First Deliverable", items: [`Submit first ${roleTitle} deliverable`, "Attend team sync meeting", "Receive and apply feedback", "Begin second assignment"] });
-  }
   if (weeks >= 4) {
-    base.push({ week: 3, title: "Independent Work", items: ["Lead a small project independently", "Present mid-point findings", "Collaborate cross-functionally", "Refine skills based on feedback"] });
-    base.push({ week: 4, title: "Final Project & Review", items: ["Complete capstone deliverable", "Prepare final presentation", "Performance review with manager", "Receive internship completion certificate"] });
+    schedule.push({ week: 3, title: "Deep Dive", items: ["Take on more complex tasks", "Collaborate cross-functionally", "Present findings to team", "Refine approach based on feedback"] });
+    schedule.push({ week: 4, title: "Independent Work", items: ["Lead a small project independently", "Mid-point performance check-in", "Iterate on deliverables", "Expand responsibilities"] });
   }
-  return base;
+  if (weeks >= 6) {
+    schedule.push({ week: 5, title: "Advanced Projects", items: ["Tackle a stretch assignment", "Mentor newer team members", "Attend leadership meeting", "Build portfolio piece"] });
+    schedule.push({ week: 6, title: "Specialization", items: ["Choose a focus area to go deeper", "Produce a detailed case study", "Get peer feedback", "Prepare mid-program review"] });
+  }
+  if (weeks >= 8) {
+    schedule.push({ week: 7, title: "Cross-Team Collaboration", items: ["Join a cross-functional initiative", "Present to another department", "Integrate feedback from multiple stakeholders", "Refine communication skills"] });
+    schedule.push({ week: 8, title: "Ownership Phase", items: ["Own an end-to-end project", "Make strategic recommendations", "Document processes", "Prepare handoff materials"] });
+  }
+  if (weeks >= 12) {
+    schedule.push({ week: 9, title: "Leadership & Strategy", items: ["Propose a process improvement", "Lead a team meeting", "Analyze long-term trends", "Draft strategic brief"] });
+    schedule.push({ week: 10, title: "Capstone Preparation", items: ["Define capstone project scope", "Gather data and insights", "Build presentation outline", "Get manager approval on direction"] });
+    schedule.push({ week: 11, title: "Capstone Execution", items: ["Complete capstone deliverable", "Rehearse final presentation", "Collect testimonials from peers", "Polish all portfolio materials"] });
+    schedule.push({ week: 12, title: "Final Review & Graduation", items: ["Deliver final presentation to leadership", "Performance review with manager", "Receive internship completion certificate", "Celebrate achievements 🎉"] });
+  }
+  return schedule;
 };
 
 interface TeamMember {
