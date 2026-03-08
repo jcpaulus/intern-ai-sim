@@ -275,43 +275,74 @@ const ActiveSimulation = () => {
 
       const taskBrief = "Create a campaign performance report for Q1 social media campaigns. Include: overview of key metrics (impressions, engagement rate, CTR), top 3 performing posts with analysis, and Q2 recommendations based on data.";
 
-      const { data, error } = await supabase.functions.invoke("evaluate-submission", {
-        body: {
-          submission: submission.trim() || undefined,
-          taskTitle: currentTask.title,
-          taskBrief,
-          fileContent,
-          fileName,
-        },
-      });
+      let feedbackResult: any = null;
+      let edgeFunctionError: string | null = null;
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      const safeFeedback = normalizeFeedback(data?.feedback);
-      if (!safeFeedback) throw new Error("Invalid AI feedback format.");
-
-      setFeedback(safeFeedback);
-
-      // Save to simulation_runs
-      const { error: insertError } = await supabase
-        .from("simulation_runs")
-        .insert({
-          user_id: user.id,
-          role: "marketing-analyst",
-          task: JSON.stringify({ title: currentTask.title, brief: taskBrief }),
-          answer: submission.trim() || (fileName ? `[File upload: ${fileName}]` : null),
-          feedback: JSON.stringify(data.feedback),
+      try {
+        const { data, error } = await supabase.functions.invoke("evaluate-submission", {
+          body: {
+            submission: submission.trim() || undefined,
+            taskTitle: currentTask.title,
+            taskBrief,
+            fileContent,
+            fileName,
+          },
         });
 
+        if (error) {
+          edgeFunctionError = error.message || "Edge Function error";
+          console.error("[handleSubmit] Edge function error:", error);
+        } else if (data?.error) {
+          edgeFunctionError = data.error;
+          console.error("[handleSubmit] Edge function returned error:", data.error);
+        } else {
+          const safeFeedback = normalizeFeedback(data?.feedback);
+          if (safeFeedback) {
+            setFeedback(safeFeedback);
+            feedbackResult = data.feedback;
+          } else {
+            edgeFunctionError = "Invalid AI feedback format";
+            console.error("[handleSubmit] Could not normalize feedback:", data?.feedback);
+          }
+        }
+      } catch (fnErr: any) {
+        edgeFunctionError = fnErr?.message || "Unknown edge function error";
+        console.error("[handleSubmit] Edge function exception:", fnErr);
+      }
+
+      if (edgeFunctionError) {
+        toast.error("AI feedback failed: " + edgeFunctionError);
+        setShowFeedback(false);
+      }
+
+      // Always save to simulation_runs regardless of AI feedback success
+      const insertPayload = {
+        user_id: user.id,
+        role: "marketing-analyst",
+        task: JSON.stringify({ title: currentTask.title, brief: taskBrief }),
+        answer: submission.trim() || (fileName ? `[File upload: ${fileName}]` : null),
+        feedback: feedbackResult
+          ? JSON.stringify(feedbackResult)
+          : JSON.stringify({ error: edgeFunctionError || "No feedback available" }),
+      };
+      console.log("[handleSubmit] Inserting into simulation_runs:", insertPayload);
+
+      const { data: insertData, error: insertError } = await supabase
+        .from("simulation_runs")
+        .insert(insertPayload)
+        .select();
+
       if (insertError) {
-        console.error("Failed to save simulation run:", insertError);
+        console.error("[handleSubmit] simulation_runs insert FAILED:", insertError.message, insertError.details, insertError.hint);
+        toast.error("Failed to save submission.");
       } else {
-        toast.success("Feedback received and saved!");
+        console.log("[handleSubmit] simulation_runs insert SUCCESS:", insertData);
+        if (!edgeFunctionError) toast.success("Feedback received and saved!");
+        else toast.success("Submission saved (AI feedback unavailable).");
       }
     } catch (err: any) {
-      console.error("Feedback error:", err);
-      toast.error("Failed to get feedback: " + (err?.message || "Unknown error"));
+      console.error("[handleSubmit] Unexpected error:", err);
+      toast.error("Failed to submit: " + (err?.message || "Unknown error"));
       setShowFeedback(false);
     } finally {
       setUploading(false);
