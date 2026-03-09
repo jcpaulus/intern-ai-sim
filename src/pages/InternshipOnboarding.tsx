@@ -223,7 +223,7 @@ const InternshipOnboarding = () => {
   const roleTitle = simState?.roleTitle || "Marketing Analyst";
   const company = simState?.company || { id: "nexora", name: "Nexora", industry: "Fintech Startup", size: "50 employees", description: "A fast-growing digital payments startup.", culture: "Move fast, data-driven" };
   const duration = simState?.duration || "1";
-  const difficulty = simState?.difficulty || "intern";
+  const level = simState?.level || "intermediate";
   const managerStyle = simState?.managerStyle || "supportive";
 
   const [currentSection, setCurrentSection] = useState(0);
