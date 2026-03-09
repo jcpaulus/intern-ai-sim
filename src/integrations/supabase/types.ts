@@ -41,7 +41,9 @@ export type Database = {
       simulation_runs: {
         Row: {
           answer: string | null
+          company: string | null
           created_at: string
+          duration_weeks: number | null
           feedback: string | null
           id: string
           role: string
@@ -50,7 +52,9 @@ export type Database = {
         }
         Insert: {
           answer?: string | null
+          company?: string | null
           created_at?: string
+          duration_weeks?: number | null
           feedback?: string | null
           id?: string
           role: string
@@ -59,7 +63,9 @@ export type Database = {
         }
         Update: {
           answer?: string | null
+          company?: string | null
           created_at?: string
+          duration_weeks?: number | null
           feedback?: string | null
           id?: string
           role?: string
