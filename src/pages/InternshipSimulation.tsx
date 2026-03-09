@@ -21,19 +21,19 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 const INTERNSHIP_ROLES = [
   {
-    value: "marketing-intern",
-    label: "Marketing Intern",
-    context: "You are assigning tasks to a Marketing Intern at a digital agency. Create realistic marketing tasks involving campaign planning, copywriting, social media strategy, or data reporting.",
+    value: "business-analyst",
+    label: "Business Analyst",
+    context: "You are assigning tasks to a Business Analyst intern. Create realistic BA tasks involving requirements gathering, process mapping, stakeholder communication, or business case analysis.",
   },
   {
-    value: "product-manager-intern",
-    label: "Product Manager Intern",
-    context: "You are assigning tasks to a Product Manager Intern at a tech startup. Create realistic PM tasks involving user research, feature prioritization, PRD writing, or stakeholder communication.",
+    value: "marketing-associate",
+    label: "Marketing Associate",
+    context: "You are assigning tasks to a Marketing Associate intern. Create realistic marketing tasks involving campaign support, content creation, social media management, or market research analysis.",
   },
   {
-    value: "startup-founder-intern",
-    label: "Startup Founder Intern",
-    context: "You are assigning tasks to a Startup Founder Intern in a venture studio. Create realistic founder tasks involving market validation, pitch deck creation, business model design, or customer discovery.",
+    value: "operations-assistant",
+    label: "Operations Assistant",
+    context: "You are assigning tasks to an Operations Assistant intern. Create realistic operations tasks involving process optimization, scheduling, data organization, or workflow improvement.",
   },
 ];
 

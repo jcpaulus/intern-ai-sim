@@ -40,7 +40,7 @@ const companies = [
 const SimulationSetup = () => {
   const { roleId } = useParams();
   const navigate = useNavigate();
-  const role = roleData[roleId || ""] || roleData["marketing-analyst"];
+  const role = roleData[roleId || ""] || roleData["business-analyst"];
 
   const [duration, setDuration] = useState("4");
   const [difficulty, setDifficulty] = useState("intern");
