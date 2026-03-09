@@ -168,19 +168,19 @@ const SimulationSetup = () => {
             </div>
           </div>
 
-          <Button variant="hero" size="lg" className="w-full text-lg py-6" onClick={() => {
-            const company = companies.find(c => c.id === selectedCompany)!;
-            navigate("/simulation/orientation", {
-              state: {
-                roleId: roleId || "marketing-analyst",
-                roleTitle: role.title,
-                company,
-                duration,
-                difficulty,
-                managerStyle,
-              },
-            });
-          }}>
+           <Button variant="hero" size="lg" className="w-full text-lg py-6" onClick={() => {
+             const company = companies.find(c => c.id === selectedCompany)!;
+             navigate("/simulation/orientation", {
+               state: {
+                 roleId: roleId || "marketing-associate",
+                 roleTitle: role.title,
+                 company,
+                 duration,
+                 level,
+                 managerStyle,
+               },
+             });
+           }}>
             Begin Internship at {companies.find(c => c.id === selectedCompany)?.name} <ArrowRight className="w-5 h-5 ml-1" />
           </Button>
         </div>
