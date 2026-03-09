@@ -1,44 +1,99 @@
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Zap, Play, BarChart3, CheckCircle, BookOpen, Trophy, User, History } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Zap, Play, BarChart3, CheckCircle, BookOpen, Trophy, User, History, Building2, Clock, Loader2, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+
+interface SimulationRun {
+  id: string;
+  role: string;
+  task: string;
+  answer: string | null;
+  feedback: string | null;
+  company: string | null;
+  duration_weeks: number | null;
+  created_at: string;
+}
+
+const companyNames: Record<string, string> = {
+  nexora: "Nexora",
+  greenleaf: "GreenLeaf Health",
+  vividstyle: "VividStyle",
+  "atlas-robotics": "Atlas Robotics",
+  pulseplay: "PulsePlay",
+};
+
+const parseFeedback = (raw: string | null) => {
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+};
+
+const parseTask = (raw: string) => {
+  try { return JSON.parse(raw); } catch { return { title: raw }; }
+};
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { profile, user } = useAuth();
   const displayName = profile?.full_name || user?.user_metadata?.full_name || "Student";
 
+  const [runs, setRuns] = useState<SimulationRun[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchRuns = async () => {
+      const { data, error } = await supabase
+        .from("simulation_runs")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("[Dashboard] Error fetching runs:", error);
+      } else {
+        setRuns((data as SimulationRun[]) || []);
+      }
+      setLoading(false);
+    };
+    fetchRuns();
+  }, [user]);
+
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error("Gagal sign out: " + error.message);
-      return;
-    }
+    if (error) { toast.error("Gagal sign out: " + error.message); return; }
     toast.success("Berhasil sign out");
     navigate("/login");
   };
 
-  const activeSimulation = {
-    role: "Marketing Analyst",
-    progress: 40,
-    tasksCompleted: 2,
-    totalTasks: 5,
-    nextTask: "Create a social media content calendar",
-    daysRemaining: 5,
-  };
+  // Derive stats from real data
+  const totalRuns = runs.length;
+  const uniqueRoles = new Set(runs.map(r => r.role)).size;
+  const feedbackWithScore = runs.map(r => parseFeedback(r.feedback)).filter(f => f?.score != null);
+  const avgScore = feedbackWithScore.length
+    ? Math.round(feedbackWithScore.reduce((sum, f) => sum + f.score, 0) / feedbackWithScore.length * 10)
+    : null;
 
-  const pastSimulations = [
-    { role: "UI/UX Designer", score: 82, date: "Feb 2026", status: "Completed" },
-  ];
+  // Most recent run as "last simulation"
+  const latestRun = runs[0] ?? null;
+  const latestTask = latestRun ? parseTask(latestRun.task) : null;
+  const latestFeedback = latestRun ? parseFeedback(latestRun.feedback) : null;
 
   const stats = [
-    { icon: BookOpen, label: "Simulations", value: "2" },
-    { icon: CheckCircle, label: "Skills Practiced", value: "8" },
-    { icon: Trophy, label: "Reports Generated", value: "1" },
+    { icon: BookOpen, label: "Simulations", value: totalRuns.toString() },
+    { icon: CheckCircle, label: "Roles Tried", value: uniqueRoles.toString() },
+    { icon: Trophy, label: "Avg Score", value: avgScore != null ? `${avgScore}%` : "–" },
   ];
+
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+  const roleLabel = (role: string) =>
+    role.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
   return (
     <div className="min-h-screen bg-background">
@@ -56,9 +111,7 @@ const Dashboard = () => {
             <Link to="/profile" className="text-muted-foreground hover:text-foreground transition-colors">
               <User className="w-5 h-5" />
             </Link>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              Sign Out
-            </Button>
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>Sign Out</Button>
           </div>
         </div>
       </nav>
@@ -78,49 +131,126 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Active Simulation */}
-        <div className="bg-card border border-border rounded-xl p-6 shadow-card mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="text-sm text-accent font-medium mb-1">Active Simulation</div>
-              <h2 className="text-xl font-semibold">{activeSimulation.role}</h2>
+        {/* Latest / Active Simulation */}
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : latestRun ? (
+          <>
+            <div className="bg-card border border-border rounded-xl p-6 shadow-card mb-10">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <div className="text-sm text-accent font-medium mb-1">Last Simulation</div>
+                  <h2 className="text-xl font-semibold">{roleLabel(latestRun.role)}</h2>
+                  <div className="flex items-center gap-3 mt-1.5 text-sm text-muted-foreground flex-wrap">
+                    {latestRun.company && (
+                      <span className="inline-flex items-center gap-1">
+                        <Building2 className="w-3.5 h-3.5" />
+                        {companyNames[latestRun.company] ?? latestRun.company}
+                      </span>
+                    )}
+                    {latestRun.duration_weeks && (
+                      <span className="inline-flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        {latestRun.duration_weeks} weeks
+                      </span>
+                    )}
+                    <span>{formatDate(latestRun.created_at)}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  {latestFeedback?.score != null && (
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-accent">{latestFeedback.score}/10</div>
+                      <div className="text-xs text-muted-foreground">Score</div>
+                    </div>
+                  )}
+                  <Button variant="hero" asChild>
+                    <Link to="/roles"><Play className="w-4 h-4 mr-1" /> New Simulation</Link>
+                  </Button>
+                </div>
+              </div>
+
+              {latestFeedback?.score != null && (
+                <>
+                  <Progress value={latestFeedback.score * 10} className="h-2 mb-3" />
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Performance score</span>
+                    <Badge variant={latestFeedback.hiring_decision === "Hire" ? "default" : "secondary"}>
+                      {latestFeedback.hiring_decision ?? "Reviewed"}
+                    </Badge>
+                  </div>
+                </>
+              )}
+
+              {latestTask?.title && (
+                <div className="mt-4 p-3 bg-secondary/50 rounded-lg text-sm">
+                  <span className="text-muted-foreground">Task:</span>{" "}
+                  <span className="text-foreground">{latestTask.title}</span>
+                </div>
+              )}
             </div>
+
+            {/* Past Simulations */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Past Simulations</h2>
+              {runs.length > 3 && (
+                <Link to="/history" className="text-sm text-accent hover:underline inline-flex items-center gap-1">
+                  View all <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              )}
+            </div>
+            <div className="space-y-3">
+              {runs.slice(0, 5).map((run) => {
+                const fb = parseFeedback(run.feedback);
+                const t = parseTask(run.task);
+                return (
+                  <div key={run.id} className="bg-card border border-border rounded-xl p-5 shadow-card flex items-center gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="font-semibold">{roleLabel(run.role)}</span>
+                        {run.company && (
+                          <Badge variant="secondary" className="text-xs">
+                            {companyNames[run.company] ?? run.company}
+                          </Badge>
+                        )}
+                        {run.duration_weeks && (
+                          <Badge variant="outline" className="text-xs">
+                            {run.duration_weeks}w
+                          </Badge>
+                        )}
+                      </div>
+                      {t?.title && <p className="text-sm text-muted-foreground truncate">{t.title}</p>}
+                      <p className="text-xs text-muted-foreground mt-1">{formatDate(run.created_at)}</p>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      {fb?.score != null && (
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-accent">{fb.score}/10</div>
+                          <div className="text-xs text-muted-foreground">{fb.hiring_decision ?? "–"}</div>
+                        </div>
+                      )}
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to="/history">Details</Link>
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          /* Empty state */
+          <div className="bg-card border border-border rounded-xl p-12 text-center shadow-card">
+            <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">No simulations yet</h2>
+            <p className="text-muted-foreground mb-6">Choose a role and start your first internship simulation.</p>
             <Button variant="hero" asChild>
-              <Link to="/simulation/active"><Play className="w-4 h-4 mr-1" /> Continue</Link>
+              <Link to="/roles">Browse Roles <ArrowRight className="w-4 h-4 ml-1" /></Link>
             </Button>
           </div>
-          <Progress value={activeSimulation.progress} className="h-2 mb-3" />
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>{activeSimulation.tasksCompleted}/{activeSimulation.totalTasks} tasks completed</span>
-            <span>{activeSimulation.daysRemaining} days remaining</span>
-          </div>
-          <div className="mt-4 p-3 bg-secondary/50 rounded-lg text-sm">
-            <span className="text-muted-foreground">Next task:</span>{" "}
-            <span className="text-foreground">{activeSimulation.nextTask}</span>
-          </div>
-        </div>
-
-        {/* Past Simulations */}
-        <h2 className="text-xl font-semibold mb-4">Past Simulations</h2>
-        <div className="space-y-3">
-          {pastSimulations.map((sim) => (
-            <div key={sim.role} className="bg-card border border-border rounded-xl p-5 shadow-card flex items-center justify-between">
-              <div>
-                <div className="font-semibold">{sim.role}</div>
-                <div className="text-sm text-muted-foreground">{sim.date}</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <div className="text-lg font-bold text-accent">{sim.score}/100</div>
-                  <div className="text-xs text-muted-foreground">{sim.status}</div>
-                </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/report">View Report</Link>
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
+        )}
       </div>
     </div>
   );
