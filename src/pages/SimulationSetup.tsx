@@ -43,9 +43,9 @@ const SimulationSetup = () => {
   const role = roleData[roleId || ""] || roleData["business-analyst"];
 
   const [duration, setDuration] = useState("4");
-  const [difficulty, setDifficulty] = useState("intern");
+  const [level, setLevel] = useState("intermediate");
   const [managerStyle, setManagerStyle] = useState("supportive");
-  const [selectedCompany, setSelectedCompany] = useState("nexora");
+  const [selectedCompany, setSelectedCompany] = useState("alphatech");
 
   const durations = [
     { value: "2", label: "2 Weeks", tasks: "10 tasks" },
@@ -55,10 +55,10 @@ const SimulationSetup = () => {
     { value: "12", label: "12 Weeks", tasks: "60 tasks" },
   ];
 
-  const difficulties = [
-    { value: "intern", label: "Intern" },
-    { value: "junior", label: "Junior" },
-    { value: "mid", label: "Mid-level" },
+  const levels = [
+    { value: "beginner", label: "Beginner" },
+    { value: "intermediate", label: "Intermediate" },
+    { value: "advanced", label: "Advanced" },
   ];
 
   const styles = [
