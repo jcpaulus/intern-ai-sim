@@ -299,6 +299,8 @@ const ActiveSimulation = () => {
         task: JSON.stringify({ title: currentTask.title, brief: taskBrief, company: company.name }),
         answer: submission.trim() || (fileName ? `[File upload: ${fileName}]` : null),
         feedback: null,
+        company: company.id,
+        duration_weeks: simState?.duration ? parseInt(simState.duration) : null,
       } as any;
       console.log("[handleSubmit] Initial insert into simulation_runs:", initialInsertPayload);
 
