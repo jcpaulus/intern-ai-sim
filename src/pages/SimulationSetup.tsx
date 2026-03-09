@@ -105,23 +105,23 @@ const SimulationSetup = () => {
             </div>
           </div>
 
-          {/* Difficulty */}
-          <div>
-            <Label className="text-base font-semibold mb-3 block">Difficulty</Label>
-            <div className="grid grid-cols-3 gap-3">
-              {difficulties.map((d) => (
-                <button
-                  key={d.value}
-                  onClick={() => setDifficulty(d.value)}
-                  className={`p-4 rounded-xl border text-center transition-all ${
-                    difficulty === d.value ? "border-primary bg-primary/10" : "border-border bg-card hover:border-muted-foreground"
-                  }`}
-                >
-                  <div className="font-semibold">{d.label}</div>
-                </button>
-              ))}
-            </div>
-          </div>
+           {/* Level */}
+           <div>
+             <Label className="text-base font-semibold mb-3 block">Level</Label>
+             <div className="grid grid-cols-3 gap-3">
+               {levels.map((l) => (
+                 <button
+                   key={l.value}
+                   onClick={() => setLevel(l.value)}
+                   className={`p-4 rounded-xl border text-center transition-all ${
+                     level === l.value ? "border-primary bg-primary/10" : "border-border bg-card hover:border-muted-foreground"
+                   }`}
+                 >
+                   <div className="font-semibold">{l.label}</div>
+                 </button>
+               ))}
+             </div>
+           </div>
 
           {/* Company Setting */}
           <div>
