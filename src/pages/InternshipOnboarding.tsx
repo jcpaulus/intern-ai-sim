@@ -337,7 +337,7 @@ const InternshipOnboarding = () => {
                     </div>
                     <div>
                       <span className="text-muted-foreground block">Level</span>
-                      <span className="font-medium capitalize">{difficulty}</span>
+                      <span className="font-medium capitalize">{level}</span>
                     </div>
                   </div>
                 </div>
