@@ -85,7 +85,7 @@ const ActiveSimulation = () => {
     roleTitle?: string;
     company?: { id: string; name: string; industry: string; size: string; description: string; culture: string };
     duration?: string;
-    difficulty?: string;
+    level?: string;
     managerStyle?: string;
   } | null;
 
