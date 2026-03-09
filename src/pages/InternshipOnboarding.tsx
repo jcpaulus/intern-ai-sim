@@ -22,7 +22,7 @@ interface SimState {
   roleTitle: string;
   company: CompanyData;
   duration: string;
-  difficulty: string;
+  level: string;
   managerStyle: string;
 }
 
@@ -223,7 +223,7 @@ const InternshipOnboarding = () => {
   const roleTitle = simState?.roleTitle || "Marketing Analyst";
   const company = simState?.company || { id: "nexora", name: "Nexora", industry: "Fintech Startup", size: "50 employees", description: "A fast-growing digital payments startup.", culture: "Move fast, data-driven" };
   const duration = simState?.duration || "1";
-  const difficulty = simState?.difficulty || "intern";
+  const level = simState?.level || "intermediate";
   const managerStyle = simState?.managerStyle || "supportive";
 
   const [currentSection, setCurrentSection] = useState(0);
@@ -337,7 +337,7 @@ const InternshipOnboarding = () => {
                     </div>
                     <div>
                       <span className="text-muted-foreground block">Level</span>
-                      <span className="font-medium capitalize">{difficulty}</span>
+                      <span className="font-medium capitalize">{level}</span>
                     </div>
                   </div>
                 </div>

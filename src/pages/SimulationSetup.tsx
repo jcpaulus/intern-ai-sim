@@ -43,9 +43,9 @@ const SimulationSetup = () => {
   const role = roleData[roleId || ""] || roleData["business-analyst"];
 
   const [duration, setDuration] = useState("4");
-  const [difficulty, setDifficulty] = useState("intern");
+  const [level, setLevel] = useState("intermediate");
   const [managerStyle, setManagerStyle] = useState("supportive");
-  const [selectedCompany, setSelectedCompany] = useState("nexora");
+  const [selectedCompany, setSelectedCompany] = useState("alphatech");
 
   const durations = [
     { value: "2", label: "2 Weeks", tasks: "10 tasks" },
@@ -55,10 +55,10 @@ const SimulationSetup = () => {
     { value: "12", label: "12 Weeks", tasks: "60 tasks" },
   ];
 
-  const difficulties = [
-    { value: "intern", label: "Intern" },
-    { value: "junior", label: "Junior" },
-    { value: "mid", label: "Mid-level" },
+  const levels = [
+    { value: "beginner", label: "Beginner" },
+    { value: "intermediate", label: "Intermediate" },
+    { value: "advanced", label: "Advanced" },
   ];
 
   const styles = [
@@ -105,23 +105,23 @@ const SimulationSetup = () => {
             </div>
           </div>
 
-          {/* Difficulty */}
-          <div>
-            <Label className="text-base font-semibold mb-3 block">Difficulty</Label>
-            <div className="grid grid-cols-3 gap-3">
-              {difficulties.map((d) => (
-                <button
-                  key={d.value}
-                  onClick={() => setDifficulty(d.value)}
-                  className={`p-4 rounded-xl border text-center transition-all ${
-                    difficulty === d.value ? "border-primary bg-primary/10" : "border-border bg-card hover:border-muted-foreground"
-                  }`}
-                >
-                  <div className="font-semibold">{d.label}</div>
-                </button>
-              ))}
-            </div>
-          </div>
+           {/* Level */}
+           <div>
+             <Label className="text-base font-semibold mb-3 block">Level</Label>
+             <div className="grid grid-cols-3 gap-3">
+               {levels.map((l) => (
+                 <button
+                   key={l.value}
+                   onClick={() => setLevel(l.value)}
+                   className={`p-4 rounded-xl border text-center transition-all ${
+                     level === l.value ? "border-primary bg-primary/10" : "border-border bg-card hover:border-muted-foreground"
+                   }`}
+                 >
+                   <div className="font-semibold">{l.label}</div>
+                 </button>
+               ))}
+             </div>
+           </div>
 
           {/* Company Setting */}
           <div>
@@ -168,19 +168,19 @@ const SimulationSetup = () => {
             </div>
           </div>
 
-          <Button variant="hero" size="lg" className="w-full text-lg py-6" onClick={() => {
-            const company = companies.find(c => c.id === selectedCompany)!;
-            navigate("/simulation/orientation", {
-              state: {
-                roleId: roleId || "marketing-analyst",
-                roleTitle: role.title,
-                company,
-                duration,
-                difficulty,
-                managerStyle,
-              },
-            });
-          }}>
+           <Button variant="hero" size="lg" className="w-full text-lg py-6" onClick={() => {
+             const company = companies.find(c => c.id === selectedCompany)!;
+             navigate("/simulation/orientation", {
+               state: {
+                 roleId: roleId || "marketing-associate",
+                 roleTitle: role.title,
+                 company,
+                 duration,
+                 level,
+                 managerStyle,
+               },
+             });
+           }}>
             Begin Internship at {companies.find(c => c.id === selectedCompany)?.name} <ArrowRight className="w-5 h-5 ml-1" />
           </Button>
         </div>
