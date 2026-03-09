@@ -22,7 +22,7 @@ interface SimState {
   roleTitle: string;
   company: CompanyData;
   duration: string;
-  difficulty: string;
+  level: string;
   managerStyle: string;
 }
 
