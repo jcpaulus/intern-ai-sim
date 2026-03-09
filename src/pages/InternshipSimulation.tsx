@@ -182,6 +182,8 @@ const InternshipSimulation = () => {
           task: JSON.stringify(task),
           answer: answer || "(AI response attached)",
           feedback: JSON.stringify(data.feedback),
+          company: null,
+          duration_weeks: null,
         };
         console.log("[Supabase] Inserting into simulation_runs:", insertPayload);
 

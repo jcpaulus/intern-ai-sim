@@ -1,0 +1,1 @@
+ALTER TABLE public.simulation_runs ADD COLUMN IF NOT EXISTS company text, ADD COLUMN IF NOT EXISTS duration_weeks integer;
