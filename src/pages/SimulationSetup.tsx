@@ -5,9 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Zap, ArrowRight, Building2 } from "lucide-react";
 
 const roleData: Record<string, { title: string; description: string }> = {
-  "marketing-analyst": { title: "Marketing Analyst", description: "Plan campaigns, write copy, and analyze marketing data." },
-  "data-analyst": { title: "Data Analyst", description: "Analyze datasets, create visualizations, and present insights." },
-  "ui-ux-designer": { title: "UI/UX Designer", description: "Conduct user research, create wireframes, and iterate on design." },
+  "business-analyst": { title: "Business Analyst", description: "Analyze business requirements, identify process improvements, and communicate with stakeholders." },
+  "marketing-associate": { title: "Marketing Associate", description: "Support marketing campaigns, create content, and conduct market research." },
+  "operations-assistant": { title: "Operations Assistant", description: "Assist with operations tasks, manage scheduling, and optimize workflow processes." },
 };
 
 const companies = [
