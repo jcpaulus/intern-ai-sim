@@ -121,6 +121,23 @@ const companyPolicies: Record<string, { policies: string[]; values: string[] }> 
 
 const durationWeeks: Record<string, number> = { "2": 2, "4": 4, "6": 6, "8": 8, "12": 12 };
 
+interface DailyTask {
+  day: number;
+  title: string;
+  client?: string;
+  clientIndustry?: string;
+  clientProducts?: string;
+  campaignGoal?: string;
+  targetAudience?: string;
+  platforms?: string[];
+  analysisAreas?: string[];
+  identifyItems?: string[];
+  deliverable?: string;
+  deliverableDetails?: string[];
+  deadline?: string;
+  note?: string;
+}
+
 interface WeekSchedule {
   week: number;
   title: string;
@@ -128,7 +145,45 @@ interface WeekSchedule {
   groupTask: string;
   zoomLink: string;
   assignedRole: string;
+  dailyTasks?: DailyTask[];
 }
+
+// Role + Company specific detailed daily task assignments
+// Key format: "{roleId}:{companyId}:week{N}"
+const detailedDailyTasks: Record<string, DailyTask[]> = {
+  "marketing-associate:brightwave:week1": [
+    {
+      day: 3,
+      title: "Social Media Marketing Audit",
+      client: "FitLife Wellness",
+      clientIndustry: "Fitness & Wellness",
+      clientProducts: "Online fitness coaching and wellness programs",
+      campaignGoal: "Increase engagement and brand awareness among young professionals interested in health and fitness.",
+      targetAudience: "Professionals aged 22–35 who are interested in improving their health, productivity, and lifestyle.",
+      platforms: ["Instagram", "LinkedIn", "TikTok or X"],
+      analysisAreas: [
+        "Content type",
+        "Engagement levels",
+        "Posting frequency",
+        "Audience interaction",
+      ],
+      identifyItems: [
+        "The best performing posts",
+        "The weak performing posts",
+        "Any content gaps in the current content strategy",
+      ],
+      deliverable: "Social Media Audit Report",
+      deliverableDetails: [
+        "The top 3 performing posts",
+        "Key engagement patterns",
+        "Suggested improvements to strengthen the client's social media strategy",
+        "Two recommended content ideas that could improve engagement in the next phase of the campaign",
+      ],
+      deadline: "5:00 PM — to be reviewed during tomorrow's team check-in",
+      note: "Let your manager know if you need clarification before getting started.",
+    },
+  ],
+};
 
 const groupTasksByWeek: Record<number, string> = {
   1: "Team Introduction & Icebreaker Presentation",
