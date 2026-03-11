@@ -20,7 +20,7 @@ const LandingHero = () => (
         <span className="text-gradient">— Before You're Hired</span>
       </h1>
       <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-        Complete realistic internship tasks, receive AI manager feedback, and build a portfolio that proves you're ready for the real world.
+        Complete realistic Internships in Business Analytics, Marketing and Operations, receive feedback and build a portfolio of real work employers can evaluate.
       </p>
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <Button variant="hero" size="lg" className="text-lg px-8 py-6" asChild>
