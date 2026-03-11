@@ -215,8 +215,8 @@ const assignedRolesByWeek: Record<number, string> = {
   12: "Spokesperson",
 };
 
-const generateSchedule = (weeks: number, roleTitle: string): WeekSchedule[] => {
-  const baseSchedule: Omit<WeekSchedule, "groupTask" | "zoomLink" | "assignedRole">[] = [
+const generateSchedule = (weeks: number, roleTitle: string, roleId?: string, companyId?: string): WeekSchedule[] => {
+  const baseSchedule: Omit<WeekSchedule, "groupTask" | "zoomLink" | "assignedRole" | "dailyTasks">[] = [
     { week: 1, title: "Orientation & Setup", items: ["Complete onboarding checklist", "Meet your manager & team", "Set up tools & accounts", "Review first assignment brief"] },
     { week: 2, title: "First Deliverable", items: [`Submit first ${roleTitle} deliverable`, "Attend team sync meeting", "Receive and apply feedback", "Begin second assignment"] },
   ];
@@ -239,12 +239,16 @@ const generateSchedule = (weeks: number, roleTitle: string): WeekSchedule[] => {
     baseSchedule.push({ week: 12, title: "Final Review & Graduation", items: ["Deliver final presentation to leadership", "Performance review with manager", "Receive internship completion certificate", "Celebrate achievements 🎉"] });
   }
 
-  return baseSchedule.map((w) => ({
-    ...w,
-    groupTask: groupTasksByWeek[w.week] || "Group Collaboration Task",
-    zoomLink: `https://zoom.us/j/internly-week-${w.week}-${Date.now().toString(36).slice(-4)}`,
-    assignedRole: assignedRolesByWeek[w.week] || "Contributor",
-  }));
+  return baseSchedule.map((w) => {
+    const dailyTaskKey = roleId && companyId ? `${roleId}:${companyId}:week${w.week}` : "";
+    return {
+      ...w,
+      groupTask: groupTasksByWeek[w.week] || "Group Collaboration Task",
+      zoomLink: `https://zoom.us/j/internly-week-${w.week}-${Date.now().toString(36).slice(-4)}`,
+      assignedRole: assignedRolesByWeek[w.week] || "Contributor",
+      dailyTasks: dailyTaskKey ? detailedDailyTasks[dailyTaskKey] : undefined,
+    };
+  });
 };
 
 interface TeamMember {
