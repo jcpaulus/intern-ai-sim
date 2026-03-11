@@ -241,6 +241,14 @@ const companyTeams: Record<string, TeamMember[]> = {
     { name: "Mia Chang", role: "Senior Game Designer", level: "senior", reportsTo: "Jordan Blake", bio: "Designs narrative quests and economy systems. She'll review your game design work." },
     { name: "Luca Ferreira", role: "QA & Analytics Intern", level: "peer", reportsTo: "Jordan Blake", bio: "Your fellow intern. Focuses on player behavior analytics and bug triage." },
   ],
+  brightwave: [
+    { name: "Rebecca Torres", role: "CEO & Founder", level: "executive", bio: "Former VP at Ogilvy. Founded BrightWave to bring data-driven creativity to mid-market brands." },
+    { name: "Michael Chen", role: "VP of Client Services", level: "director", reportsTo: "Rebecca Torres", bio: "Manages all client relationships and oversees campaign strategy across accounts." },
+    { name: "Samantha Brooks", role: "Creative Director", level: "director", reportsTo: "Rebecca Torres", bio: "Leads the creative team. Sets visual direction for all campaigns and brand work." },
+    { name: "Daniel Okafor", role: "Marketing Manager", level: "manager", reportsTo: "Michael Chen", bio: "Your direct manager. 7 years in digital marketing. Runs the social media and analytics team.", isYourManager: true },
+    { name: "Jessica Huang", role: "Senior Social Media Strategist", level: "senior", reportsTo: "Daniel Okafor", bio: "Specializes in Instagram and TikTok growth strategies. Great resource for social trends." },
+    { name: "Ryan Mitchell", role: "Marketing Associate", level: "peer", reportsTo: "Daniel Okafor", bio: "Joined 2 months ago. Working on email campaigns and content calendar — your closest peer." },
+  ],
 };
 
 const levelColors: Record<string, string> = {
