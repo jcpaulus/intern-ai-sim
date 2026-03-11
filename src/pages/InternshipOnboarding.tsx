@@ -653,15 +653,8 @@ const InternshipOnboarding = () => {
                           );
                         })()}
 
-                        {/* Group Task, Zoom Link, Assigned Role */}
-                        <div className="grid sm:grid-cols-3 gap-3 pt-3 border-t border-border">
-                          <div className="flex items-start gap-2 bg-primary/5 border border-primary/15 rounded-lg p-3">
-                            <UsersRound className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                            <div>
-                              <span className="text-[11px] uppercase tracking-wider font-semibold text-primary block mb-0.5">Group Task</span>
-                              <span className="text-xs text-muted-foreground">{w.groupTask}</span>
-                            </div>
-                          </div>
+                        {/* Zoom Link & Assigned Role */}
+                        <div className="grid sm:grid-cols-2 gap-3 pt-3 border-t border-border">
                           <div className="flex items-start gap-2 bg-accent/5 border border-accent/15 rounded-lg p-3">
                             <Video className="w-4 h-4 text-accent mt-0.5 shrink-0" />
                             <div>
