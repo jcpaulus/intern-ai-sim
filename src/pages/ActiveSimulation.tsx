@@ -320,22 +320,24 @@ const ActiveSimulation = () => {
       console.log("[handleSubmit] simulation_runs initial insert SUCCESS:", insertedRuns);
 
       try {
-        const { data, error } = await supabase.functions.invoke("evaluate-submission", {
-          body: {
+        const API_URL = "http://127.0.0.1:8007/evaluate";
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
             submission: submission.trim() || undefined,
             taskTitle: currentTask.title,
             taskBrief,
             fileContent,
             fileName,
-          },
+          }),
         });
 
-        if (error) {
-          edgeFunctionError = error.message || "Edge Function error";
-          console.error("[handleSubmit] Edge function error:", error);
-        } else if (data?.error) {
-          edgeFunctionError = data.error;
-          console.error("[handleSubmit] Edge function returned error:", data.error);
+        const data = await res.json();
+
+        if (!res.ok || data?.error) {
+          edgeFunctionError = data?.error || `API error ${res.status}`;
+          console.error("[handleSubmit] API error:", edgeFunctionError);
         } else {
           const safeFeedback = normalizeFeedback(data?.feedback);
           if (safeFeedback) {
@@ -347,8 +349,8 @@ const ActiveSimulation = () => {
           }
         }
       } catch (fnErr: any) {
-        edgeFunctionError = fnErr?.message || "Unknown edge function error";
-        console.error("[handleSubmit] Edge function exception:", fnErr);
+        edgeFunctionError = fnErr?.message || "Unknown API error";
+        console.error("[handleSubmit] API exception:", fnErr);
       }
 
       // Update the same inserted row with feedback result (or error payload)

@@ -154,22 +154,24 @@ const InternshipSimulation = () => {
         fileName = uploadedFile.name;
       }
 
-      const { data, error } = await supabase.functions.invoke("evaluate-submission", {
-        body: {
+      const API_URL = "http://127.0.0.1:8007/evaluate";
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           submission: answer,
           taskTitle: task.title,
           taskBrief: task.brief,
           fileContent,
           fileName,
-        },
+        }),
       });
 
-      if (error) {
-        // Try to extract backend error message
-        const backendMsg = data?.error || error?.message || "Edge Function error";
-        throw new Error(backendMsg);
+      const data = await res.json();
+
+      if (!res.ok || data?.error) {
+        throw new Error(data?.error || `API error ${res.status}`);
       }
-      if (data?.error) throw new Error(data.error);
       if (!data?.feedback) throw new Error("No feedback returned from AI");
       setFeedback(data.feedback);
 
