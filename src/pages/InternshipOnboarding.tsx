@@ -300,11 +300,12 @@ const InternshipOnboarding = () => {
           </div>
 
           {/* Content area */}
-          <div className="bg-card border border-border rounded-xl p-8 min-h-[500px]">
-            {/* WELCOME */}
+          <div className="bg-card border border-border rounded-xl p-8 min-h-[500px] max-h-[70vh] overflow-y-auto">
+            {/* STEP 1: Company, Team & Role */}
             {currentSection === 0 && (
-              <div className="space-y-6">
-                <div>
+              <div className="space-y-10">
+                {/* Welcome */}
+                <div className="space-y-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 rounded-lg gradient-primary flex items-center justify-center">
                       <Building2 className="w-6 h-6 text-foreground" />
@@ -315,196 +316,201 @@ const InternshipOnboarding = () => {
                     </div>
                   </div>
                   <p className="text-muted-foreground leading-relaxed">{company.description}</p>
-                </div>
-                <div className="bg-secondary/50 rounded-lg p-5">
-                  <h3 className="font-semibold mb-2 flex items-center gap-2"><Users className="w-4 h-4 text-accent" /> Culture & Environment</h3>
-                  <p className="text-sm text-muted-foreground">{company.culture}</p>
-                </div>
-                <div className="bg-secondary/50 rounded-lg p-5">
-                  <h3 className="font-semibold mb-2 flex items-center gap-2"><Target className="w-4 h-4 text-accent" /> Your Internship</h3>
-                  <div className="grid grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground block">Role</span>
-                      <span className="font-medium">{roleTitle}</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground block">Duration</span>
-                      <span className="font-medium">{weeks} week{weeks > 1 ? "s" : ""}</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground block">Level</span>
-                      <span className="font-medium capitalize">{level}</span>
+                  <div className="bg-secondary/50 rounded-lg p-5">
+                    <h3 className="font-semibold mb-2 flex items-center gap-2"><Users className="w-4 h-4 text-accent" /> Culture & Environment</h3>
+                    <p className="text-sm text-muted-foreground">{company.culture}</p>
+                  </div>
+                  <div className="bg-secondary/50 rounded-lg p-5">
+                    <h3 className="font-semibold mb-2 flex items-center gap-2"><Target className="w-4 h-4 text-accent" /> Your Internship</h3>
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="text-muted-foreground block">Role</span>
+                        <span className="font-medium">{roleTitle}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block">Duration</span>
+                        <span className="font-medium">{weeks} week{weeks > 1 ? "s" : ""}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block">Level</span>
+                        <span className="font-medium capitalize">{level}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
 
-            {/* MEET THE TEAM */}
-            {currentSection === 1 && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-bold mb-1 flex items-center gap-2"><Users className="w-5 h-5 text-accent" /> Meet the Team</h2>
-                  <p className="text-muted-foreground text-sm">Here are the key people you'll work with at {company.name}.</p>
-                </div>
+                {/* Divider */}
+                <hr className="border-border" />
 
-                <div>
-                  <h3 className="font-semibold mb-4 flex items-center gap-2"><Crown className="w-4 h-4 text-accent" /> Organization Hierarchy</h3>
-                  <div className="space-y-2">
-                    {(["executive", "director", "manager", "senior", "peer"] as const).map((level) => {
-                      const members = team.filter(m => m.level === level);
-                      if (members.length === 0) return null;
-                      return (
-                        <div key={level}>
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className={`text-xs px-2 py-0.5 rounded-full border ${levelColors[level]}`}>{levelLabels[level]}</span>
-                            {level !== "executive" && <ArrowDown className="w-3 h-3 text-muted-foreground" />}
-                          </div>
-                          <div className="grid gap-2 mb-3 ml-4">
-                            {members.map((m, i) => (
-                              <div key={i} className={`flex items-start gap-3 p-4 rounded-lg border transition-all ${m.isYourManager ? "border-accent/40 bg-accent/5 ring-1 ring-accent/20" : "border-border bg-secondary/50"}`}>
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${m.isYourManager ? "bg-accent/20" : "bg-secondary"}`}>
-                                  <UserCircle2 className={`w-6 h-6 ${m.isYourManager ? "text-accent" : "text-muted-foreground"}`} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="font-medium text-sm">{m.name}</span>
-                                    {m.isYourManager && <span className="text-[10px] uppercase tracking-wider font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded">Your Manager</span>}
+                {/* Meet the Team */}
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-bold mb-1 flex items-center gap-2"><Users className="w-5 h-5 text-accent" /> Meet the Team</h2>
+                    <p className="text-muted-foreground text-sm">Here are the key people you'll work with at {company.name}.</p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-4 flex items-center gap-2"><Crown className="w-4 h-4 text-accent" /> Organization Hierarchy</h3>
+                    <div className="space-y-2">
+                      {(["executive", "director", "manager", "senior", "peer"] as const).map((level) => {
+                        const members = team.filter(m => m.level === level);
+                        if (members.length === 0) return null;
+                        return (
+                          <div key={level}>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className={`text-xs px-2 py-0.5 rounded-full border ${levelColors[level]}`}>{levelLabels[level]}</span>
+                              {level !== "executive" && <ArrowDown className="w-3 h-3 text-muted-foreground" />}
+                            </div>
+                            <div className="grid gap-2 mb-3 ml-4">
+                              {members.map((m, i) => (
+                                <div key={i} className={`flex items-start gap-3 p-4 rounded-lg border transition-all ${m.isYourManager ? "border-accent/40 bg-accent/5 ring-1 ring-accent/20" : "border-border bg-secondary/50"}`}>
+                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${m.isYourManager ? "bg-accent/20" : "bg-secondary"}`}>
+                                    <UserCircle2 className={`w-6 h-6 ${m.isYourManager ? "text-accent" : "text-muted-foreground"}`} />
                                   </div>
-                                  <p className="text-xs text-primary/80 font-medium">{m.role}</p>
-                                  <p className="text-xs text-muted-foreground mt-1">{m.bio}</p>
-                                  {m.reportsTo && <p className="text-[11px] text-muted-foreground/60 mt-1">Reports to {m.reportsTo}</p>}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="font-medium text-sm">{m.name}</span>
+                                      {m.isYourManager && <span className="text-[10px] uppercase tracking-wider font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded">Your Manager</span>}
+                                    </div>
+                                    <p className="text-xs text-primary/80 font-medium">{m.role}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">{m.bio}</p>
+                                    {m.reportsTo && <p className="text-[11px] text-muted-foreground/60 mt-1">Reports to {m.reportsTo}</p>}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {(() => {
-                  const manager = team.find(m => m.isYourManager);
-                  if (!manager) return null;
-                  return (
-                    <div className="bg-accent/5 border border-accent/20 rounded-lg p-5">
-                      <h3 className="font-semibold mb-2 text-accent text-sm">💬 A note from your manager</h3>
-                      <p className="text-sm text-muted-foreground italic">
-                        "Welcome to the team! I'm {manager.name.split(" ")[0]}, your {manager.role}. I'm excited to have you on board. Don't hesitate to ask questions — that's what this internship is for. Let's have a great {weeks > 1 ? `${weeks} weeks` : "week"} together!"
-                      </p>
+                        );
+                      })}
                     </div>
-                  );
-                })()}
-              </div>
-            )}
+                  </div>
+                  {(() => {
+                    const manager = team.find(m => m.isYourManager);
+                    if (!manager) return null;
+                    return (
+                      <div className="bg-accent/5 border border-accent/20 rounded-lg p-5">
+                        <h3 className="font-semibold mb-2 text-accent text-sm">💬 A note from your manager</h3>
+                        <p className="text-sm text-muted-foreground italic">
+                          "Welcome to the team! I'm {manager.name.split(" ")[0]}, your {manager.role}. I'm excited to have you on board. Don't hesitate to ask questions — that's what this internship is for. Let's have a great {weeks > 1 ? `${weeks} weeks` : "week"} together!"
+                        </p>
+                      </div>
+                    );
+                  })()}
+                </div>
 
-            {/* ROLE */}
-            {currentSection === 2 && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-bold mb-1 flex items-center gap-2"><Briefcase className="w-5 h-5 text-accent" /> {roleTitle}</h2>
-                  <p className="text-muted-foreground leading-relaxed">{jobDesc.summary}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-3">Key Responsibilities</h3>
-                  <ul className="space-y-2">
-                    {jobDesc.responsibilities.map((r, i) => (
-                      <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
-                        <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-                        {r}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="bg-secondary/50 rounded-lg p-5">
-                  <h3 className="font-semibold mb-2">Manager Style</h3>
-                  <p className="text-sm text-muted-foreground capitalize">
-                    Your manager's style is <strong>{managerStyle}</strong>.
-                    {managerStyle === "supportive" && " Expect encouraging feedback, detailed guidance, and patience as you learn."}
-                    {managerStyle === "demanding" && " Expect high standards, direct feedback, and a focus on results and efficiency."}
-                    {managerStyle === "detail-oriented" && " Expect thorough reviews, analytical questions, and a focus on precision."}
-                  </p>
-                </div>
-              </div>
-            )}
+                {/* Divider */}
+                <hr className="border-border" />
 
-            {/* POLICIES */}
-            {currentSection === 3 && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Shield className="w-5 h-5 text-accent" /> Company Policies</h2>
-                  <ul className="space-y-3">
-                    {policies.policies.map((p, i) => (
-                      <li key={i} className="flex items-start gap-3 text-sm bg-secondary/50 rounded-lg p-4">
-                        <FileCheck className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                        <span className="text-muted-foreground">{p}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-3 flex items-center gap-2"><Target className="w-4 h-4 text-accent" /> Core Values</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {policies.values.map((v, i) => (
-                      <span key={i} className="text-sm bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-full">{v}</span>
-                    ))}
+                {/* Your Role */}
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-bold mb-1 flex items-center gap-2"><Briefcase className="w-5 h-5 text-accent" /> {roleTitle}</h2>
+                    <p className="text-muted-foreground leading-relaxed">{jobDesc.summary}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-3">Key Responsibilities</h3>
+                    <ul className="space-y-2">
+                      {jobDesc.responsibilities.map((r, i) => (
+                        <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                          <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
+                          {r}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="bg-secondary/50 rounded-lg p-5">
+                    <h3 className="font-semibold mb-2">Manager Style</h3>
+                    <p className="text-sm text-muted-foreground capitalize">
+                      Your manager's style is <strong>{managerStyle}</strong>.
+                      {managerStyle === "supportive" && " Expect encouraging feedback, detailed guidance, and patience as you learn."}
+                      {managerStyle === "demanding" && " Expect high standards, direct feedback, and a focus on results and efficiency."}
+                      {managerStyle === "detail-oriented" && " Expect thorough reviews, analytical questions, and a focus on precision."}
+                    </p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* TRAINING */}
-            {currentSection === 4 && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><GraduationCap className="w-5 h-5 text-accent" /> Required Training</h2>
-                  <div className="space-y-3">
-                    {[
-                      { title: "Company Culture & Code of Conduct", duration: "15 min", desc: "Understand how we work and our expectations for professional behavior." },
-                      { title: `${roleTitle} Fundamentals`, duration: "30 min", desc: "A refresher on core skills and methodologies used in your role." },
-                      { title: "Tools & Systems Orientation", duration: "20 min", desc: "Get familiar with the platforms and tools you'll use daily." },
-                      { title: "Communication & Feedback Norms", duration: "10 min", desc: "Learn how to give and receive feedback effectively in our team." },
-                    ].map((t, i) => (
-                      <div key={i} className="bg-secondary/50 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-medium text-sm">{t.title}</h4>
-                          <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" />{t.duration}</span>
+            {/* STEP 2: Policies, Training & Schedule */}
+            {currentSection === 1 && (
+              <div className="space-y-10">
+                {/* Policies */}
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Shield className="w-5 h-5 text-accent" /> Company Policies</h2>
+                    <ul className="space-y-3">
+                      {policies.policies.map((p, i) => (
+                        <li key={i} className="flex items-start gap-3 text-sm bg-secondary/50 rounded-lg p-4">
+                          <FileCheck className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                          <span className="text-muted-foreground">{p}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-3 flex items-center gap-2"><Target className="w-4 h-4 text-accent" /> Core Values</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {policies.values.map((v, i) => (
+                        <span key={i} className="text-sm bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-full">{v}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <hr className="border-border" />
+
+                {/* Training */}
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><GraduationCap className="w-5 h-5 text-accent" /> Required Training</h2>
+                    <div className="space-y-3">
+                      {[
+                        { title: "Company Culture & Code of Conduct", duration: "15 min", desc: "Understand how we work and our expectations for professional behavior." },
+                        { title: `${roleTitle} Fundamentals`, duration: "30 min", desc: "A refresher on core skills and methodologies used in your role." },
+                        { title: "Tools & Systems Orientation", duration: "20 min", desc: "Get familiar with the platforms and tools you'll use daily." },
+                        { title: "Communication & Feedback Norms", duration: "10 min", desc: "Learn how to give and receive feedback effectively in our team." },
+                      ].map((t, i) => (
+                        <div key={i} className="bg-secondary/50 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-medium text-sm">{t.title}</h4>
+                            <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" />{t.duration}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{t.desc}</p>
                         </div>
-                        <p className="text-xs text-muted-foreground">{t.desc}</p>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-3 flex items-center gap-2"><BookOpen className="w-4 h-4 text-accent" /> Tools You'll Use</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {jobDesc.tools.map((t, i) => (
+                        <span key={i} className="text-sm bg-secondary text-muted-foreground px-3 py-1.5 rounded-md">{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <hr className="border-border" />
+
+                {/* Schedule */}
+                <div className="space-y-6">
+                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-accent" /> Your {weeks}-Week Schedule</h2>
+                  <div className="space-y-4">
+                    {schedule.map((w) => (
+                      <div key={w.week} className="bg-secondary/50 rounded-lg p-5">
+                        <h3 className="font-semibold mb-3">Week {w.week}: {w.title}</h3>
+                        <ul className="space-y-2">
+                          {w.items.map((item, i) => (
+                            <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                              <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     ))}
                   </div>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-3 flex items-center gap-2"><BookOpen className="w-4 h-4 text-accent" /> Tools You'll Use</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {jobDesc.tools.map((t, i) => (
-                      <span key={i} className="text-sm bg-secondary text-muted-foreground px-3 py-1.5 rounded-md">{t}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* SCHEDULE */}
-            {currentSection === 5 && (
-              <div className="space-y-6">
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-accent" /> Your {weeks}-Week Schedule</h2>
-                <div className="space-y-4">
-                  {schedule.map((w) => (
-                    <div key={w.week} className="bg-secondary/50 rounded-lg p-5">
-                      <h3 className="font-semibold mb-3">Week {w.week}: {w.title}</h3>
-                      <ul className="space-y-2">
-                        {w.items.map((item, i) => (
-                          <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
-                            <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
                 </div>
               </div>
             )}
