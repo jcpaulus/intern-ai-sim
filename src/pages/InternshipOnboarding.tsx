@@ -153,6 +153,34 @@ interface WeekSchedule {
 const detailedDailyTasks: Record<string, DailyTask[]> = {
   "marketing-associate:brightwave:week1": [
     {
+      day: 1,
+      title: "Welcome & Company Orientation",
+      deliverable: "Completed Onboarding Checklist",
+      deliverableDetails: [
+        "Attend the 9:30 AM all-hands welcome session with your manager and team leads",
+        "Complete HR onboarding paperwork and review the employee handbook",
+        "Set up your workstation: Slack, Asana, Google Workspace, Canva, and HubSpot accounts",
+        "Review BrightWave's brand guidelines, tone-of-voice document, and style guide",
+        "Familiarize yourself with the client portfolio — read the overview deck in the shared drive",
+      ],
+      deadline: "End of day — confirm completion with your manager via Slack",
+      note: "No deliverable submission today. Focus on absorbing information and getting comfortable with the team.",
+    },
+    {
+      day: 2,
+      title: "Team Immersion & Role Briefing",
+      deliverable: "Role Orientation Notes",
+      deliverableDetails: [
+        "Shadow your manager during a client status call to observe campaign discussions",
+        "Meet 1-on-1 with each team member to understand their role and current projects",
+        "Review 2–3 recent campaign case studies from the BrightWave portfolio",
+        "Attend the marketing team's weekly planning meeting and take notes",
+        "Write a brief summary of your key takeaways from the day and share with your manager",
+      ],
+      deadline: "5:00 PM — submit your orientation notes via Slack DM to your manager",
+      note: "Ask questions freely today — this is your chance to understand how the team operates.",
+    },
+    {
       day: 3,
       title: "Social Media Marketing Audit",
       client: "FitLife Wellness",
@@ -181,6 +209,38 @@ const detailedDailyTasks: Record<string, DailyTask[]> = {
       ],
       deadline: "5:00 PM — to be reviewed during tomorrow's team check-in",
       note: "Let your manager know if you need clarification before getting started.",
+    },
+    {
+      day: 4,
+      title: "Competitor Analysis & Content Benchmarking",
+      client: "FitLife Wellness",
+      clientIndustry: "Fitness & Wellness",
+      campaignGoal: "Understand FitLife's competitive landscape and identify content opportunities.",
+      deliverable: "Competitor Benchmarking Brief",
+      deliverableDetails: [
+        "Identify 3 direct competitors of FitLife Wellness and analyze their social media presence",
+        "Compare content themes, posting frequency, engagement rates, and follower growth",
+        "Highlight 2–3 tactics competitors use that FitLife could adapt or improve upon",
+        "Note any gaps in competitor strategies that represent opportunities for FitLife",
+      ],
+      deadline: "4:00 PM — present findings during the afternoon team huddle",
+      note: "Use the audit from Day 3 as your baseline for comparison.",
+    },
+    {
+      day: 5,
+      title: "Content Calendar Draft & Week 1 Recap",
+      client: "FitLife Wellness",
+      campaignGoal: "Translate audit insights and competitor research into an actionable content plan.",
+      deliverable: "Draft Content Calendar (Week 1 of Campaign)",
+      deliverableDetails: [
+        "Create a 7-day content calendar for FitLife Wellness across Instagram, LinkedIn, and one additional platform",
+        "Include post type (carousel, reel, story, text post), caption drafts, and suggested visuals",
+        "Align content themes with the campaign goal of reaching young professionals",
+        "Incorporate at least one content idea inspired by your competitor analysis",
+        "Submit your Week 1 self-reflection (key learnings, challenges, and goals for Week 2)",
+      ],
+      deadline: "3:00 PM — submit via Asana; weekly status report due by 3:00 PM per company policy",
+      note: "Your manager will review the calendar and provide feedback at the start of Week 2.",
     },
   ],
 };
