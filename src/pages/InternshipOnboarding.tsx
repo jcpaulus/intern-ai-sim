@@ -112,30 +112,75 @@ const companyPolicies: Record<string, { policies: string[]; values: string[] }> 
 
 const durationWeeks: Record<string, number> = { "2": 2, "4": 4, "6": 6, "8": 8, "12": 12 };
 
-const generateSchedule = (weeks: number, roleTitle: string) => {
-  const schedule = [
+interface WeekSchedule {
+  week: number;
+  title: string;
+  items: string[];
+  groupTask: string;
+  zoomLink: string;
+  assignedRole: string;
+}
+
+const groupTasksByWeek: Record<number, string> = {
+  1: "Team Introduction & Icebreaker Presentation",
+  2: "Collaborative SWOT Analysis Workshop",
+  3: "Cross-Functional Problem-Solving Sprint",
+  4: "Group Case Study Analysis & Presentation",
+  5: "Team Strategy Proposal Development",
+  6: "Peer Review & Knowledge Sharing Session",
+  7: "Cross-Department Collaboration Challenge",
+  8: "Group Process Improvement Initiative",
+  9: "Leadership Roundtable Discussion",
+  10: "Capstone Planning & Team Alignment",
+  11: "Capstone Dry Run & Group Feedback",
+  12: "Final Group Showcase & Retrospective",
+};
+
+const assignedRolesByWeek: Record<number, string> = {
+  1: "Note-Taker",
+  2: "Researcher",
+  3: "Presenter",
+  4: "Team Lead",
+  5: "Analyst",
+  6: "Reviewer",
+  7: "Coordinator",
+  8: "Facilitator",
+  9: "Strategist",
+  10: "Project Manager",
+  11: "Quality Checker",
+  12: "Spokesperson",
+};
+
+const generateSchedule = (weeks: number, roleTitle: string): WeekSchedule[] => {
+  const baseSchedule: Omit<WeekSchedule, "groupTask" | "zoomLink" | "assignedRole">[] = [
     { week: 1, title: "Orientation & Setup", items: ["Complete onboarding checklist", "Meet your manager & team", "Set up tools & accounts", "Review first assignment brief"] },
     { week: 2, title: "First Deliverable", items: [`Submit first ${roleTitle} deliverable`, "Attend team sync meeting", "Receive and apply feedback", "Begin second assignment"] },
   ];
   if (weeks >= 4) {
-    schedule.push({ week: 3, title: "Deep Dive", items: ["Take on more complex tasks", "Collaborate cross-functionally", "Present findings to team", "Refine approach based on feedback"] });
-    schedule.push({ week: 4, title: "Independent Work", items: ["Lead a small project independently", "Mid-point performance check-in", "Iterate on deliverables", "Expand responsibilities"] });
+    baseSchedule.push({ week: 3, title: "Deep Dive", items: ["Take on more complex tasks", "Collaborate cross-functionally", "Present findings to team", "Refine approach based on feedback"] });
+    baseSchedule.push({ week: 4, title: "Independent Work", items: ["Lead a small project independently", "Mid-point performance check-in", "Iterate on deliverables", "Expand responsibilities"] });
   }
   if (weeks >= 6) {
-    schedule.push({ week: 5, title: "Advanced Projects", items: ["Tackle a stretch assignment", "Mentor newer team members", "Attend leadership meeting", "Build portfolio piece"] });
-    schedule.push({ week: 6, title: "Specialization", items: ["Choose a focus area to go deeper", "Produce a detailed case study", "Get peer feedback", "Prepare mid-program review"] });
+    baseSchedule.push({ week: 5, title: "Advanced Projects", items: ["Tackle a stretch assignment", "Mentor newer team members", "Attend leadership meeting", "Build portfolio piece"] });
+    baseSchedule.push({ week: 6, title: "Specialization", items: ["Choose a focus area to go deeper", "Produce a detailed case study", "Get peer feedback", "Prepare mid-program review"] });
   }
   if (weeks >= 8) {
-    schedule.push({ week: 7, title: "Cross-Team Collaboration", items: ["Join a cross-functional initiative", "Present to another department", "Integrate feedback from multiple stakeholders", "Refine communication skills"] });
-    schedule.push({ week: 8, title: "Ownership Phase", items: ["Own an end-to-end project", "Make strategic recommendations", "Document processes", "Prepare handoff materials"] });
+    baseSchedule.push({ week: 7, title: "Cross-Team Collaboration", items: ["Join a cross-functional initiative", "Present to another department", "Integrate feedback from multiple stakeholders", "Refine communication skills"] });
+    baseSchedule.push({ week: 8, title: "Ownership Phase", items: ["Own an end-to-end project", "Make strategic recommendations", "Document processes", "Prepare handoff materials"] });
   }
   if (weeks >= 12) {
-    schedule.push({ week: 9, title: "Leadership & Strategy", items: ["Propose a process improvement", "Lead a team meeting", "Analyze long-term trends", "Draft strategic brief"] });
-    schedule.push({ week: 10, title: "Capstone Preparation", items: ["Define capstone project scope", "Gather data and insights", "Build presentation outline", "Get manager approval on direction"] });
-    schedule.push({ week: 11, title: "Capstone Execution", items: ["Complete capstone deliverable", "Rehearse final presentation", "Collect testimonials from peers", "Polish all portfolio materials"] });
-    schedule.push({ week: 12, title: "Final Review & Graduation", items: ["Deliver final presentation to leadership", "Performance review with manager", "Receive internship completion certificate", "Celebrate achievements 🎉"] });
+    baseSchedule.push({ week: 9, title: "Leadership & Strategy", items: ["Propose a process improvement", "Lead a team meeting", "Analyze long-term trends", "Draft strategic brief"] });
+    baseSchedule.push({ week: 10, title: "Capstone Preparation", items: ["Define capstone project scope", "Gather data and insights", "Build presentation outline", "Get manager approval on direction"] });
+    baseSchedule.push({ week: 11, title: "Capstone Execution", items: ["Complete capstone deliverable", "Rehearse final presentation", "Collect testimonials from peers", "Polish all portfolio materials"] });
+    baseSchedule.push({ week: 12, title: "Final Review & Graduation", items: ["Deliver final presentation to leadership", "Performance review with manager", "Receive internship completion certificate", "Celebrate achievements 🎉"] });
   }
-  return schedule;
+
+  return baseSchedule.map((w) => ({
+    ...w,
+    groupTask: groupTasksByWeek[w.week] || "Group Collaboration Task",
+    zoomLink: `https://zoom.us/j/internly-week-${w.week}-${Date.now().toString(36).slice(-4)}`,
+    assignedRole: assignedRolesByWeek[w.week] || "Contributor",
+  }));
 };
 
 interface TeamMember {
