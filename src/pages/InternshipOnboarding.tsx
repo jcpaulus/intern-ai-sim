@@ -346,7 +346,7 @@ const InternshipOnboarding = () => {
   const [currentSection, setCurrentSection] = useState(0);
   const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
 
-  const jobDesc = roleJobDescriptions[roleId] || roleJobDescriptions["marketing-analyst"];
+  const jobDesc = roleJobDescriptions[roleId] || roleJobDescriptions["marketing-associate"];
   const policies = companyPolicies[company.id] || companyPolicies["nexora"];
   const team = companyTeams[company.id] || companyTeams["nexora"];
   const weeks = durationWeeks[duration] || 1;
