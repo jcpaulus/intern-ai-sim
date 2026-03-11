@@ -241,9 +241,11 @@ const generateSchedule = (weeks: number, roleTitle: string, roleId?: string, com
 
   return baseSchedule.map((w) => {
     const dailyTaskKey = roleId && companyId ? `${roleId}:${companyId}:week${w.week}` : "";
+    const groupTask = groupTasksByWeek[w.week] || "Group Collaboration Task";
     return {
       ...w,
-      groupTask: groupTasksByWeek[w.week] || "Group Collaboration Task",
+      items: [...w.items, `📋 Group Task: ${groupTask}`],
+      groupTask,
       zoomLink: `https://zoom.us/j/internly-week-${w.week}-${Date.now().toString(36).slice(-4)}`,
       assignedRole: assignedRolesByWeek[w.week] || "Contributor",
       dailyTasks: dailyTaskKey ? detailedDailyTasks[dailyTaskKey] : undefined,
