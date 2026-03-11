@@ -543,8 +543,10 @@ const InternshipOnboarding = () => {
                   <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-accent" /> Your {weeks}-Week Schedule</h2>
                   <div className="space-y-4">
                     {schedule.map((w) => (
-                      <div key={w.week} className="bg-secondary/50 rounded-lg p-5">
-                        <h3 className="font-semibold mb-3">Week {w.week}: {w.title}</h3>
+                      <div key={w.week} className="bg-secondary/50 rounded-lg p-5 space-y-4">
+                        <h3 className="font-semibold">Week {w.week}: {w.title}</h3>
+                        
+                        {/* Individual Tasks */}
                         <ul className="space-y-2">
                           {w.items.map((item, i) => (
                             <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
@@ -553,6 +555,33 @@ const InternshipOnboarding = () => {
                             </li>
                           ))}
                         </ul>
+
+                        {/* Group Task, Zoom Link, Assigned Role */}
+                        <div className="grid sm:grid-cols-3 gap-3 pt-3 border-t border-border">
+                          <div className="flex items-start gap-2 bg-primary/5 border border-primary/15 rounded-lg p-3">
+                            <UsersRound className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                            <div>
+                              <span className="text-[11px] uppercase tracking-wider font-semibold text-primary block mb-0.5">Group Task</span>
+                              <span className="text-xs text-muted-foreground">{w.groupTask}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-2 bg-accent/5 border border-accent/15 rounded-lg p-3">
+                            <Video className="w-4 h-4 text-accent mt-0.5 shrink-0" />
+                            <div>
+                              <span className="text-[11px] uppercase tracking-wider font-semibold text-accent block mb-0.5">Weekly Meeting</span>
+                              <a href={w.zoomLink} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline underline-offset-2 hover:text-primary/80 break-all">
+                                Join Zoom
+                              </a>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-2 bg-secondary border border-border rounded-lg p-3">
+                            <UserCog className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                            <div>
+                              <span className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground block mb-0.5">Your Role</span>
+                              <span className="text-xs text-foreground font-medium">{w.assignedRole}</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
