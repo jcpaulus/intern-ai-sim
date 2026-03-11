@@ -206,12 +206,8 @@ const levelLabels: Record<string, string> = {
 };
 
 const sections = [
-  { id: "welcome", label: "Welcome", icon: Building2 },
-  { id: "team", label: "Meet the Team", icon: Users },
-  { id: "role", label: "Your Role", icon: Briefcase },
-  { id: "policies", label: "Policies & Values", icon: Shield },
-  { id: "training", label: "Training & Tools", icon: GraduationCap },
-  { id: "schedule", label: "Your Schedule", icon: CalendarDays },
+  { id: "company-team-role", label: "Company, Team & Role", icon: Building2 },
+  { id: "policies-training-schedule", label: "Policies, Training & Schedule", icon: Shield },
 ];
 
 const InternshipOnboarding = () => {
