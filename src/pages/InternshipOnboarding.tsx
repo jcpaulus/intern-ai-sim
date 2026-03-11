@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import {
   Zap, ArrowRight, ArrowLeft, Building2, Briefcase, Shield, GraduationCap,
   CalendarDays, CheckCircle2, Clock, Users, Target, BookOpen, FileCheck,
-  Crown, UserCircle2, ArrowDown, Video, UsersRound, UserCog,
+  Crown, UserCircle2, ArrowDown, Video, UsersRound, UserCog, FileText,
 } from "lucide-react";
 
 interface CompanyData {
@@ -108,9 +108,35 @@ const companyPolicies: Record<string, { policies: string[]; values: string[] }> 
     ],
     values: ["Player delight", "Creative courage", "Ship & iterate", "Team synergy"],
   },
+  brightwave: {
+    policies: [
+      "All campaign content must be approved by the Marketing Manager before publishing",
+      "Client data and campaign analytics are confidential — do not share externally",
+      "Weekly status reports are submitted every Friday by 3:00 PM",
+      "Use Slack for internal communication and Asana for task tracking",
+    ],
+    values: ["Creative excellence", "Data-driven decisions", "Client-first mindset", "Collaborative innovation"],
+  },
 };
 
 const durationWeeks: Record<string, number> = { "2": 2, "4": 4, "6": 6, "8": 8, "12": 12 };
+
+interface DailyTask {
+  day: number;
+  title: string;
+  client?: string;
+  clientIndustry?: string;
+  clientProducts?: string;
+  campaignGoal?: string;
+  targetAudience?: string;
+  platforms?: string[];
+  analysisAreas?: string[];
+  identifyItems?: string[];
+  deliverable?: string;
+  deliverableDetails?: string[];
+  deadline?: string;
+  note?: string;
+}
 
 interface WeekSchedule {
   week: number;
@@ -119,7 +145,45 @@ interface WeekSchedule {
   groupTask: string;
   zoomLink: string;
   assignedRole: string;
+  dailyTasks?: DailyTask[];
 }
+
+// Role + Company specific detailed daily task assignments
+// Key format: "{roleId}:{companyId}:week{N}"
+const detailedDailyTasks: Record<string, DailyTask[]> = {
+  "marketing-associate:brightwave:week1": [
+    {
+      day: 3,
+      title: "Social Media Marketing Audit",
+      client: "FitLife Wellness",
+      clientIndustry: "Fitness & Wellness",
+      clientProducts: "Online fitness coaching and wellness programs",
+      campaignGoal: "Increase engagement and brand awareness among young professionals interested in health and fitness.",
+      targetAudience: "Professionals aged 22–35 who are interested in improving their health, productivity, and lifestyle.",
+      platforms: ["Instagram", "LinkedIn", "TikTok or X"],
+      analysisAreas: [
+        "Content type",
+        "Engagement levels",
+        "Posting frequency",
+        "Audience interaction",
+      ],
+      identifyItems: [
+        "The best performing posts",
+        "The weak performing posts",
+        "Any content gaps in the current content strategy",
+      ],
+      deliverable: "Social Media Audit Report",
+      deliverableDetails: [
+        "The top 3 performing posts",
+        "Key engagement patterns",
+        "Suggested improvements to strengthen the client's social media strategy",
+        "Two recommended content ideas that could improve engagement in the next phase of the campaign",
+      ],
+      deadline: "5:00 PM — to be reviewed during tomorrow's team check-in",
+      note: "Let your manager know if you need clarification before getting started.",
+    },
+  ],
+};
 
 const groupTasksByWeek: Record<number, string> = {
   1: "Team Introduction & Icebreaker Presentation",
@@ -151,8 +215,8 @@ const assignedRolesByWeek: Record<number, string> = {
   12: "Spokesperson",
 };
 
-const generateSchedule = (weeks: number, roleTitle: string): WeekSchedule[] => {
-  const baseSchedule: Omit<WeekSchedule, "groupTask" | "zoomLink" | "assignedRole">[] = [
+const generateSchedule = (weeks: number, roleTitle: string, roleId?: string, companyId?: string): WeekSchedule[] => {
+  const baseSchedule: Omit<WeekSchedule, "groupTask" | "zoomLink" | "assignedRole" | "dailyTasks">[] = [
     { week: 1, title: "Orientation & Setup", items: ["Complete onboarding checklist", "Meet your manager & team", "Set up tools & accounts", "Review first assignment brief"] },
     { week: 2, title: "First Deliverable", items: [`Submit first ${roleTitle} deliverable`, "Attend team sync meeting", "Receive and apply feedback", "Begin second assignment"] },
   ];
@@ -175,12 +239,16 @@ const generateSchedule = (weeks: number, roleTitle: string): WeekSchedule[] => {
     baseSchedule.push({ week: 12, title: "Final Review & Graduation", items: ["Deliver final presentation to leadership", "Performance review with manager", "Receive internship completion certificate", "Celebrate achievements 🎉"] });
   }
 
-  return baseSchedule.map((w) => ({
-    ...w,
-    groupTask: groupTasksByWeek[w.week] || "Group Collaboration Task",
-    zoomLink: `https://zoom.us/j/internly-week-${w.week}-${Date.now().toString(36).slice(-4)}`,
-    assignedRole: assignedRolesByWeek[w.week] || "Contributor",
-  }));
+  return baseSchedule.map((w) => {
+    const dailyTaskKey = roleId && companyId ? `${roleId}:${companyId}:week${w.week}` : "";
+    return {
+      ...w,
+      groupTask: groupTasksByWeek[w.week] || "Group Collaboration Task",
+      zoomLink: `https://zoom.us/j/internly-week-${w.week}-${Date.now().toString(36).slice(-4)}`,
+      assignedRole: assignedRolesByWeek[w.week] || "Contributor",
+      dailyTasks: dailyTaskKey ? detailedDailyTasks[dailyTaskKey] : undefined,
+    };
+  });
 };
 
 interface TeamMember {
@@ -232,6 +300,14 @@ const companyTeams: Record<string, TeamMember[]> = {
     { name: "Mia Chang", role: "Senior Game Designer", level: "senior", reportsTo: "Jordan Blake", bio: "Designs narrative quests and economy systems. She'll review your game design work." },
     { name: "Luca Ferreira", role: "QA & Analytics Intern", level: "peer", reportsTo: "Jordan Blake", bio: "Your fellow intern. Focuses on player behavior analytics and bug triage." },
   ],
+  brightwave: [
+    { name: "Rebecca Torres", role: "CEO & Founder", level: "executive", bio: "Former VP at Ogilvy. Founded BrightWave to bring data-driven creativity to mid-market brands." },
+    { name: "Michael Chen", role: "VP of Client Services", level: "director", reportsTo: "Rebecca Torres", bio: "Manages all client relationships and oversees campaign strategy across accounts." },
+    { name: "Samantha Brooks", role: "Creative Director", level: "director", reportsTo: "Rebecca Torres", bio: "Leads the creative team. Sets visual direction for all campaigns and brand work." },
+    { name: "Daniel Okafor", role: "Marketing Manager", level: "manager", reportsTo: "Michael Chen", bio: "Your direct manager. 7 years in digital marketing. Runs the social media and analytics team.", isYourManager: true },
+    { name: "Jessica Huang", role: "Senior Social Media Strategist", level: "senior", reportsTo: "Daniel Okafor", bio: "Specializes in Instagram and TikTok growth strategies. Great resource for social trends." },
+    { name: "Ryan Mitchell", role: "Marketing Associate", level: "peer", reportsTo: "Daniel Okafor", bio: "Joined 2 months ago. Working on email campaigns and content calendar — your closest peer." },
+  ],
 };
 
 const levelColors: Record<string, string> = {
@@ -274,7 +350,7 @@ const InternshipOnboarding = () => {
   const policies = companyPolicies[company.id] || companyPolicies["nexora"];
   const team = companyTeams[company.id] || companyTeams["nexora"];
   const weeks = durationWeeks[duration] || 1;
-  const schedule = generateSchedule(weeks, roleTitle);
+  const schedule = generateSchedule(weeks, roleTitle, roleId, company.id);
 
   const progressPercent = ((completedSections.size) / sections.length) * 100;
 
@@ -594,6 +670,134 @@ const InternshipOnboarding = () => {
                             </div>
                           </div>
                         </div>
+
+                        {/* Detailed Daily Task Assignments */}
+                        {w.dailyTasks && w.dailyTasks.length > 0 && (
+                          <div className="space-y-3 pt-3 border-t border-border">
+                            <h4 className="text-sm font-semibold flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-primary" />
+                              Detailed Task Assignments
+                            </h4>
+                            {w.dailyTasks.map((dt, dti) => {
+                              const manager = team.find(m => m.isYourManager);
+                              return (
+                                <div key={dti} className="bg-background border border-primary/20 rounded-lg p-5 space-y-4">
+                                  <div className="flex items-center justify-between flex-wrap gap-2">
+                                    <div>
+                                      <span className="text-[11px] uppercase tracking-wider font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                                        Day {dt.day}
+                                      </span>
+                                      <h5 className="text-base font-bold mt-2">{dt.title}</h5>
+                                    </div>
+                                    {dt.deadline && (
+                                      <span className="text-xs text-muted-foreground flex items-center gap-1 bg-secondary px-2 py-1 rounded">
+                                        <Clock className="w-3 h-3" /> Due: {dt.deadline}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Manager attribution */}
+                                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                                    <UserCircle2 className="w-3.5 h-3.5 text-accent" />
+                                    Assigned by <span className="font-semibold text-foreground">{manager?.name || "Your Manager"}</span>
+                                    <span className="text-muted-foreground/60">({manager?.role || "Manager"})</span>
+                                  </p>
+
+                                  {/* Client Info */}
+                                  {dt.client && (
+                                    <div className="bg-secondary/70 rounded-lg p-4 space-y-1">
+                                      <p className="text-sm font-semibold">Client: {dt.client}</p>
+                                      {dt.clientIndustry && <p className="text-xs text-muted-foreground">Industry: {dt.clientIndustry}</p>}
+                                      {dt.clientProducts && <p className="text-xs text-muted-foreground">Products: {dt.clientProducts}</p>}
+                                    </div>
+                                  )}
+
+                                  {/* Campaign Goal */}
+                                  {dt.campaignGoal && (
+                                    <div>
+                                      <p className="text-xs font-semibold text-foreground mb-1">Campaign Goal:</p>
+                                      <p className="text-sm text-muted-foreground">{dt.campaignGoal}</p>
+                                    </div>
+                                  )}
+
+                                  {/* Target Audience */}
+                                  {dt.targetAudience && (
+                                    <div>
+                                      <p className="text-xs font-semibold text-foreground mb-1">Target Audience:</p>
+                                      <p className="text-sm text-muted-foreground">{dt.targetAudience}</p>
+                                    </div>
+                                  )}
+
+                                  {/* Platforms */}
+                                  {dt.platforms && dt.platforms.length > 0 && (
+                                    <div>
+                                      <p className="text-xs font-semibold text-foreground mb-2">Platforms to Review:</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {dt.platforms.map((p, pi) => (
+                                          <span key={pi} className="text-xs bg-primary/10 text-primary border border-primary/20 px-2.5 py-1 rounded-full">{p}</span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Analysis Areas */}
+                                  {dt.analysisAreas && dt.analysisAreas.length > 0 && (
+                                    <div>
+                                      <p className="text-xs font-semibold text-foreground mb-2">Focus Your Analysis On:</p>
+                                      <ul className="space-y-1.5">
+                                        {dt.analysisAreas.map((a, ai) => (
+                                          <li key={ai} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                            <Target className="w-3.5 h-3.5 text-accent mt-0.5 shrink-0" />
+                                            {a}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+
+                                  {/* Identify Items */}
+                                  {dt.identifyItems && dt.identifyItems.length > 0 && (
+                                    <div>
+                                      <p className="text-xs font-semibold text-foreground mb-2">During Your Review, Identify:</p>
+                                      <ul className="space-y-1.5">
+                                        {dt.identifyItems.map((item, ii) => (
+                                          <li key={ii} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                            <CheckCircle2 className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+                                            {item}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+
+                                  {/* Deliverable */}
+                                  {dt.deliverable && (
+                                    <div className="bg-accent/5 border border-accent/20 rounded-lg p-4">
+                                      <p className="text-xs font-bold text-accent mb-2 uppercase tracking-wider">📋 Deliverable: {dt.deliverable}</p>
+                                      {dt.deliverableDetails && (
+                                        <ul className="space-y-1.5">
+                                          {dt.deliverableDetails.map((d, di) => (
+                                            <li key={di} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                              <FileCheck className="w-3.5 h-3.5 text-accent mt-0.5 shrink-0" />
+                                              {d}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {/* Note */}
+                                  {dt.note && (
+                                    <p className="text-xs text-muted-foreground italic border-l-2 border-accent/30 pl-3 mt-2">
+                                      💡 {dt.note}
+                                    </p>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
