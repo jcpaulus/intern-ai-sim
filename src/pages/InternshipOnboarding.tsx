@@ -507,11 +507,20 @@ const InternshipOnboarding = () => {
                   {(() => {
                     const manager = team.find(m => m.isYourManager);
                     if (!manager) return null;
+                    const firstName = manager.name.split(" ")[0];
+                    const durationText = weeks > 1 ? `${weeks} weeks` : "week";
+                    
+                    const managerMessages: Record<string, string> = {
+                      supportive: `"Welcome to the team! I'm ${firstName}, your ${manager.role}. I'm really excited to have you on board. Don't hesitate to ask questions — that's what this internship is for. I'll be here to guide you every step of the way. Let's have a great ${durationText} together!"`,
+                      demanding: `"Welcome. I'm ${firstName}, your ${manager.role}. I expect strong work and initiative from everyone on this team — interns included. You'll be treated as a real contributor, not a shadow. Come prepared, meet your deadlines, and don't be afraid to push yourself. Let's make these ${durationText} count."`,
+                      "detail-oriented": `"Welcome aboard. I'm ${firstName}, your ${manager.role}. I value thoroughness and precision in everything we produce. Pay attention to the details — they matter. I'll review your work carefully and give you specific, actionable feedback. Looking forward to a productive ${durationText}."`,
+                    };
+                    
                     return (
                       <div className="bg-accent/5 border border-accent/20 rounded-lg p-5">
                         <h3 className="font-semibold mb-2 text-accent text-sm">💬 A note from your manager</h3>
                         <p className="text-sm text-muted-foreground italic">
-                          "Welcome to the team! I'm {manager.name.split(" ")[0]}, your {manager.role}. I'm excited to have you on board. Don't hesitate to ask questions — that's what this internship is for. Let's have a great {weeks > 1 ? `${weeks} weeks` : "week"} together!"
+                          {managerMessages[managerStyle] || managerMessages["supportive"]}
                         </p>
                       </div>
                     );
