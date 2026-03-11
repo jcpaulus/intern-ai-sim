@@ -12,12 +12,12 @@ const roleData: Record<string, { title: string; description: string }> = {
 
 const companies = [
   {
-    id: "alphatech",
-    name: "AlphaTech",
-    industry: "Technology – Software/SaaS",
-    size: "500 employees",
-    description: "A mid-size cloud software company with global clients that develops web and mobile applications. AlphaTech hires interns to work on core products, using tools like GitHub, Python/Java, and cloud platforms.",
-    culture: "Innovative, flat hierarchy, agile development",
+    id: "nexora",
+    name: "Nexora",
+    industry: "Fintech Startup",
+    size: "50 employees",
+    description: "A fast-growing digital payments startup making cross-border payments instant and affordable. Teams work across engineering, marketing, and analytics with a data-driven culture.",
+    culture: "Move fast, data-driven, radical transparency",
   },
   {
     id: "brightwave",
@@ -28,12 +28,12 @@ const companies = [
     culture: "Creative, data-driven strategy, collaborative",
   },
   {
-    id: "summit-finance",
-    name: "Summit Finance Group",
-    industry: "Financial Services",
-    size: "1000+ employees",
-    description: "A national financial services firm covering wealth management and corporate banking. Finance interns support analysts with spreadsheets, financial reports, and data analysis for budgeting and forecasting.",
-    culture: "Professional, detail-oriented, results-focused",
+    id: "atlas-robotics",
+    name: "Atlas Robotics",
+    industry: "Robotics & Engineering",
+    size: "300 employees",
+    description: "An industrial automation company building next-generation robotic systems. Teams span hardware, firmware, software, and operations with a focus on precision and reliability.",
+    culture: "Engineering excellence, safety first, continuous improvement",
   },
 ];
 
