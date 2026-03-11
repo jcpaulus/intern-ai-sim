@@ -27,38 +27,38 @@ interface SimState {
 }
 
 const roleJobDescriptions: Record<string, { summary: string; responsibilities: string[]; tools: string[] }> = {
-  "marketing-analyst": {
-    summary: "As a Marketing Analyst intern, you'll support the marketing team by analyzing campaign performance, identifying audience trends, and producing data-driven recommendations.",
+  "business-analyst": {
+    summary: "As a Business Analyst intern, you'll support the team by gathering requirements, analyzing processes, and producing actionable recommendations for stakeholders.",
     responsibilities: [
-      "Analyze marketing campaign metrics and prepare performance reports",
-      "Conduct competitive research and market analysis",
-      "Draft and edit marketing copy for social media and email campaigns",
+      "Gather and document business requirements from stakeholders",
+      "Analyze existing processes and identify improvement opportunities",
+      "Create process flow diagrams and requirement specifications",
+      "Prepare reports and presentations for leadership review",
+      "Collaborate cross-functionally to validate solutions",
+    ],
+    tools: ["Excel/Google Sheets", "Jira", "Confluence", "Lucidchart", "Slack"],
+  },
+  "marketing-associate": {
+    summary: "As a Marketing Associate intern, you'll support the marketing team by coordinating campaigns, creating content, and conducting market research to drive engagement.",
+    responsibilities: [
+      "Coordinate and execute digital marketing campaigns",
+      "Create social media content and marketing copy",
+      "Conduct market research and competitive analysis",
+      "Track campaign metrics and prepare performance reports",
       "Collaborate with the design team on creative briefs",
-      "Present weekly findings to the marketing manager",
     ],
-    tools: ["Google Analytics", "HubSpot", "Canva", "Google Sheets", "Slack"],
+    tools: ["Google Analytics", "Hootsuite", "Canva", "HubSpot", "Slack"],
   },
-  "data-analyst": {
-    summary: "As a Data Analyst intern, you'll work with cross-functional teams to collect, clean, and interpret datasets that drive business decisions.",
+  "operations-assistant": {
+    summary: "As an Operations Assistant intern, you'll help streamline daily operations, manage scheduling, and optimize workflow processes to improve team efficiency.",
     responsibilities: [
-      "Clean and transform raw datasets for analysis",
-      "Build dashboards and data visualizations",
-      "Identify trends, outliers, and key performance indicators",
-      "Write summary reports for leadership review",
-      "Validate data quality and flag inconsistencies",
+      "Assist with daily operations tasks and process documentation",
+      "Manage scheduling and coordinate team logistics",
+      "Perform data entry and maintain accurate records",
+      "Identify bottlenecks and propose workflow improvements",
+      "Support inventory tracking and vendor communications",
     ],
-    tools: ["SQL", "Python/Pandas", "Tableau", "Google Sheets", "Jupyter Notebooks"],
-  },
-  "ui-ux-designer": {
-    summary: "As a UI/UX Design intern, you'll participate in the full design cycle — from user research to prototyping — under the guidance of a senior designer.",
-    responsibilities: [
-      "Conduct user interviews and synthesize findings",
-      "Create wireframes and low-fidelity prototypes",
-      "Design high-fidelity mockups in Figma",
-      "Participate in design critiques and iterate based on feedback",
-      "Document design decisions and maintain the component library",
-    ],
-    tools: ["Figma", "FigJam", "Maze (usability testing)", "Notion", "Slack"],
+    tools: ["Asana", "Google Sheets", "Notion", "Zapier", "Slack"],
   },
 };
 
