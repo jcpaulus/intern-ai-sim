@@ -108,6 +108,15 @@ const companyPolicies: Record<string, { policies: string[]; values: string[] }> 
     ],
     values: ["Player delight", "Creative courage", "Ship & iterate", "Team synergy"],
   },
+  brightwave: {
+    policies: [
+      "All campaign content must be approved by the Marketing Manager before publishing",
+      "Client data and campaign analytics are confidential — do not share externally",
+      "Weekly status reports are submitted every Friday by 3:00 PM",
+      "Use Slack for internal communication and Asana for task tracking",
+    ],
+    values: ["Creative excellence", "Data-driven decisions", "Client-first mindset", "Collaborative innovation"],
+  },
 };
 
 const durationWeeks: Record<string, number> = { "2": 2, "4": 4, "6": 6, "8": 8, "12": 12 };
