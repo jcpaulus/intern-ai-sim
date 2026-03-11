@@ -546,15 +546,27 @@ const InternshipOnboarding = () => {
                       <div key={w.week} className="bg-secondary/50 rounded-lg p-5 space-y-4">
                         <h3 className="font-semibold">Week {w.week}: {w.title}</h3>
                         
-                        {/* Individual Tasks */}
-                        <ul className="space-y-2">
-                          {w.items.map((item, i) => (
-                            <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
-                              <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
+                        {/* Individual Tasks — assigned by your manager */}
+                        {(() => {
+                          const manager = team.find(m => m.isYourManager);
+                          return (
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
+                                <UserCircle2 className="w-3.5 h-3.5 text-accent" />
+                                Assigned by <span className="font-semibold text-foreground">{manager?.name || "Your Manager"}</span>
+                                <span className="text-muted-foreground/60">({manager?.role || "Manager"})</span>
+                              </p>
+                              <ul className="space-y-2">
+                                {w.items.map((item, i) => (
+                                  <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                                    <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
+                                    {item}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          );
+                        })()}
 
                         {/* Group Task, Zoom Link, Assigned Role */}
                         <div className="grid sm:grid-cols-3 gap-3 pt-3 border-t border-border">
