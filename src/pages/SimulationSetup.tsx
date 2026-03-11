@@ -45,7 +45,7 @@ const SimulationSetup = () => {
   const [duration, setDuration] = useState("4");
   const [level, setLevel] = useState("intermediate");
   const [managerStyle, setManagerStyle] = useState("supportive");
-  const [selectedCompany, setSelectedCompany] = useState("alphatech");
+  const [selectedCompany, setSelectedCompany] = useState("nexora");
 
   const durations = [
     { value: "2", label: "2 Weeks", tasks: "10 tasks" },
