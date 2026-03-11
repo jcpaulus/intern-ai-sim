@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Zap, BarChart3, PenTool, TrendingUp, Clock, Filter } from "lucide-react";
+import { Zap, BarChart3, PenTool, TrendingUp } from "lucide-react";
 
 const roles = [
   {
@@ -10,7 +9,6 @@ const roles = [
     title: "Business Analyst",
     icon: BarChart3,
     skills: ["Requirements analysis", "Process improvement", "Stakeholder management"],
-    duration: "2–12 weeks",
     difficulty: "Intermediate",
     description: "Analyze business requirements, identify process improvements, and communicate with stakeholders.",
   },
@@ -19,7 +17,6 @@ const roles = [
     title: "Marketing Associate",
     icon: TrendingUp,
     skills: ["Campaign coordination", "Content creation", "Market research"],
-    duration: "2–12 weeks",
     difficulty: "Beginner",
     description: "Support marketing campaigns, create content, and conduct market research for digital initiatives.",
   },
@@ -28,17 +25,12 @@ const roles = [
     title: "Operations Assistant",
     icon: PenTool,
     skills: ["Process management", "Data entry", "Schedule optimization"],
-    duration: "2–12 weeks",
     difficulty: "Beginner",
     description: "Assist with operations tasks, manage scheduling, and optimize workflow processes.",
   },
 ];
 
-const filters = ["All", "1 Week", "2 Weeks", "4 Weeks"];
-
 const RoleCatalog = () => {
-  const [activeFilter, setActiveFilter] = useState("All");
-
   return (
     <div className="min-h-screen bg-background">
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
@@ -62,23 +54,6 @@ const RoleCatalog = () => {
           <p className="text-muted-foreground text-lg">Select an internship simulation to start building real skills</p>
         </div>
 
-        <div className="flex items-center gap-2 mb-8">
-          <Filter className="w-4 h-4 text-muted-foreground" />
-          {filters.map((f) => (
-            <button
-              key={f}
-              onClick={() => setActiveFilter(f)}
-              className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
-                activeFilter === f
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-
         <div className="grid md:grid-cols-3 gap-6">
           {roles.map((role) => (
             <div key={role.id} className="bg-card border border-border rounded-xl p-6 shadow-card hover:border-primary/50 transition-all group">
@@ -90,20 +65,14 @@ const RoleCatalog = () => {
               </div>
               <h3 className="text-xl font-semibold mb-2">{role.title}</h3>
               <p className="text-muted-foreground text-sm mb-4">{role.description}</p>
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-wrap gap-2 mb-6">
                 {role.skills.map((s) => (
                   <span key={s} className="text-xs bg-secondary text-muted-foreground px-2 py-1 rounded-md">{s}</span>
                 ))}
               </div>
-              <div className="flex items-center gap-1 text-sm text-muted-foreground mb-6">
-                <Clock className="w-4 h-4" /> {role.duration}
-              </div>
-              <div className="flex gap-3">
-                <Button variant="hero" className="flex-1" asChild>
-                  <Link to={`/simulation/setup/${role.id}`}>Start Simulation</Link>
-                </Button>
-                <Button variant="outline" size="sm">Preview</Button>
-              </div>
+              <Button variant="hero" className="w-full" asChild>
+                <Link to={`/simulation/setup/${role.id}`}>Start Simulation</Link>
+              </Button>
             </div>
           ))}
         </div>

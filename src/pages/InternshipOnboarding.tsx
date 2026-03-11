@@ -27,38 +27,38 @@ interface SimState {
 }
 
 const roleJobDescriptions: Record<string, { summary: string; responsibilities: string[]; tools: string[] }> = {
-  "marketing-analyst": {
-    summary: "As a Marketing Analyst intern, you'll support the marketing team by analyzing campaign performance, identifying audience trends, and producing data-driven recommendations.",
+  "business-analyst": {
+    summary: "As a Business Analyst intern, you'll support the team by gathering requirements, analyzing processes, and producing actionable recommendations for stakeholders.",
     responsibilities: [
-      "Analyze marketing campaign metrics and prepare performance reports",
-      "Conduct competitive research and market analysis",
-      "Draft and edit marketing copy for social media and email campaigns",
+      "Gather and document business requirements from stakeholders",
+      "Analyze existing processes and identify improvement opportunities",
+      "Create process flow diagrams and requirement specifications",
+      "Prepare reports and presentations for leadership review",
+      "Collaborate cross-functionally to validate solutions",
+    ],
+    tools: ["Excel/Google Sheets", "Jira", "Confluence", "Lucidchart", "Slack"],
+  },
+  "marketing-associate": {
+    summary: "As a Marketing Associate intern, you'll support the marketing team by coordinating campaigns, creating content, and conducting market research to drive engagement.",
+    responsibilities: [
+      "Coordinate and execute digital marketing campaigns",
+      "Create social media content and marketing copy",
+      "Conduct market research and competitive analysis",
+      "Track campaign metrics and prepare performance reports",
       "Collaborate with the design team on creative briefs",
-      "Present weekly findings to the marketing manager",
     ],
-    tools: ["Google Analytics", "HubSpot", "Canva", "Google Sheets", "Slack"],
+    tools: ["Google Analytics", "Hootsuite", "Canva", "HubSpot", "Slack"],
   },
-  "data-analyst": {
-    summary: "As a Data Analyst intern, you'll work with cross-functional teams to collect, clean, and interpret datasets that drive business decisions.",
+  "operations-assistant": {
+    summary: "As an Operations Assistant intern, you'll help streamline daily operations, manage scheduling, and optimize workflow processes to improve team efficiency.",
     responsibilities: [
-      "Clean and transform raw datasets for analysis",
-      "Build dashboards and data visualizations",
-      "Identify trends, outliers, and key performance indicators",
-      "Write summary reports for leadership review",
-      "Validate data quality and flag inconsistencies",
+      "Assist with daily operations tasks and process documentation",
+      "Manage scheduling and coordinate team logistics",
+      "Perform data entry and maintain accurate records",
+      "Identify bottlenecks and propose workflow improvements",
+      "Support inventory tracking and vendor communications",
     ],
-    tools: ["SQL", "Python/Pandas", "Tableau", "Google Sheets", "Jupyter Notebooks"],
-  },
-  "ui-ux-designer": {
-    summary: "As a UI/UX Design intern, you'll participate in the full design cycle — from user research to prototyping — under the guidance of a senior designer.",
-    responsibilities: [
-      "Conduct user interviews and synthesize findings",
-      "Create wireframes and low-fidelity prototypes",
-      "Design high-fidelity mockups in Figma",
-      "Participate in design critiques and iterate based on feedback",
-      "Document design decisions and maintain the component library",
-    ],
-    tools: ["Figma", "FigJam", "Maze (usability testing)", "Notion", "Slack"],
+    tools: ["Asana", "Google Sheets", "Notion", "Zapier", "Slack"],
   },
 };
 
@@ -336,9 +336,9 @@ const InternshipOnboarding = () => {
   const navigate = useNavigate();
   const simState = location.state as SimState | null;
 
-  const roleId = simState?.roleId || "marketing-analyst";
-  const roleTitle = simState?.roleTitle || "Marketing Analyst";
-  const company = simState?.company || { id: "nexora", name: "Nexora", industry: "Fintech Startup", size: "50 employees", description: "A fast-growing digital payments startup.", culture: "Move fast, data-driven" };
+  const roleId = simState?.roleId || "marketing-associate";
+  const roleTitle = simState?.roleTitle || "Marketing Associate";
+  const company = simState?.company || { id: "brightwave", name: "BrightWave Marketing", industry: "Media/Advertising", size: "200 employees", description: "A creative marketing agency.", culture: "Creative, data-driven" };
   const duration = simState?.duration || "1";
   const level = simState?.level || "intermediate";
   const managerStyle = simState?.managerStyle || "supportive";
@@ -346,7 +346,7 @@ const InternshipOnboarding = () => {
   const [currentSection, setCurrentSection] = useState(0);
   const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
 
-  const jobDesc = roleJobDescriptions[roleId] || roleJobDescriptions["marketing-analyst"];
+  const jobDesc = roleJobDescriptions[roleId] || roleJobDescriptions["marketing-associate"];
   const policies = companyPolicies[company.id] || companyPolicies["nexora"];
   const team = companyTeams[company.id] || companyTeams["nexora"];
   const weeks = durationWeeks[duration] || 1;
@@ -507,11 +507,20 @@ const InternshipOnboarding = () => {
                   {(() => {
                     const manager = team.find(m => m.isYourManager);
                     if (!manager) return null;
+                    const firstName = manager.name.split(" ")[0];
+                    const durationText = weeks > 1 ? `${weeks} weeks` : "week";
+                    
+                    const managerMessages: Record<string, string> = {
+                      supportive: `"Welcome to the team! I'm ${firstName}, your ${manager.role}. I'm really excited to have you on board. Don't hesitate to ask questions — that's what this internship is for. I'll be here to guide you every step of the way. Let's have a great ${durationText} together!"`,
+                      demanding: `"Welcome. I'm ${firstName}, your ${manager.role}. I expect strong work and initiative from everyone on this team — interns included. You'll be treated as a real contributor, not a shadow. Come prepared, meet your deadlines, and don't be afraid to push yourself. Let's make these ${durationText} count."`,
+                      "detail-oriented": `"Welcome aboard. I'm ${firstName}, your ${manager.role}. I value thoroughness and precision in everything we produce. Pay attention to the details — they matter. I'll review your work carefully and give you specific, actionable feedback. Looking forward to a productive ${durationText}."`,
+                    };
+                    
                     return (
                       <div className="bg-accent/5 border border-accent/20 rounded-lg p-5">
                         <h3 className="font-semibold mb-2 text-accent text-sm">💬 A note from your manager</h3>
                         <p className="text-sm text-muted-foreground italic">
-                          "Welcome to the team! I'm {manager.name.split(" ")[0]}, your {manager.role}. I'm excited to have you on board. Don't hesitate to ask questions — that's what this internship is for. Let's have a great {weeks > 1 ? `${weeks} weeks` : "week"} together!"
+                          {managerMessages[managerStyle] || managerMessages["supportive"]}
                         </p>
                       </div>
                     );
