@@ -350,7 +350,7 @@ const InternshipOnboarding = () => {
   const policies = companyPolicies[company.id] || companyPolicies["nexora"];
   const team = companyTeams[company.id] || companyTeams["nexora"];
   const weeks = durationWeeks[duration] || 1;
-  const schedule = generateSchedule(weeks, roleTitle);
+  const schedule = generateSchedule(weeks, roleTitle, roleId, company.id);
 
   const progressPercent = ((completedSections.size) / sections.length) * 100;
 
