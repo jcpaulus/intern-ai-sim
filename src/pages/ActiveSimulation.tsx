@@ -904,6 +904,13 @@ const ActiveSimulation = () => {
                 })()}
               </div>
 
+              {/* Exit Button */}
+              <div className="mt-6 flex justify-center">
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/dashboard">Exit Simulation</Link>
+                </Button>
+              </div>
+
               {/* All tasks complete celebration */}
               {totalCompleted === allTasks.length && allTasks.length > 0 && (
                 <div className="mt-8 bg-accent/10 border border-accent/30 rounded-xl p-6 text-center animate-fade-in">
