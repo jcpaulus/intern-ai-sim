@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Zap, CheckCircle, Clock, AlertCircle, ChevronRight, ChevronLeft,
+  Zap, CheckCircle, Clock, AlertCircle, ChevronRight, ChevronLeft, ArrowLeft,
   CalendarDays, Lock, Trophy, FileText, ChevronDown, ChevronUp,
   Upload, X, Send, Loader2, Star, Target, TrendingUp, ThumbsUp, ThumbsDown,
   ExternalLink, BookOpen, Info, Database, Wrench, Layout, Lightbulb,
