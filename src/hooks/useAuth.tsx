@@ -52,12 +52,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [session, fetchProfile]);
 
   useEffect(() => {
+    let mounted = true;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log("[Auth] State changed:", event, session?.user?.email);
+        if (!mounted) return;
         setSession(session);
         if (session?.user) {
-          setTimeout(() => fetchProfile(session.user.id), 0);
+          // Use setTimeout to avoid blocking the auth state change callback
+          setTimeout(() => {
+            if (mounted) fetchProfile(session.user.id);
+          }, 0);
         } else {
           setProfile(null);
           setLoading(false);
@@ -67,6 +73,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       console.log("[Auth] Initial session:", session?.user?.email ?? "none");
+      if (!mounted) return;
       setSession(session);
       if (session?.user) {
         await fetchProfile(session.user.id);
@@ -74,14 +81,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [fetchProfile]);
-
-  useEffect(() => {
-    if (session && profile !== undefined) {
-      setLoading(false);
-    }
-  }, [session, profile]);
 
   return (
     <AuthContext.Provider value={{ session, user: session?.user ?? null, profile, loading, refreshProfile }}>
