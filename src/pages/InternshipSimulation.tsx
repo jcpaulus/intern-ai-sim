@@ -172,8 +172,16 @@ const InternshipSimulation = () => {
       if (!res.ok || data?.error) {
         throw new Error(data?.error || `API error ${res.status}`);
       }
-      if (!data?.feedback) throw new Error("No feedback returned from AI");
-      setFeedback(data.feedback);
+      
+      // Handle both structured object and plain string feedback
+      const rawFeedback = data?.feedback;
+      if (!rawFeedback) throw new Error("No feedback returned from AI");
+      
+      if (typeof rawFeedback === "string") {
+        setFeedback({ raw_text: rawFeedback });
+      } else {
+        setFeedback(rawFeedback);
+      }
 
       // Save simulation run to database
       const { data: { session } } = await supabase.auth.getSession();
