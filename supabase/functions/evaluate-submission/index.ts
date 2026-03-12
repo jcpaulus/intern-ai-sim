@@ -21,7 +21,6 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    // Build submission content based on what's provided
     let submissionSection = "";
     
     if (submission && submission.trim().length > 0 && fileContent) {
@@ -32,7 +31,6 @@ serve(async (req) => {
       submissionSection = `INTERN'S TEXT ANSWER:\n"""\n${submission}\n"""`;
     }
 
-    // Build evaluation criteria section
     let criteriaSection = "";
     if (evaluationCriteria && Array.isArray(evaluationCriteria) && evaluationCriteria.length > 0) {
       criteriaSection = "\n\nEVALUATION CRITERIA (evaluate against these specific criteria):\n" +
@@ -47,9 +45,8 @@ ${criteriaSection}
 
 ${submissionSection}
 
-Evaluate this submission against the task instructions and evaluation criteria. Be specific and reference their actual work.`;
+Evaluate this submission against the task instructions and evaluation criteria. Be specific and reference their actual work. Write your feedback as a manager giving direct, constructive critique to your intern.`;
 
-    // Use tool calling for reliable structured output
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -61,7 +58,7 @@ Evaluate this submission against the task instructions and evaluation criteria. 
         messages: [
           {
             role: "system",
-            content: `You are Sarah Martinez, a senior hiring manager reviewing an intern's submission. You are professional, direct, and fair. Quote the user's actual words when relevant. Every strength and improvement must be specific, not generic. Score each dimension 1-10. "Hire" if average score >= 7, "Needs Improvement" otherwise.`,
+            content: `You are Sarah Martinez, a senior manager reviewing your intern's submission. Write your feedback in first person as their direct manager — warm but honest. Quote the user's actual words when relevant. Every strength and improvement must be specific, not generic. Score each dimension 1-10. Your manager_feedback should be a 2-3 paragraph personal note from you to the intern summarizing your overall thoughts, what impressed you, and what you'd like them to focus on next. Do NOT mention hiring decisions.`,
           },
           { role: "user", content: userMessage },
         ],
@@ -74,6 +71,7 @@ Evaluate this submission against the task instructions and evaluation criteria. 
               parameters: {
                 type: "object",
                 properties: {
+                  manager_feedback: { type: "string", description: "A 2-3 paragraph personal note from you (Sarah Martinez, the manager) to the intern. Written in first person. Summarize overall thoughts, what impressed you, and areas to focus on." },
                   score: { type: "number", description: "Overall score 1-10, average of dimension scores" },
                   scores: {
                     type: "object",
@@ -130,10 +128,9 @@ Evaluate this submission against the task instructions and evaluation criteria. 
                     type: "array",
                     items: { type: "string" },
                   },
-                  hiring_decision: { type: "string", enum: ["Hire", "Needs Improvement"] },
                   recommendation: { type: "string" },
                 },
-                required: ["score", "scores", "strengths", "improvements", "suggested_improvements", "hiring_decision", "recommendation"],
+                required: ["manager_feedback", "score", "scores", "strengths", "improvements", "suggested_improvements", "recommendation"],
                 additionalProperties: false,
               },
             },
@@ -164,10 +161,8 @@ Evaluate this submission against the task instructions and evaluation criteria. 
 
     const data = await response.json();
 
-    // Extract from tool call response
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall) {
-      // Fallback: try regular content
       const content = data.choices?.[0]?.message?.content;
       console.error("No tool call in response. Content:", content);
       throw new Error("AI did not return structured feedback");
