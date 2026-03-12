@@ -41,6 +41,7 @@ function buildTaskList(schedule: WeekSchedule[]): TaskItem[] {
           deliverable: dt.deliverable,
           deadline: dt.deadline,
           isGroupTask: false,
+          evaluationCriteria: dt.evaluationCriteria,
         });
       }
     } else {
