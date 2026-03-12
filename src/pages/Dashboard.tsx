@@ -185,7 +185,7 @@ const Dashboard = () => {
   const stats = [
     { icon: BookOpen, label: "Simulations", value: totalRuns.toString() },
     { icon: CheckCircle, label: "Roles Tried", value: uniqueRoles.toString() },
-    { icon: Trophy, label: "Avg Score", value: avgScore != null ? `${avgScore}%` : "–" },
+    { icon: Trophy, label: "Performance", value: avgScore != null ? `${avgScore}%` : "–" },
   ];
 
   const formatDate = (dateStr: string) =>
@@ -226,6 +226,17 @@ const Dashboard = () => {
           </div>
         ) : (
           <>
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              {stats.map((s) => (
+                <div key={s.label} className="bg-card border border-border rounded-xl p-5 shadow-card text-center">
+                  <s.icon className="w-6 h-6 text-accent mx-auto mb-2" />
+                  <div className="text-2xl font-bold">{s.value}</div>
+                  <div className="text-sm text-muted-foreground">{s.label}</div>
+                </div>
+              ))}
+            </div>
+
             {/* Overall Progress */}
             <div className="bg-card border border-border rounded-xl p-6 shadow-card mb-8">
               <div className="flex items-center justify-between mb-3">
@@ -310,17 +321,6 @@ const Dashboard = () => {
                   </div>
                 );
               })}
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-10">
-              {stats.map((s) => (
-                <div key={s.label} className="bg-card border border-border rounded-xl p-5 shadow-card text-center">
-                  <s.icon className="w-6 h-6 text-accent mx-auto mb-2" />
-                  <div className="text-2xl font-bold">{s.value}</div>
-                  <div className="text-sm text-muted-foreground">{s.label}</div>
-                </div>
-              ))}
             </div>
 
             {/* Latest Simulation */}
