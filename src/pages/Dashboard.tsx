@@ -135,6 +135,9 @@ const Dashboard = () => {
   const getStatus = (done: boolean, prevDone: boolean): "completed" | "current" | "upcoming" =>
     done ? "completed" : prevDone ? "current" : "upcoming";
 
+  const bootcampStep = getStep("bootcamp");
+  const bootcampDone = bootcampStep?.status === "completed";
+
   const journeySteps: JourneyStep[] = [
     {
       id: "get-started",
@@ -144,6 +147,19 @@ const Dashboard = () => {
       status: getStatus(getStartedDone, true),
       link: !onboardingDone ? "/onboarding" : !roleSelected ? "/roles" : setupStep?.metadata?.roleId ? `/simulation/setup/${setupStep.metadata.roleId}` : "/roles",
       detail: getStartedDetail,
+    },
+    {
+      id: "bootcamp",
+      label: "Workplace Literacy Bootcamp",
+      description: "Optional pre-internship module — learn workplace fundamentals at your own pace",
+      icon: BookOpen,
+      status: bootcampDone ? "completed" : getStartedDone ? "current" : "upcoming",
+      link: getStartedDone ? "/bootcamp" : undefined,
+      detail: bootcampDone
+        ? "Completed"
+        : bootcampStep?.status === "in_progress"
+        ? "In progress — continue at your own pace"
+        : "Optional",
     },
     {
       id: "orientation",
