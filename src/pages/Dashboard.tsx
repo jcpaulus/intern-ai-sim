@@ -139,7 +139,7 @@ const Dashboard = () => {
     {
       id: "get-started",
       label: "Get Started",
-      description: "Complete onboarding, choose a role, and configure your simulation",
+      description: "Complete onboarding, choose a role, and configure simulation",
       icon: ClipboardList,
       status: getStatus(getStartedDone, true),
       link: getStartedDone ? undefined : getStartedLink,
