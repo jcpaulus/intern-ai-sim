@@ -129,7 +129,7 @@ const Dashboard = () => {
     : !roleSelected
     ? "Choose an internship role"
     : !setupDone
-    ? setupStep?.status === "in_progress" ? "In progress — finish configuring" : "Configure your simulation"
+    ? setupStep?.status === "in_progress" ? "In progress — finish configuring" : "Configure simulation"
     : undefined;
 
   const getStatus = (done: boolean, prevDone: boolean): "completed" | "current" | "upcoming" =>
