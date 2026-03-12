@@ -103,12 +103,32 @@ const Dashboard = () => {
   const roleSelected = isCompleted(STEPS.ROLE_SELECTION) || totalRuns > 0;
   const setupDone = isCompleted(STEPS.SIMULATION_SETUP);
   const orientationDone = isCompleted(STEPS.ORIENTATION);
+  const simulationStep = getStep(STEPS.SIMULATION);
   const simulationDone = isCompleted(STEPS.SIMULATION) || (latestRun?.answer != null);
   const feedbackDone = isCompleted(STEPS.FEEDBACK) || (latestFeedback != null);
 
   // Check in-progress states for "Continue" links
   const orientationStep = getStep(STEPS.ORIENTATION);
   const setupStep = getStep(STEPS.SIMULATION_SETUP);
+
+  // Get duration from simulation state
+  const simState = orientationStep?.metadata?.simState as { duration?: string } | undefined;
+  const durationWeeks = simState?.duration ? parseInt(simState.duration) : (setupStep?.metadata?.duration ? parseInt(setupStep.metadata.duration as string) : null);
+
+  // Get completed tasks from simulation progress
+  const completedTaskIds: string[] = (simulationStep?.metadata?.completedTasks as string[]) || [];
+  const completedTaskSet = new Set(completedTaskIds);
+
+  // Compute current week from orientation completion
+  const orientationCompletedAt = orientationStep?.status === "completed" ? orientationStep.updated_at : undefined;
+  const currentSimWeek = (() => {
+    if (!orientationCompletedAt) return 1;
+    const start = new Date(orientationCompletedAt);
+    const now = new Date();
+    const diffMs = now.getTime() - start.getTime();
+    const diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
+    return Math.min(Math.max(diffWeeks, 1), durationWeeks || 12);
+  })();
 
   // Bundled: Onboarding + Role Selection + Configure Simulation = "Get Started"
   const getStartedDone = onboardingDone && roleSelected && setupDone;
@@ -174,7 +194,39 @@ const Dashboard = () => {
         ? `${(orientationStep.metadata.completedSections as number[]).length}/2 sections done`
         : undefined,
     },
-    {
+  ];
+
+  // Add week-by-week steps if duration is known and orientation is done
+  if (durationWeeks && orientationDone) {
+    for (let w = 1; w <= durationWeeks; w++) {
+      // Count tasks for this week from completedTasks (format: w{N}-d{D} or w{N}-i{I})
+      const weekTasksCompleted = completedTaskIds.filter(id => id.startsWith(`w${w}-`)).length;
+      const isWeekAccessible = w <= currentSimWeek;
+      const prevWeekDone = w === 1 ? orientationDone : journeySteps[journeySteps.length - 1]?.status === "completed";
+
+      // A week is "completed" if it has at least one completed task and the week has passed or all tasks done
+      // Since we don't know total tasks per week here, mark complete if week < currentSimWeek and has tasks done
+      const weekDone = w < currentSimWeek || (simulationDone && w <= durationWeeks);
+      const weekStatus: "completed" | "current" | "upcoming" = 
+        weekDone && weekTasksCompleted > 0 ? "completed" 
+        : isWeekAccessible ? "current" 
+        : "upcoming";
+
+      journeySteps.push({
+        id: `week-${w}`,
+        label: `Week ${w}`,
+        description: w === currentSimWeek ? "Current week — complete your assigned tasks" : `Week ${w} tasks`,
+        icon: Briefcase,
+        status: weekStatus,
+        link: isWeekAccessible ? "/simulation/active" : undefined,
+        detail: weekTasksCompleted > 0 
+          ? `${weekTasksCompleted} task${weekTasksCompleted !== 1 ? "s" : ""} completed` 
+          : isWeekAccessible ? "In progress" : undefined,
+      });
+    }
+  } else {
+    // Fallback: single "My Tasks" step when no duration is set yet
+    journeySteps.push({
       id: "simulation",
       label: "My Tasks",
       description: "Work on tasks and submit your deliverables",
@@ -182,8 +234,8 @@ const Dashboard = () => {
       status: getStatus(simulationDone, orientationDone),
       link: orientationDone ? "/simulation/active" : undefined,
       detail: simulationDone ? `${totalRuns} submission${totalRuns !== 1 ? "s" : ""}` : undefined,
-    },
-  ];
+    });
+  }
 
   const completedCount = journeySteps.filter(s => s.status === "completed").length;
   const overallProgress = Math.round((completedCount / journeySteps.length) * 100);
