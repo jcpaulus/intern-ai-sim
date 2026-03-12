@@ -363,7 +363,7 @@ const Dashboard = () => {
                           <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Done</Badge>
                         )}
                         {step.status === "current" && (
-                          <Badge className="text-[10px] px-1.5 py-0 bg-primary text-primary-foreground">Current</Badge>
+                          <Badge className="text-[10px] px-1.5 py-0 bg-primary text-primary-foreground">In Progress</Badge>
                         )}
                       </div>
                       <p className={`text-xs mt-0.5 ${
