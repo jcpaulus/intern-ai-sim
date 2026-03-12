@@ -227,7 +227,7 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
         { name: "Integration of Research", description: "Competitor analysis insights are visibly incorporated", weight: 4 },
         { name: "Self-Reflection Quality", description: "Honest, specific reflection showing growth mindset", weight: 3 },
       ],
-      backgroundInfo: "Content calendars are the backbone of social media marketing. Use the free templates and tools below to create a professional 7-day plan. Reference the Peloton/FitLife scenario from Days 3–4. All tools are free.",
+      backgroundInfo: "Content calendars are the backbone of social media marketing. Use the free templates and tools below to create a professional 7-day plan. Reference your audit and competitor research from Days 3–4. All tools are free.",
       resources: [
         { label: "Canva Content Calendar Template", url: "https://www.canva.com/templates/search/content-calendar/", type: "template", description: "Free, professional content calendar templates you can customize for your submission" },
         { label: "Google Sheets Calendar Template", url: "https://docs.google.com/spreadsheets/create", type: "template", description: "Build your own: Day, Platform, Post Type, Caption, Visual Description, Hashtags, Goal Alignment" },
