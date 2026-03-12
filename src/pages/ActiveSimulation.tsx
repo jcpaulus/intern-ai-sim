@@ -766,7 +766,7 @@ const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
 
 
               {/* Submission Input */}
-              {!isActiveWeekFuture && (
+              {!isActiveWeekFuture && !activeTaskHasFeedback && (
                 <div className="bg-card border border-border rounded-xl p-5 mb-6">
                   <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
                     <Send className="w-4 h-4 text-primary" />
@@ -833,15 +833,20 @@ const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
                 </div>
               )}
 
+              {/* Already evaluated notice */}
+              {activeTaskHasFeedback && (
+                <div className="bg-secondary/30 border border-border rounded-xl p-4 mb-6 flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-accent shrink-0" />
+                  <p className="text-sm text-muted-foreground">This task has been evaluated. Your feedback is shown below.</p>
+                </div>
+              )}
+
               {/* Feedback Display */}
               {feedback[activeTask.id] && (
                 <div className="bg-card border border-border rounded-xl p-5 mb-6 animate-fade-in">
                   <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
                     <TrendingUp className="w-4 h-4 text-primary" />
-                    Evaluation Feedback
-                    <Badge variant={feedback[activeTask.id].hiring_decision === "Hire" ? "default" : "secondary"} className="ml-auto">
-                      {feedback[activeTask.id].hiring_decision}
-                    </Badge>
+                    Manager Feedback — Sarah Martinez
                   </h3>
 
                   {/* Overall Score */}
