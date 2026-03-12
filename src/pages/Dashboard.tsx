@@ -423,9 +423,7 @@ const Dashboard = () => {
                       <Progress value={latestFeedback.score * 10} className="h-2 mb-3" />
                       <div className="flex justify-between text-sm text-muted-foreground">
                         <span>Performance score</span>
-                        <Badge variant={latestFeedback.hiring_decision === "Hire" ? "default" : "secondary"}>
-                          {latestFeedback.hiring_decision ?? "Reviewed"}
-                        </Badge>
+                        <Badge variant="secondary">Reviewed</Badge>
                       </div>
                     </>
                   )}
