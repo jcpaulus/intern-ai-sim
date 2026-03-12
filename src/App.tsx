@@ -47,9 +47,7 @@ const App = () => (
               <Route path="/dashboard" element={
                 <ProtectedRoute><Dashboard /></ProtectedRoute>
               } />
-              <Route path="/roles" element={
-                <ProtectedRoute><RoleCatalog /></ProtectedRoute>
-              } />
+              <Route path="/roles" element={<RoleCatalog />} />
               <Route path="/simulation/setup/:roleId" element={
                 <ProtectedRoute><SimulationSetup /></ProtectedRoute>
               } />

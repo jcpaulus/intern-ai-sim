@@ -176,7 +176,6 @@ const Index = () => {
           </Link>
           <div className="hidden md:flex items-center gap-8">
             <Link to="/roles" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Roles</Link>
-            <Link to="/internship-simulation" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Simulation</Link>
             <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Login</Link>
             <Button variant="hero" size="sm" asChild>
               <Link to="/signup">Get Started</Link>
