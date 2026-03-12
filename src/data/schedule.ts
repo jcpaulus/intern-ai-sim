@@ -1,5 +1,11 @@
 // Shared schedule generation for internship weeks
 
+export interface EvaluationCriterion {
+  name: string;
+  description: string;
+  weight: number; // 1-5
+}
+
 export interface DailyTask {
   day: number;
   title: string;
@@ -15,6 +21,7 @@ export interface DailyTask {
   deliverableDetails?: string[];
   deadline?: string;
   note?: string;
+  evaluationCriteria?: EvaluationCriterion[];
 }
 
 export interface WeekSchedule {
