@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useProgress, STEPS } from "@/hooks/useProgress";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
