@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import {
   Zap, Play, BarChart3, CheckCircle, BookOpen, Trophy, User, History,
-  Building2, Clock, Loader2, ArrowRight, ClipboardList, Compass, Briefcase,
+  Building2, Clock, Loader2, ArrowRight, ArrowLeft, ClipboardList, Compass, Briefcase,
   MessageSquare, Circle, ChevronRight,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
