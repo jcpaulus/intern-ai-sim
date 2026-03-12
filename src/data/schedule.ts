@@ -31,6 +31,8 @@ export interface DailyTask {
   evaluationCriteria?: EvaluationCriterion[];
   resources?: TaskResource[];
   backgroundInfo?: string;
+  exampleData?: string[];
+}
 
 export interface WeekSchedule {
   week: number;

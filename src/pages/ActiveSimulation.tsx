@@ -581,28 +581,8 @@ const ActiveSimulation = () => {
                 </div>
               )}
 
-              {/* Real Company Reference */}
-              {activeDailyTask?.realCompanyReference && (
-                <div className="bg-primary/5 border border-primary/20 rounded-xl p-5 mb-6">
-                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
-                    <Database className="w-4 h-4 text-primary" />
-                    Reference Company: {activeDailyTask.realCompanyReference.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-2">{activeDailyTask.realCompanyReference.description}</p>
-                  <a href={activeDailyTask.realCompanyReference.website} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mb-2">
-                    <ExternalLink className="w-3 h-3" /> {activeDailyTask.realCompanyReference.website}
-                  </a>
-                  {activeDailyTask.realCompanyReference.socialLinks && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {activeDailyTask.realCompanyReference.socialLinks.map((link, i) => (
-                        <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs bg-secondary rounded-md px-2.5 py-1 hover:bg-secondary/80 transition-colors text-foreground">
-                          <ExternalLink className="w-3 h-3" /> {link.platform}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+
+
 
               {/* Resources */}
               {activeDailyTask?.resources && activeDailyTask.resources.length > 0 && (
