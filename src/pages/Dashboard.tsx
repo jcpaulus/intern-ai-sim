@@ -98,12 +98,20 @@ const Dashboard = () => {
   const latestTask = latestRun ? parseTask(latestRun.task) : null;
   const latestFeedback = latestRun ? parseFeedback(latestRun.feedback) : null;
 
-  // --- Build journey steps ---
-  const onboardingDone = profile?.onboarding_completed === true;
-  const hasSelectedRole = totalRuns > 0 || onboardingDone; // if they completed onboarding they at least saw roles
-  const hasCompletedOrientation = latestRun?.company != null;
-  const hasSubmitted = latestRun?.answer != null;
-  const hasFeedback = latestFeedback != null;
+  // --- Build journey steps from persisted progress ---
+  const onboardingDone = isCompleted(STEPS.ONBOARDING) || profile?.onboarding_completed === true;
+  const roleSelected = isCompleted(STEPS.ROLE_SELECTION) || totalRuns > 0;
+  const setupDone = isCompleted(STEPS.SIMULATION_SETUP);
+  const orientationDone = isCompleted(STEPS.ORIENTATION);
+  const simulationDone = isCompleted(STEPS.SIMULATION) || (latestRun?.answer != null);
+  const feedbackDone = isCompleted(STEPS.FEEDBACK) || (latestFeedback != null);
+
+  // Check in-progress states for "Continue" links
+  const orientationStep = getStep(STEPS.ORIENTATION);
+  const setupStep = getStep(STEPS.SIMULATION_SETUP);
+
+  const getStatus = (done: boolean, prevDone: boolean): "completed" | "current" | "upcoming" =>
+    done ? "completed" : prevDone ? "current" : "upcoming";
 
   const journeySteps: JourneyStep[] = [
     {
@@ -111,35 +119,47 @@ const Dashboard = () => {
       label: "Onboarding Quiz",
       description: "Tell us about your interests and experience",
       icon: ClipboardList,
-      status: onboardingDone ? "completed" : "current",
+      status: getStatus(onboardingDone, true),
       link: onboardingDone ? undefined : "/onboarding",
-      detail: onboardingDone ? "Completed" : "In progress",
+      detail: onboardingDone ? "Completed" : getStep(STEPS.ONBOARDING)?.status === "in_progress" ? "In progress — pick up where you left off" : undefined,
     },
     {
       id: "role-selection",
       label: "Choose a Role",
       description: "Browse and pick an internship role",
       icon: Compass,
-      status: onboardingDone
-        ? (totalRuns > 0 ? "completed" : "current")
-        : "upcoming",
-      link: onboardingDone && totalRuns === 0 ? "/roles" : undefined,
+      status: getStatus(roleSelected, onboardingDone),
+      link: onboardingDone && !roleSelected ? "/roles" : undefined,
       detail: totalRuns > 0
         ? `${uniqueRoles} role${uniqueRoles !== 1 ? "s" : ""} tried`
         : undefined,
+    },
+    {
+      id: "simulation-setup",
+      label: "Configure Simulation",
+      description: "Set duration, level, and company",
+      icon: Building2,
+      status: getStatus(setupDone, roleSelected),
+      link: roleSelected && !setupDone && setupStep?.metadata?.roleId
+        ? `/simulation/setup/${setupStep.metadata.roleId}`
+        : roleSelected && !setupDone
+        ? "/roles"
+        : undefined,
+      detail: setupDone && setupStep?.metadata?.selectedCompany
+        ? `Company: ${companyNames[setupStep.metadata.selectedCompany] ?? setupStep.metadata.selectedCompany}`
+        : setupStep?.status === "in_progress" ? "In progress" : undefined,
     },
     {
       id: "orientation",
       label: "Internship Orientation",
       description: "Meet your team and review policies",
       icon: Building2,
-      status: hasCompletedOrientation
-        ? "completed"
-        : (totalRuns > 0 || (onboardingDone && totalRuns === 0 && !hasCompletedOrientation)
-            ? (onboardingDone && totalRuns > 0 ? "completed" : "upcoming")
-            : "upcoming"),
-      detail: hasCompletedOrientation && latestRun?.company
-        ? companyNames[latestRun.company] ?? latestRun.company
+      status: getStatus(orientationDone, setupDone),
+      link: setupDone && !orientationDone ? "/simulation/orientation" : undefined,
+      detail: orientationDone
+        ? "Completed"
+        : orientationStep?.status === "in_progress" && orientationStep?.metadata?.completedSections
+        ? `${(orientationStep.metadata.completedSections as number[]).length}/2 sections done`
         : undefined,
     },
     {
@@ -147,16 +167,17 @@ const Dashboard = () => {
       label: "Complete Simulation",
       description: "Work on tasks and submit your deliverables",
       icon: Briefcase,
-      status: hasSubmitted ? "completed" : (hasCompletedOrientation ? "current" : "upcoming"),
-      detail: hasSubmitted ? `${totalRuns} submission${totalRuns !== 1 ? "s" : ""}` : undefined,
+      status: getStatus(simulationDone, orientationDone),
+      link: orientationDone && !simulationDone ? "/simulation/active" : undefined,
+      detail: simulationDone ? `${totalRuns} submission${totalRuns !== 1 ? "s" : ""}` : undefined,
     },
     {
       id: "feedback",
       label: "AI Feedback & Score",
       description: "Receive your performance evaluation",
       icon: MessageSquare,
-      status: hasFeedback ? "completed" : (hasSubmitted ? "current" : "upcoming"),
-      detail: hasFeedback && latestFeedback?.score != null
+      status: getStatus(feedbackDone, simulationDone),
+      detail: feedbackDone && latestFeedback?.score != null
         ? `Latest: ${latestFeedback.score}/10`
         : undefined,
     },
