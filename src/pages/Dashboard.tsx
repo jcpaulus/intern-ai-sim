@@ -142,7 +142,7 @@ const Dashboard = () => {
       description: "Complete onboarding, choose a role, and configure simulation",
       icon: ClipboardList,
       status: getStatus(getStartedDone, true),
-      link: getStartedDone ? getStartedLink : getStartedLink,
+      link: !onboardingDone ? "/onboarding" : !roleSelected ? "/roles" : setupStep?.metadata?.roleId ? `/simulation/setup/${setupStep.metadata.roleId}` : "/roles",
       detail: getStartedDetail,
     },
     {
