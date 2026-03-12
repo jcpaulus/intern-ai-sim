@@ -905,9 +905,9 @@ const ActiveSimulation = () => {
               </div>
 
               {/* Exit Button */}
-              <div className="mt-6 flex justify-center">
+              <div className="mt-4 flex justify-end">
                 <Button variant="outline" size="sm" asChild>
-                  <Link to="/dashboard">Exit Simulation</Link>
+                  <Link to="/dashboard">Exit</Link>
                 </Button>
               </div>
 
