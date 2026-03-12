@@ -638,26 +638,39 @@ const InternshipOnboarding = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold mb-3">Your Key Responsibilities</h3>
-                    <p className="text-xs text-muted-foreground mb-4">
-                      {assignedResponsibilities.length} responsibilities assigned for your {weeks}-week internship, tailored to {company.name} and your {managerStyle} manager.
-                    </p>
-                    <div className="space-y-3">
-                      {Array.from(new Set(assignedResponsibilities.map(r => r.category))).map((category) => (
-                        <div key={category}>
-                          <h4 className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">{category}</h4>
-                          <ul className="space-y-2 mb-4">
-                            {assignedResponsibilities
-                              .filter(r => r.category === category)
-                              .map((r) => (
-                                <li key={r.id} className="flex items-start gap-3 text-sm text-muted-foreground bg-secondary/30 rounded-lg p-3">
-                                  <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-                                  {r.text}
-                                </li>
-                              ))}
-                          </ul>
+                    {assignedResponsibilities.length > 0 ? (
+                      <>
+                        <p className="text-xs text-muted-foreground mb-4">
+                          {assignedResponsibilities.length} responsibilities assigned for your {weeks}-week internship, tailored to {company.name} and your {managerStyle} manager.
+                        </p>
+                        <div className="space-y-3">
+                          {Array.from(new Set(assignedResponsibilities.map(r => r.category))).map((category) => (
+                            <div key={category}>
+                              <h4 className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">{category}</h4>
+                              <ul className="space-y-2 mb-4">
+                                {assignedResponsibilities
+                                  .filter(r => r.category === category)
+                                  .map((r) => (
+                                    <li key={r.id} className="flex items-start gap-3 text-sm text-muted-foreground bg-secondary/30 rounded-lg p-3">
+                                      <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
+                                      {r.text}
+                                    </li>
+                                  ))}
+                              </ul>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </>
+                    ) : (
+                      <ul className="space-y-2">
+                        {jobDesc.responsibilities.map((item, i) => (
+                          <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground bg-secondary/30 rounded-lg p-3">
+                            <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                   <div className="bg-secondary/50 rounded-lg p-5">
                     <h3 className="font-semibold mb-2">Manager Style</h3>
