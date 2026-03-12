@@ -476,6 +476,139 @@ const ActiveSimulation = () => {
                 </div>
               </div>
 
+              {/* Quick Access Icon Toolbar */}
+              {(() => {
+                const hasResources = activeDailyTask?.resources && activeDailyTask.resources.length > 0;
+                const hasTips = activeDailyTask?.exampleData && activeDailyTask.exampleData.length > 0;
+                const hasCriteria = activeTask.evaluationCriteria && activeTask.evaluationCriteria.length > 0;
+                if (!hasResources && !hasTips && !hasCriteria) return null;
+                return (
+                  <div className="flex items-center gap-2 mb-6">
+                    {hasResources && (
+                      <button
+                        onClick={() => setActivePanel(activePanel === "resources" ? null : "resources")}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all border ${
+                          activePanel === "resources"
+                            ? "bg-primary/10 border-primary/30 text-primary shadow-sm"
+                            : "bg-card border-border text-muted-foreground hover:bg-secondary hover:text-foreground"
+                        }`}
+                      >
+                        <Wrench className="w-4 h-4" />
+                        <span className="hidden sm:inline">Resources</span>
+                      </button>
+                    )}
+                    {hasTips && (
+                      <button
+                        onClick={() => setActivePanel(activePanel === "tips" ? null : "tips")}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all border ${
+                          activePanel === "tips"
+                            ? "bg-accent/10 border-accent/30 text-accent shadow-sm"
+                            : "bg-card border-border text-muted-foreground hover:bg-secondary hover:text-foreground"
+                        }`}
+                      >
+                        <Lightbulb className="w-4 h-4" />
+                        <span className="hidden sm:inline">Tips</span>
+                      </button>
+                    )}
+                    {hasCriteria && (
+                      <button
+                        onClick={() => setActivePanel(activePanel === "criteria" ? null : "criteria")}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all border ${
+                          activePanel === "criteria"
+                            ? "bg-primary/10 border-primary/30 text-primary shadow-sm"
+                            : "bg-card border-border text-muted-foreground hover:bg-secondary hover:text-foreground"
+                        }`}
+                      >
+                        <Target className="w-4 h-4" />
+                        <span className="hidden sm:inline">Criteria</span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Panel Content */}
+              {activePanel === "resources" && activeDailyTask?.resources && activeDailyTask.resources.length > 0 && (
+                <div className="bg-card border border-border rounded-xl p-5 mb-6 animate-fade-in">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                    <BookOpen className="w-4 h-4 text-primary" />
+                    Resources & Tools
+                  </h3>
+                  <div className="space-y-2">
+                    {activeDailyTask.resources.map((resource, i) => {
+                      const iconMap: Record<string, React.ReactNode> = {
+                        tool: <Wrench className="w-3.5 h-3.5 text-accent shrink-0" />,
+                        reference: <BookOpen className="w-3.5 h-3.5 text-primary shrink-0" />,
+                        template: <Layout className="w-3.5 h-3.5 text-primary shrink-0" />,
+                        example: <Lightbulb className="w-3.5 h-3.5 text-accent shrink-0" />,
+                        data: <Database className="w-3.5 h-3.5 text-primary shrink-0" />,
+                      };
+                      return (
+                        <a
+                          key={i}
+                          href={resource.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-start gap-3 p-2.5 rounded-lg hover:bg-secondary/50 transition-colors group"
+                        >
+                          {iconMap[resource.type] || <ExternalLink className="w-3.5 h-3.5 text-muted-foreground shrink-0" />}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{resource.label}</span>
+                              <Badge variant="secondary" className="text-[9px] capitalize shrink-0">{resource.type}</Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-0.5">{resource.description}</p>
+                          </div>
+                          <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0 mt-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {activePanel === "tips" && activeDailyTask?.exampleData && activeDailyTask.exampleData.length > 0 && (
+                <div className="bg-card border border-border rounded-xl p-5 mb-6 animate-fade-in">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                    <Lightbulb className="w-4 h-4 text-accent" />
+                    Reference Data & Tips
+                  </h3>
+                  <ul className="space-y-2">
+                    {activeDailyTask.exampleData.map((data, i) => (
+                      <li key={i} className="text-xs text-muted-foreground bg-secondary/20 rounded-lg p-3">
+                        {data}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {activePanel === "criteria" && activeTask.evaluationCriteria && activeTask.evaluationCriteria.length > 0 && (
+                <div className="bg-card border border-border rounded-xl p-5 mb-6 animate-fade-in">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                    <Target className="w-4 h-4 text-primary" />
+                    Evaluation Criteria
+                  </h3>
+                  <div className="space-y-2">
+                    {activeTask.evaluationCriteria.map((criterion, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <div className="flex gap-0.5 mt-0.5 shrink-0">
+                          {Array.from({ length: 5 }).map((_, s) => (
+                            <Star
+                              key={s}
+                              className={`w-3 h-3 ${s < criterion.weight ? "text-primary fill-primary" : "text-muted-foreground/30"}`}
+                            />
+                          ))}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{criterion.name}</p>
+                          <p className="text-xs text-muted-foreground">{criterion.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               {/* Deliverable */}
               {activeTask.deliverable && (
                 <div className="bg-card border border-border rounded-xl p-4 mb-6">
