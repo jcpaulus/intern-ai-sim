@@ -197,8 +197,27 @@ const ActiveSimulation = () => {
   const [feedback, setFeedback] = useState<Record<string, any>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
+const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
   const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+  // Dynamic word limit based on task nature
+  const getWordLimit = (task: TaskItem, dailyTask?: DailyTask): number => {
+    const title = (task.title + " " + (dailyTask?.deliverable || task.deliverable || "")).toLowerCase();
+    // Short-form tasks
+    if (title.includes("email") || title.includes("memo") || title.includes("summary") || title.includes("brief")) return 300;
+    // Medium tasks
+    if (title.includes("post") || title.includes("caption") || title.includes("outline") || title.includes("checklist") || title.includes("list")) return 400;
+    // Analytical / research tasks
+    if (title.includes("report") || title.includes("analysis") || title.includes("audit") || title.includes("review") || title.includes("research")) return 800;
+    // Strategy / plan / proposal
+    if (title.includes("strategy") || title.includes("plan") || title.includes("proposal") || title.includes("campaign") || title.includes("presentation")) return 1000;
+    // Default
+    return 500;
+  };
+
+  const activeWordLimit = activeTask ? getWordLimit(activeTask, activeDailyTask) : 500;
+  const currentWordCount = submissionText.trim() ? submissionText.trim().split(/\s+/).length : 0;
+  const isOverLimit = currentWordCount > activeWordLimit;
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
