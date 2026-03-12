@@ -126,7 +126,7 @@ const durationWeeks: Record<string, number> = { "2": 2, "4": 4, "6": 6, "8": 8, 
 
 import { generateSchedule, type DailyTask, type WeekSchedule } from "@/data/schedule";
 
-  client?: string;
+
   clientIndustry?: string;
   clientProducts?: string;
   campaignGoal?: string;
