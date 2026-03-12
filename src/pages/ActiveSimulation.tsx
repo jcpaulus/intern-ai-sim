@@ -392,12 +392,13 @@ const ActiveSimulation = () => {
         console.log("[handleSubmit] simulation_runs feedback update SUCCESS:", updatedRun);
       }
 
-      if (edgeFunctionError) {
+      if (feedbackResult) {
+        toast.success("Feedback received and saved!");
+      } else if (edgeFunctionError) {
         toast.error("AI feedback failed: " + edgeFunctionError);
         setShowFeedback(false);
-        toast.success("Submission saved (AI feedback unavailable).");
       } else {
-        toast.success("Feedback received and saved!");
+        setShowFeedback(false);
       }
     } catch (err: any) {
       console.error("[handleSubmit] Unexpected error:", err);
