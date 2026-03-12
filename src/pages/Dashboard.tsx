@@ -142,7 +142,7 @@ const Dashboard = () => {
       description: "Complete onboarding, choose a role, and configure simulation",
       icon: ClipboardList,
       status: getStatus(getStartedDone, true),
-      link: getStartedDone ? undefined : getStartedLink,
+      link: getStartedDone ? getStartedLink : getStartedLink,
       detail: getStartedDetail,
     },
     {
