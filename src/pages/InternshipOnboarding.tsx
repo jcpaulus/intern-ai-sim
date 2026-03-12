@@ -400,6 +400,7 @@ const InternshipOnboarding = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { saveProgress, getStep, loading: progressLoading } = useProgress();
+  const { user } = useAuth();
   const simState = location.state as SimState | null;
 
   // Try to restore simState from progress metadata if not in location.state
