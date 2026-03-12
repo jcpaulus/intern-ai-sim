@@ -162,12 +162,35 @@ const ActiveSimulation = () => {
   const toggleTask = (taskId: string) => {
     setCompletedTasks((prev) => {
       const next = new Set(prev);
-      if (next.has(taskId)) next.delete(taskId);
+      const isUncompleting = next.has(taskId);
+      if (isUncompleting) next.delete(taskId);
       else next.add(taskId);
       persistTasks(next);
+
+      // If marking incomplete, clear feedback so user can re-submit
+      if (isUncompleting) {
+        setFeedback((prevFb) => {
+          const updated = { ...prevFb };
+          delete updated[taskId];
+          // Persist cleared feedback
+          saveProgress(STEPS.SIMULATION, "in_progress", {
+            roleId,
+            companyId: company.id,
+            completedTasks: Array.from(next),
+            currentWeek,
+            feedback: updated,
+          });
+          return updated;
+        });
+        setSubmissionText("");
+        setSubmissionFile(null);
+      }
       return next;
     });
   };
+
+  // Whether the active task's deadline has passed (week is in the past)
+  const isActiveTaskDeadlinePassed = activeTask ? activeTask.weekNum < currentWeek : false;
 
   const toggleWeekExpand = (weekNum: number) => {
     setExpandedWeeks((prev) => {
