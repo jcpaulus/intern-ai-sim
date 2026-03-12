@@ -197,6 +197,18 @@ const ActiveSimulation = () => {
   const [feedback, setFeedback] = useState<Record<string, any>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Restore persisted feedback from progress metadata
+  useEffect(() => {
+    if (progressLoading || !initialized) return;
+    const savedFeedback = savedSimulation?.metadata?.feedback;
+    if (savedFeedback && typeof savedFeedback === "object") {
+      setFeedback(savedFeedback);
+    }
+  }, [progressLoading, initialized, savedSimulation]);
+
+  // Check if active task already has feedback (read-only mode)
+  const activeTaskHasFeedback = activeTask ? !!feedback[activeTask.id] : false;
+
 const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
   const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
