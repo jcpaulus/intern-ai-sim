@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useProgress, STEPS } from "@/hooks/useProgress";
+import { generateSchedule } from "@/data/schedule";
 
 interface SimulationRun {
   id: string;
@@ -129,8 +130,26 @@ const Dashboard = () => {
   const setupStep = getStep(STEPS.SIMULATION_SETUP);
 
   // Get duration from simulation state
-  const simState = orientationStep?.metadata?.simState as { duration?: string } | undefined;
+  const simState = orientationStep?.metadata?.simState as { duration?: string; roleId?: string; roleTitle?: string; company?: { id: string } } | undefined;
   const durationWeeks = simState?.duration ? parseInt(simState.duration) : (setupStep?.metadata?.duration ? parseInt(setupStep.metadata.duration as string) : null);
+
+  // Compute total tasks from schedule
+  const totalTaskCount = (() => {
+    if (!durationWeeks) return 0;
+    const roleTitle = simState?.roleTitle || "Marketing Associate";
+    const roleId = simState?.roleId || "marketing-associate";
+    const companyId = simState?.company?.id || "brightwave";
+    const sched = generateSchedule(durationWeeks, roleTitle, roleId, companyId);
+    let count = 0;
+    for (const week of sched) {
+      if (week.dailyTasks && week.dailyTasks.length > 0) {
+        count += week.dailyTasks.length;
+      } else {
+        count += week.items.length;
+      }
+    }
+    return count;
+  })();
 
   // Get completed tasks from simulation progress
   const simCompletedTaskIds: string[] = (simulationStep?.metadata?.completedTasks as string[]) || [];
@@ -233,7 +252,8 @@ const Dashboard = () => {
   });
 
   const completedCount = journeySteps.filter(s => s.status === "completed").length;
-  const overallProgress = Math.round((completedCount / journeySteps.length) * 100);
+  // Progress based on tasks completed vs total tasks
+  const taskProgress = totalTaskCount > 0 ? Math.round((completedTaskCount / totalTaskCount) * 100) : 0;
 
   const stats = [
     { icon: BookOpen, label: "Completed Internships", value: completedInternships.toString() },
@@ -295,11 +315,11 @@ const Dashboard = () => {
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-semibold">Your Journey</h2>
                 <Badge variant="secondary" className="text-xs">
-                  {completedCount}/{journeySteps.length} steps
+                  {totalTaskCount > 0 ? `${completedTaskCount}/${totalTaskCount} tasks` : `${completedCount}/${journeySteps.length} steps`}
                 </Badge>
               </div>
-              <Progress value={overallProgress} className="h-3 mb-2" />
-              <p className="text-sm text-muted-foreground">{overallProgress}% complete</p>
+              <Progress value={taskProgress} className="h-3 mb-2" />
+              <p className="text-sm text-muted-foreground">{taskProgress}% complete</p>
             </div>
 
             {/* Journey Steps */}
