@@ -258,8 +258,8 @@ const Dashboard = () => {
   const overallProgress = Math.round((completedCount / journeySteps.length) * 100);
 
   const stats = [
-    { icon: BookOpen, label: "Simulations", value: totalRuns.toString() },
-    { icon: CheckCircle, label: "Roles Tried", value: uniqueRoles.toString() },
+    { icon: BookOpen, label: "Completed Internships", value: completedInternships.toString() },
+    { icon: CheckCircle, label: "Completed Tasks", value: completedTaskCount.toString() },
     { icon: Trophy, label: "Performance", value: avgScore != null ? `${avgScore}%` : "–" },
   ];
 
