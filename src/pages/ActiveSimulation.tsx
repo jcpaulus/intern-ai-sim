@@ -791,7 +791,7 @@ const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
 
               {/* Submission Input */}
               {!isActiveWeekFuture && !activeTaskHasFeedback && (
-                <div className="bg-card border border-border rounded-xl p-5 mb-6">
+                <div key={`submit-${activeTask.id}-${taskRefreshKey}`} className="bg-card border border-border rounded-xl p-5 mb-6 animate-fade-in">
                   <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
                     <Send className="w-4 h-4 text-primary" />
                     Submit Your Deliverable
