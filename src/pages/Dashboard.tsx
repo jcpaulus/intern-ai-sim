@@ -130,8 +130,26 @@ const Dashboard = () => {
   const setupStep = getStep(STEPS.SIMULATION_SETUP);
 
   // Get duration from simulation state
-  const simState = orientationStep?.metadata?.simState as { duration?: string } | undefined;
+  const simState = orientationStep?.metadata?.simState as { duration?: string; roleId?: string; roleTitle?: string; company?: { id: string } } | undefined;
   const durationWeeks = simState?.duration ? parseInt(simState.duration) : (setupStep?.metadata?.duration ? parseInt(setupStep.metadata.duration as string) : null);
+
+  // Compute total tasks from schedule
+  const totalTaskCount = (() => {
+    if (!durationWeeks) return 0;
+    const roleTitle = simState?.roleTitle || "Marketing Associate";
+    const roleId = simState?.roleId || "marketing-associate";
+    const companyId = simState?.company?.id || "brightwave";
+    const sched = generateSchedule(durationWeeks, roleTitle, roleId, companyId);
+    let count = 0;
+    for (const week of sched) {
+      if (week.dailyTasks && week.dailyTasks.length > 0) {
+        count += week.dailyTasks.length;
+      } else {
+        count += week.items.length;
+      }
+    }
+    return count;
+  })();
 
   // Get completed tasks from simulation progress
   const simCompletedTaskIds: string[] = (simulationStep?.metadata?.completedTasks as string[]) || [];
