@@ -197,8 +197,27 @@ const ActiveSimulation = () => {
   const [feedback, setFeedback] = useState<Record<string, any>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
+const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
   const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+  // Dynamic word limit based on task nature
+  const getWordLimit = (task: TaskItem, dailyTask?: DailyTask): number => {
+    const title = (task.title + " " + (dailyTask?.deliverable || task.deliverable || "")).toLowerCase();
+    // Short-form tasks
+    if (title.includes("email") || title.includes("memo") || title.includes("summary") || title.includes("brief")) return 300;
+    // Medium tasks
+    if (title.includes("post") || title.includes("caption") || title.includes("outline") || title.includes("checklist") || title.includes("list")) return 400;
+    // Analytical / research tasks
+    if (title.includes("report") || title.includes("analysis") || title.includes("audit") || title.includes("review") || title.includes("research")) return 800;
+    // Strategy / plan / proposal
+    if (title.includes("strategy") || title.includes("plan") || title.includes("proposal") || title.includes("campaign") || title.includes("presentation")) return 1000;
+    // Default
+    return 500;
+  };
+
+  const activeWordLimit = activeTask ? getWordLimit(activeTask, activeDailyTask) : 500;
+  const currentWordCount = submissionText.trim() ? submissionText.trim().split(/\s+/).length : 0;
+  const isOverLimit = currentWordCount > activeWordLimit;
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -735,9 +754,17 @@ const ActiveSimulation = () => {
                     placeholder="Type your submission here..."
                     value={submissionText}
                     onChange={(e) => setSubmissionText(e.target.value)}
-                    className="min-h-[120px] mb-3"
+                    className={`min-h-[120px] mb-1 ${isOverLimit ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     disabled={isEvaluating}
                   />
+                  <div className="flex justify-between items-center mb-3">
+                    <p className={`text-xs ${isOverLimit ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                      {currentWordCount}/{activeWordLimit} words
+                    </p>
+                    {isOverLimit && (
+                      <p className="text-xs text-destructive">Exceeds word limit — please shorten your response</p>
+                    )}
+                  </div>
                   <div className="flex items-center gap-3 flex-wrap">
                     <input
                       type="file"
@@ -766,7 +793,7 @@ const ActiveSimulation = () => {
                     )}
                     <Button
                       onClick={handleSubmitForEvaluation}
-                      disabled={isEvaluating || (!submissionText.trim() && !submissionFile)}
+                      disabled={isEvaluating || isOverLimit || (!submissionText.trim() && !submissionFile)}
                       className="ml-auto"
                     >
                       {isEvaluating ? (
