@@ -51,6 +51,11 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
       ],
       deadline: "End of day — confirm completion with your manager via Slack",
       note: "No deliverable submission today. Focus on absorbing information and getting comfortable with the team.",
+      evaluationCriteria: [
+        { name: "Completeness", description: "All onboarding items addressed and confirmed", weight: 5 },
+        { name: "Attention to Detail", description: "Demonstrates thorough review of brand guidelines and company materials", weight: 3 },
+        { name: "Professionalism", description: "Communication tone and formatting are workplace-appropriate", weight: 2 },
+      ],
     },
     {
       day: 2,
