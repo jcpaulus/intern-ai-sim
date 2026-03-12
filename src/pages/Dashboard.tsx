@@ -54,6 +54,7 @@ interface JourneyStep {
 const Dashboard = () => {
   const navigate = useNavigate();
   const { profile, user } = useAuth();
+  const { isCompleted, getStep, loading: progressLoading } = useProgress();
   const displayName = profile?.full_name || user?.user_metadata?.full_name || "Student";
 
   const [runs, setRuns] = useState<SimulationRun[]>([]);
