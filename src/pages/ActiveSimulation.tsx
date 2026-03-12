@@ -849,28 +849,11 @@ const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
                     Manager Feedback — Sarah Martinez
                   </h3>
 
-                  {/* Overall Score */}
-                  <div className="flex items-center gap-3 mb-4 p-3 bg-secondary/30 rounded-lg">
-                    <div className="text-3xl font-bold text-foreground">{feedback[activeTask.id].score}/10</div>
-                    <div className="flex-1">
-                      <Progress value={feedback[activeTask.id].score * 10} className="h-2" />
-                      <p className="text-xs text-muted-foreground mt-1">Overall Score</p>
-                    </div>
-                  </div>
-
-                  {/* Dimension Scores */}
-                  {feedback[activeTask.id].scores && (
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                      {Object.entries(feedback[activeTask.id].scores).map(([key, val]: [string, any]) => (
-                        <div key={key} className="bg-secondary/20 rounded-lg p-2.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-medium text-foreground capitalize">{key.replace(/_/g, " ")}</span>
-                            <span className="text-xs font-bold text-primary">{val.score}/10</span>
-                          </div>
-                          <Progress value={val.score * 10} className="h-1.5 mt-1" />
-                          <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{val.reason}</p>
-                        </div>
-                      ))}
+                  {/* Manager's Personal Feedback */}
+                  {feedback[activeTask.id].manager_feedback && (
+                    <div className="bg-secondary/20 rounded-lg p-4 mb-4 border-l-4 border-primary">
+                      <p className="text-xs font-semibold text-foreground mb-2">From your manager:</p>
+                      <p className="text-sm text-muted-foreground whitespace-pre-line">{feedback[activeTask.id].manager_feedback}</p>
                     </div>
                   )}
 
@@ -912,9 +895,34 @@ const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
 
                   {/* Recommendation */}
                   {feedback[activeTask.id].recommendation && (
-                    <div className="bg-secondary/30 rounded-lg p-3 text-sm text-muted-foreground">
+                    <div className="bg-secondary/30 rounded-lg p-3 text-sm text-muted-foreground mb-4">
                       <span className="font-medium text-foreground">Recommendation: </span>
                       {feedback[activeTask.id].recommendation}
+                    </div>
+                  )}
+
+                  {/* Overall Score — after manager feedback */}
+                  <div className="flex items-center gap-3 mb-4 p-3 bg-secondary/30 rounded-lg">
+                    <div className="text-3xl font-bold text-foreground">{feedback[activeTask.id].score}/10</div>
+                    <div className="flex-1">
+                      <Progress value={feedback[activeTask.id].score * 10} className="h-2" />
+                      <p className="text-xs text-muted-foreground mt-1">Overall Score</p>
+                    </div>
+                  </div>
+
+                  {/* Dimension Scores */}
+                  {feedback[activeTask.id].scores && (
+                    <div className="grid grid-cols-2 gap-3">
+                      {Object.entries(feedback[activeTask.id].scores).map(([key, val]: [string, any]) => (
+                        <div key={key} className="bg-secondary/20 rounded-lg p-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-medium text-foreground capitalize">{key.replace(/_/g, " ")}</span>
+                            <span className="text-xs font-bold text-primary">{val.score}/10</span>
+                          </div>
+                          <Progress value={val.score * 10} className="h-1.5 mt-1" />
+                          <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{val.reason}</p>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
