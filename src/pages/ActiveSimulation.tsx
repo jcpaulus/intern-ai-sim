@@ -9,9 +9,10 @@ import {
   Zap, CheckCircle, Clock, AlertCircle, ChevronRight, ChevronLeft,
   CalendarDays, Lock, Trophy, FileText, ChevronDown, ChevronUp,
   Upload, X, Send, Loader2, Star, Target, TrendingUp, ThumbsUp, ThumbsDown,
+  ExternalLink, BookOpen, Info, Database, Wrench, Layout, Lightbulb,
 } from "lucide-react";
 import { useProgress, STEPS } from "@/hooks/useProgress";
-import { generateSchedule, type WeekSchedule, type DailyTask, type EvaluationCriterion } from "@/data/schedule";
+import { generateSchedule, type WeekSchedule, type DailyTask, type EvaluationCriterion, type TaskResource } from "@/data/schedule";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -569,7 +570,97 @@ const ActiveSimulation = () => {
                 </div>
               )}
 
-              {/* Evaluation Criteria */}
+              {/* Background Info */}
+              {activeDailyTask?.backgroundInfo && (
+                <div className="bg-card border border-border rounded-xl p-5 mb-6">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
+                    <Info className="w-4 h-4 text-primary" />
+                    Background Context
+                  </h3>
+                  <p className="text-sm text-muted-foreground">{activeDailyTask.backgroundInfo}</p>
+                </div>
+              )}
+
+              {/* Real Company Reference */}
+              {activeDailyTask?.realCompanyReference && (
+                <div className="bg-primary/5 border border-primary/20 rounded-xl p-5 mb-6">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
+                    <Database className="w-4 h-4 text-primary" />
+                    Reference Company: {activeDailyTask.realCompanyReference.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-2">{activeDailyTask.realCompanyReference.description}</p>
+                  <a href={activeDailyTask.realCompanyReference.website} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mb-2">
+                    <ExternalLink className="w-3 h-3" /> {activeDailyTask.realCompanyReference.website}
+                  </a>
+                  {activeDailyTask.realCompanyReference.socialLinks && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {activeDailyTask.realCompanyReference.socialLinks.map((link, i) => (
+                        <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs bg-secondary rounded-md px-2.5 py-1 hover:bg-secondary/80 transition-colors text-foreground">
+                          <ExternalLink className="w-3 h-3" /> {link.platform}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Resources */}
+              {activeDailyTask?.resources && activeDailyTask.resources.length > 0 && (
+                <div className="bg-card border border-border rounded-xl p-5 mb-6">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                    <BookOpen className="w-4 h-4 text-primary" />
+                    Resources & Tools
+                  </h3>
+                  <div className="space-y-2">
+                    {activeDailyTask.resources.map((resource, i) => {
+                      const iconMap: Record<string, React.ReactNode> = {
+                        tool: <Wrench className="w-3.5 h-3.5 text-accent shrink-0" />,
+                        reference: <BookOpen className="w-3.5 h-3.5 text-primary shrink-0" />,
+                        template: <Layout className="w-3.5 h-3.5 text-primary shrink-0" />,
+                        example: <Lightbulb className="w-3.5 h-3.5 text-accent shrink-0" />,
+                        data: <Database className="w-3.5 h-3.5 text-primary shrink-0" />,
+                      };
+                      return (
+                        <a
+                          key={i}
+                          href={resource.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-start gap-3 p-2.5 rounded-lg hover:bg-secondary/50 transition-colors group"
+                        >
+                          {iconMap[resource.type] || <ExternalLink className="w-3.5 h-3.5 text-muted-foreground shrink-0" />}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{resource.label}</span>
+                              <Badge variant="secondary" className="text-[9px] capitalize shrink-0">{resource.type}</Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-0.5">{resource.description}</p>
+                          </div>
+                          <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0 mt-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Example Data & Reference Information */}
+              {activeDailyTask?.exampleData && activeDailyTask.exampleData.length > 0 && (
+                <div className="bg-card border border-border rounded-xl p-5 mb-6">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                    <Lightbulb className="w-4 h-4 text-accent" />
+                    Reference Data & Tips
+                  </h3>
+                  <ul className="space-y-2">
+                    {activeDailyTask.exampleData.map((data, i) => (
+                      <li key={i} className="text-xs text-muted-foreground bg-secondary/20 rounded-lg p-3">
+                        {data}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {activeTask.evaluationCriteria && activeTask.evaluationCriteria.length > 0 && (
                 <div className="bg-card border border-border rounded-xl p-5 mb-6">
                   <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
