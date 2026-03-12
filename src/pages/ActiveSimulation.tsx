@@ -881,7 +881,6 @@ const ActiveSimulation = () => {
                     {isActiveTaskDone ? "Mark Incomplete" : "Mark Complete"}
                   </Button>
                 )}
-                {/* Navigate to next incomplete task */}
                 {(() => {
                   const currentIdx = allTasks.findIndex((t) => t.id === activeTaskId);
                   const nextTask = allTasks.slice(currentIdx + 1).find(
@@ -902,11 +901,7 @@ const ActiveSimulation = () => {
                   }
                   return null;
                 })()}
-              </div>
-
-              {/* Exit Button */}
-              <div className="mt-4 flex justify-end">
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" className="ml-auto" asChild>
                   <Link to="/dashboard">Exit</Link>
                 </Button>
               </div>
