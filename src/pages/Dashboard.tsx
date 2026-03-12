@@ -314,12 +314,9 @@ const Dashboard = () => {
             <div className="bg-card border border-border rounded-xl p-6 shadow-card mb-8">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-lg font-semibold">Your Journey</h2>
-                <Badge variant="secondary" className="text-xs">
-                  {totalTaskCount > 0 ? `${completedTaskCount}/${totalTaskCount} tasks` : `${completedCount}/${journeySteps.length} steps`}
-                </Badge>
+                <span className="text-sm font-semibold text-primary">{taskProgress}%</span>
               </div>
-              <Progress value={taskProgress} className="h-3 mb-2" />
-              <p className="text-sm text-muted-foreground">{taskProgress}% complete</p>
+              <Progress value={taskProgress} className="h-3" />
             </div>
 
             {/* Journey Steps */}
