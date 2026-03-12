@@ -154,7 +154,7 @@ const InternshipSimulation = () => {
         fileName = uploadedFile.name;
       }
 
-      const API_URL = "http://127.0.0.1:8007/evaluate";
+      const API_URL = "https://fastapi-ai-backend-1.onrender.com/evaluate";
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
