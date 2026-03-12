@@ -133,8 +133,8 @@ const Dashboard = () => {
   const durationWeeks = simState?.duration ? parseInt(simState.duration) : (setupStep?.metadata?.duration ? parseInt(setupStep.metadata.duration as string) : null);
 
   // Get completed tasks from simulation progress
-  const completedTaskIds: string[] = (simulationStep?.metadata?.completedTasks as string[]) || [];
-  const completedTaskSet = new Set(completedTaskIds);
+  const simCompletedTaskIds: string[] = (simulationStep?.metadata?.completedTasks as string[]) || [];
+  const completedTaskSet = new Set(simCompletedTaskIds);
 
   // Compute current week from orientation completion
   const orientationCompletedAt = orientationStep?.status === "completed" ? orientationStep.updated_at : undefined;
