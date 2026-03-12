@@ -203,7 +203,7 @@ const levelLabels: Record<string, string> = {
 
 const sections = [
   { id: "company-team-role", label: "Company, Team & Role", icon: Building2 },
-  { id: "policies-training-schedule", label: "Policies, Training & Schedule", icon: Shield },
+  { id: "policies-training", label: "Policies & Training", icon: Shield },
 ];
 
 const InternshipOnboarding = () => {
