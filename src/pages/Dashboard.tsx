@@ -88,10 +88,27 @@ const Dashboard = () => {
 
   // Derive stats
   const totalRuns = runs.length;
-  const uniqueRoles = new Set(runs.map(r => r.role)).size;
-  const feedbackWithScore = runs.map(r => parseFeedback(r.feedback)).filter(f => f?.score != null);
-  const avgScore = feedbackWithScore.length
-    ? Math.round(feedbackWithScore.reduce((sum, f) => sum + f.score, 0) / feedbackWithScore.length * 10)
+
+  // Completed tasks from simulation progress metadata
+  const completedTaskIds: string[] = (getStep(STEPS.SIMULATION)?.metadata?.completedTasks as string[]) || [];
+  const completedTaskCount = completedTaskIds.length;
+
+  // Completed internships = simulation_runs with non-null feedback (finished evaluations)
+  const completedInternships = runs.filter(r => r.feedback != null).length;
+
+  // Performance: average score from persisted per-task feedback in simulation metadata
+  const simulationFeedback = (getStep(STEPS.SIMULATION)?.metadata?.feedback as Record<string, any>) || {};
+  const feedbackScores = Object.values(simulationFeedback)
+    .filter((f: any) => f?.score != null)
+    .map((f: any) => f.score as number);
+  // Also include scores from simulation_runs
+  const runScores = runs
+    .map(r => parseFeedback(r.feedback))
+    .filter(f => f?.score != null)
+    .map(f => f.score as number);
+  const allScores = [...feedbackScores, ...runScores];
+  const avgScore = allScores.length
+    ? Math.round((allScores.reduce((sum, s) => sum + s, 0) / allScores.length) * 10)
     : null;
 
   const latestRun = runs[0] ?? null;
