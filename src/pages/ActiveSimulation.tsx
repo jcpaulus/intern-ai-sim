@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Zap, CheckCircle, Clock, AlertCircle, ChevronRight, ChevronLeft,
-  CalendarDays, Lock, Trophy, FileText,
+  CalendarDays, Lock, Trophy, FileText, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { useProgress, STEPS } from "@/hooks/useProgress";
 import { generateSchedule, type WeekSchedule, type DailyTask } from "@/data/schedule";
@@ -23,12 +23,9 @@ interface TaskItem {
   isGroupTask: boolean;
 }
 
-/** Build a flat list of trackable tasks from the generated schedule */
 function buildTaskList(schedule: WeekSchedule[]): TaskItem[] {
   const tasks: TaskItem[] = [];
-
   for (const week of schedule) {
-    // If daily tasks exist for this week, use those as the primary tasks
     if (week.dailyTasks && week.dailyTasks.length > 0) {
       for (const dt of week.dailyTasks) {
         tasks.push({
@@ -42,7 +39,6 @@ function buildTaskList(schedule: WeekSchedule[]): TaskItem[] {
         });
       }
     } else {
-      // Use generic weekly items (skip the group task line—it's added separately)
       week.items.forEach((item, idx) => {
         const isGroup = item.startsWith("📋");
         tasks.push({
@@ -60,7 +56,6 @@ function buildTaskList(schedule: WeekSchedule[]): TaskItem[] {
   return tasks;
 }
 
-/** Determine the simulated "current week" based on orientation completion date */
 function getCurrentWeek(orientationCompletedAt?: string, totalWeeks?: number): number {
   if (!orientationCompletedAt) return 1;
   const start = new Date(orientationCompletedAt);
@@ -73,7 +68,6 @@ function getCurrentWeek(orientationCompletedAt?: string, totalWeeks?: number): n
 const ActiveSimulation = () => {
   const { saveProgress, getStep, loading: progressLoading } = useProgress();
 
-  // Restore simulation state
   const savedOrientation = getStep(STEPS.ORIENTATION);
   const savedSimulation = getStep(STEPS.SIMULATION);
   const simState = savedOrientation?.metadata?.simState as {
@@ -94,25 +88,21 @@ const ActiveSimulation = () => {
   };
   const durationWeeks = simState?.duration ? parseInt(simState.duration) : 2;
 
-  // Generate schedule & tasks
   const schedule = useMemo(
     () => generateSchedule(durationWeeks, roleTitle, roleId, company.id),
     [durationWeeks, roleTitle, roleId, company.id]
   );
   const allTasks = useMemo(() => buildTaskList(schedule), [schedule]);
 
-  // Current week (simulated)
   const orientationCompletedAt = savedOrientation?.status === "completed" ? savedOrientation.updated_at : undefined;
   const currentWeek = getCurrentWeek(orientationCompletedAt, durationWeeks);
 
-  // Selected week for viewing
-  const [selectedWeek, setSelectedWeek] = useState(currentWeek);
-
-  // Completed task IDs (persisted in user_progress metadata)
+  const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set([currentWeek]));
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
   const [initialized, setInitialized] = useState(false);
 
-  // Restore completed tasks from progress
+  // Restore completed tasks
   useEffect(() => {
     if (progressLoading || initialized) return;
     const saved = savedSimulation?.metadata?.completedTasks;
@@ -122,7 +112,19 @@ const ActiveSimulation = () => {
     setInitialized(true);
   }, [progressLoading, initialized, savedSimulation]);
 
-  // Auto-close overdue tasks (past weeks)
+  // Set initial active task to first incomplete task of current week
+  useEffect(() => {
+    if (!initialized || activeTaskId) return;
+    const currentWeekTasks = allTasks.filter((t) => t.weekNum === currentWeek);
+    const firstIncomplete = currentWeekTasks.find((t) => !completedTasks.has(t.id));
+    if (firstIncomplete) {
+      setActiveTaskId(firstIncomplete.id);
+    } else if (currentWeekTasks.length > 0) {
+      setActiveTaskId(currentWeekTasks[0].id);
+    }
+  }, [initialized, currentWeek, allTasks, completedTasks, activeTaskId]);
+
+  // Auto-close overdue tasks
   useEffect(() => {
     if (!initialized) return;
     const overdueTasks = allTasks.filter(
@@ -137,7 +139,6 @@ const ActiveSimulation = () => {
     }
   }, [initialized, currentWeek, allTasks]);
 
-  // Persist completed tasks
   const persistTasks = useCallback(
     (tasks: Set<string>) => {
       saveProgress(STEPS.SIMULATION, "in_progress", {
@@ -153,27 +154,34 @@ const ActiveSimulation = () => {
   const toggleTask = (taskId: string) => {
     setCompletedTasks((prev) => {
       const next = new Set(prev);
-      if (next.has(taskId)) {
-        next.delete(taskId);
-      } else {
-        next.add(taskId);
-      }
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
       persistTasks(next);
       return next;
     });
   };
 
-  // Tasks for selected week
-  const weekTasks = allTasks.filter((t) => t.weekNum === selectedWeek);
-  const weekSchedule = schedule.find((w) => w.week === selectedWeek);
-  const weekCompletedCount = weekTasks.filter((t) => completedTasks.has(t.id)).length;
-  const weekProgress = weekTasks.length > 0 ? (weekCompletedCount / weekTasks.length) * 100 : 0;
+  const toggleWeekExpand = (weekNum: number) => {
+    setExpandedWeeks((prev) => {
+      const next = new Set(prev);
+      if (next.has(weekNum)) next.delete(weekNum);
+      else next.add(weekNum);
+      return next;
+    });
+  };
+
+  // Active task details
+  const activeTask = allTasks.find((t) => t.id === activeTaskId);
+  const activeWeekSchedule = activeTask ? schedule.find((w) => w.week === activeTask.weekNum) : null;
+  const activeDailyTask = activeWeekSchedule?.dailyTasks?.find((dt) => dt.day === activeTask?.dayNum);
+  const isActiveTaskDone = activeTask ? completedTasks.has(activeTask.id) : false;
+  const isActiveWeekFuture = activeTask ? activeTask.weekNum > currentWeek : false;
 
   // Overall progress
   const totalCompleted = allTasks.filter((t) => completedTasks.has(t.id)).length;
   const overallProgress = allTasks.length > 0 ? (totalCompleted / allTasks.length) * 100 : 0;
 
-  // Check if all tasks done → mark simulation complete
+  // Check if all tasks done
   useEffect(() => {
     if (!initialized) return;
     if (allTasks.length > 0 && totalCompleted === allTasks.length) {
@@ -184,9 +192,6 @@ const ActiveSimulation = () => {
       });
     }
   }, [totalCompleted, allTasks.length, initialized]);
-
-  const isPastWeek = selectedWeek < currentWeek;
-  const isFutureWeek = selectedWeek > currentWeek;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -219,275 +224,344 @@ const ActiveSimulation = () => {
       </nav>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar — Week Navigator */}
-        <aside className="hidden md:flex w-72 border-r border-border bg-card flex-col">
+        {/* Sidebar — Weekly Schedule with nested tasks */}
+        <aside className="hidden md:flex w-80 border-r border-border bg-card flex-col">
           <div className="p-4 border-b border-border">
             <h3 className="font-semibold text-sm">Weekly Schedule</h3>
             <p className="text-xs text-muted-foreground mt-0.5">{durationWeeks}-week internship</p>
           </div>
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
             {schedule.map((week) => {
               const wTasks = allTasks.filter((t) => t.weekNum === week.week);
               const wDone = wTasks.filter((t) => completedTasks.has(t.id)).length;
               const allDone = wDone === wTasks.length && wTasks.length > 0;
               const isCurrentWeek = week.week === currentWeek;
               const isLocked = week.week > currentWeek;
-              const isSelected = week.week === selectedWeek;
+              const isExpanded = expandedWeeks.has(week.week);
 
               return (
-                <button
-                  key={week.week}
-                  onClick={() => !isLocked && setSelectedWeek(week.week)}
-                  disabled={isLocked}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg text-left text-sm transition-colors ${
-                    isSelected
-                      ? "bg-primary/10 border border-primary/30"
-                      : isLocked
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-secondary"
-                  }`}
-                >
-                  {allDone ? (
-                    <CheckCircle className="w-4 h-4 text-accent shrink-0" />
-                  ) : isCurrentWeek ? (
-                    <AlertCircle className="w-4 h-4 text-primary shrink-0" />
-                  ) : isLocked ? (
-                    <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
-                  ) : (
-                    <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className={`font-medium truncate ${isLocked ? "text-muted-foreground" : "text-foreground"}`}>
-                      Week {week.week}
-                    </div>
-                    <div className="text-xs text-muted-foreground truncate">{week.title}</div>
-                  </div>
-                  <Badge
-                    variant={allDone ? "default" : "secondary"}
-                    className="text-[10px] shrink-0"
+                <div key={week.week}>
+                  {/* Week header */}
+                  <button
+                    onClick={() => {
+                      if (!isLocked) toggleWeekExpand(week.week);
+                    }}
+                    disabled={isLocked}
+                    className={`w-full flex items-center gap-2 p-2.5 rounded-lg text-left text-sm transition-colors ${
+                      isLocked
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-secondary"
+                    }`}
                   >
-                    {wDone}/{wTasks.length}
-                  </Badge>
-                </button>
+                    {allDone ? (
+                      <CheckCircle className="w-4 h-4 text-accent shrink-0" />
+                    ) : isCurrentWeek ? (
+                      <AlertCircle className="w-4 h-4 text-primary shrink-0" />
+                    ) : isLocked ? (
+                      <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
+                    ) : (
+                      <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className={`font-medium truncate text-xs ${isLocked ? "text-muted-foreground" : "text-foreground"}`}>
+                        Week {week.week} — {week.title}
+                      </div>
+                    </div>
+                    <Badge variant={allDone ? "default" : "secondary"} className="text-[10px] shrink-0">
+                      {wDone}/{wTasks.length}
+                    </Badge>
+                    {!isLocked && (
+                      isExpanded
+                        ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                        : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    )}
+                  </button>
+
+                  {/* Nested daily tasks */}
+                  {isExpanded && !isLocked && (
+                    <div className="ml-4 pl-3 border-l-2 border-border space-y-0.5 py-1">
+                      {wTasks.map((task) => {
+                        const isDone = completedTasks.has(task.id);
+                        const isActive = task.id === activeTaskId;
+                        return (
+                          <button
+                            key={task.id}
+                            onClick={() => setActiveTaskId(task.id)}
+                            className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-md text-left text-xs transition-colors ${
+                              isActive
+                                ? "bg-primary/10 border border-primary/30 text-foreground"
+                                : "hover:bg-secondary text-muted-foreground"
+                            }`}
+                          >
+                            {isDone ? (
+                              <CheckCircle className="w-3.5 h-3.5 text-accent shrink-0" />
+                            ) : (
+                              <div className="w-3.5 h-3.5 rounded-full border-2 border-muted-foreground/40 shrink-0" />
+                            )}
+                            <span className={`flex-1 truncate ${isDone ? "line-through opacity-60" : ""}`}>
+                              {task.dayNum ? `Day ${task.dayNum}: ` : ""}{task.title}
+                            </span>
+                            {task.isGroupTask && (
+                              <Badge variant="secondary" className="text-[9px] shrink-0">Group</Badge>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
         </aside>
 
-        {/* Main Content */}
+        {/* Main Content — Active Task */}
         <main className="flex-1 overflow-y-auto p-6 md:p-10 max-w-4xl mx-auto w-full">
-          {/* Week Header */}
-          <div className="mb-6 animate-fade-in">
-            <div className="flex items-center justify-between mb-2">
+          {activeTask && activeWeekSchedule ? (
+            <div className="animate-fade-in">
+              {/* Breadcrumb */}
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
+                <span>Week {activeTask.weekNum}</span>
+                <ChevronRight className="w-3 h-3" />
+                <span>{activeWeekSchedule.title}</span>
+                {activeTask.dayNum && (
+                  <>
+                    <ChevronRight className="w-3 h-3" />
+                    <span>Day {activeTask.dayNum}</span>
+                  </>
+                )}
+              </div>
+
+              {/* Task Title & Status */}
+              <div className="flex items-start justify-between gap-4 mb-6">
+                <div className="flex-1">
+                  <h1 className="text-2xl font-bold text-foreground">{activeTask.title}</h1>
+                  <div className="flex items-center gap-3 mt-2 flex-wrap">
+                    {activeTask.isGroupTask && (
+                      <Badge variant="secondary">Group Task</Badge>
+                    )}
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      <CalendarDays className="w-3 h-3" />
+                      {activeWeekSchedule.assignedRole}
+                    </Badge>
+                    {activeTask.deadline && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {activeTask.deadline}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="shrink-0">
+                  {isActiveWeekFuture ? (
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> Locked
+                    </Badge>
+                  ) : isActiveTaskDone ? (
+                    <Badge className="bg-accent/20 text-accent border-accent/30 flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" /> Completed
+                    </Badge>
+                  ) : (
+                    <Badge variant="default" className="flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> In Progress
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Deliverable */}
+              {activeTask.deliverable && (
+                <div className="bg-card border border-border rounded-xl p-4 mb-6">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
+                    <FileText className="w-4 h-4 text-primary" />
+                    Deliverable
+                  </h3>
+                  <p className="text-sm text-muted-foreground">{activeTask.deliverable}</p>
+                </div>
+              )}
+
+              {/* Daily Task Details */}
+              {activeDailyTask && (
+                <div className="bg-card border border-border rounded-xl p-5 mb-6 space-y-4">
+                  <h3 className="text-sm font-semibold text-foreground">Task Details</h3>
+
+                  {activeDailyTask.client && (
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Client</p>
+                      <p className="text-sm text-muted-foreground">
+                        {activeDailyTask.client}
+                        {activeDailyTask.clientIndustry && ` — ${activeDailyTask.clientIndustry}`}
+                      </p>
+                      {activeDailyTask.clientProducts && (
+                        <p className="text-xs text-muted-foreground mt-0.5">Products: {activeDailyTask.clientProducts}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {activeDailyTask.campaignGoal && (
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Campaign Goal</p>
+                      <p className="text-sm text-muted-foreground">{activeDailyTask.campaignGoal}</p>
+                    </div>
+                  )}
+
+                  {activeDailyTask.targetAudience && (
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Target Audience</p>
+                      <p className="text-sm text-muted-foreground">{activeDailyTask.targetAudience}</p>
+                    </div>
+                  )}
+
+                  {activeDailyTask.platforms && activeDailyTask.platforms.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Platforms</p>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {activeDailyTask.platforms.map((p, i) => (
+                          <Badge key={i} variant="secondary" className="text-xs">{p}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {activeDailyTask.analysisAreas && activeDailyTask.analysisAreas.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Analysis Areas</p>
+                      <ul className="text-sm text-muted-foreground list-disc list-inside mt-1 space-y-0.5">
+                        {activeDailyTask.analysisAreas.map((a, i) => (
+                          <li key={i}>{a}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {activeDailyTask.identifyItems && activeDailyTask.identifyItems.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Key Items to Identify</p>
+                      <ul className="text-sm text-muted-foreground list-disc list-inside mt-1 space-y-0.5">
+                        {activeDailyTask.identifyItems.map((item, i) => (
+                          <li key={i}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {activeDailyTask.deliverableDetails && activeDailyTask.deliverableDetails.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Requirements</p>
+                      <ul className="text-sm text-muted-foreground list-disc list-inside mt-1 space-y-0.5">
+                        {activeDailyTask.deliverableDetails.map((detail, i) => (
+                          <li key={i}>{detail}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {activeDailyTask.note && (
+                    <div className="bg-secondary/30 rounded-lg p-3 text-sm text-muted-foreground italic">
+                      💡 {activeDailyTask.note}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Action */}
               <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  disabled={selectedWeek <= 1}
-                  onClick={() => setSelectedWeek((w) => Math.max(1, w - 1))}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <div>
-                  <h1 className="text-2xl font-bold">
-                    Week {selectedWeek}: {weekSchedule?.title}
-                  </h1>
-                  <p className="text-sm text-muted-foreground">
-                    {isPastWeek && "Completed week"}
-                    {!isPastWeek && !isFutureWeek && `Current week • ${weekTasks.length - weekCompletedCount} tasks remaining`}
-                    {isFutureWeek && "Upcoming — locked until deadline"}
+                {!isActiveWeekFuture && (
+                  <Button
+                    variant={isActiveTaskDone ? "outline" : "default"}
+                    onClick={() => toggleTask(activeTask.id)}
+                  >
+                    <Checkbox
+                      checked={isActiveTaskDone}
+                      className="mr-2"
+                      onCheckedChange={() => {}}
+                    />
+                    {isActiveTaskDone ? "Mark Incomplete" : "Mark Complete"}
+                  </Button>
+                )}
+                {/* Navigate to next incomplete task */}
+                {(() => {
+                  const currentIdx = allTasks.findIndex((t) => t.id === activeTaskId);
+                  const nextTask = allTasks.slice(currentIdx + 1).find(
+                    (t) => !completedTasks.has(t.id) && t.weekNum <= currentWeek
+                  );
+                  if (nextTask) {
+                    return (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setActiveTaskId(nextTask.id);
+                          setExpandedWeeks((prev) => new Set([...prev, nextTask.weekNum]));
+                        }}
+                      >
+                        Next Task <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+
+              {/* All tasks complete celebration */}
+              {totalCompleted === allTasks.length && allTasks.length > 0 && (
+                <div className="mt-8 bg-accent/10 border border-accent/30 rounded-xl p-6 text-center animate-fade-in">
+                  <Trophy className="w-8 h-8 text-accent mx-auto mb-2" />
+                  <h3 className="font-semibold text-foreground">All Tasks Complete! 🎉</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    You've completed your entire internship simulation. Great work!
                   </p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  disabled={selectedWeek >= currentWeek}
-                  onClick={() => setSelectedWeek((w) => Math.min(currentWeek, w + 1))}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-              {weekSchedule && (
-                <Badge variant="secondary" className="hidden md:flex items-center gap-1">
-                  <CalendarDays className="w-3 h-3" />
-                  Role: {weekSchedule.assignedRole}
-                </Badge>
               )}
             </div>
-            <Progress value={weekProgress} className="h-2" />
-          </div>
-
-          {/* Task List — grouped by day */}
-          <div className="space-y-6">
-            {(() => {
-              // Group tasks by day (or "general" if no day)
-              const groups: { label: string; sortKey: number; tasks: typeof weekTasks }[] = [];
-              const dayMap = new Map<number | "general", typeof weekTasks>();
-
-              for (const task of weekTasks) {
-                const key = task.dayNum ?? "general";
-                if (!dayMap.has(key)) dayMap.set(key, []);
-                dayMap.get(key)!.push(task);
-              }
-
-              dayMap.forEach((tasks, key) => {
-                groups.push({
-                  label: key === "general" ? "General Tasks" : `Day ${key}`,
-                  sortKey: key === "general" ? 999 : key,
-                  tasks,
-                });
-              });
-
-              groups.sort((a, b) => a.sortKey - b.sortKey);
-
-              return groups.map((group) => (
-                <div key={group.label}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <CalendarDays className="w-4 h-4 text-primary" />
-                    <h2 className="text-sm font-semibold text-foreground tracking-wide uppercase">
-                      {group.label}
-                    </h2>
-                    <div className="flex-1 h-px bg-border" />
-                    <span className="text-xs text-muted-foreground">
-                      {group.tasks.filter((t) => completedTasks.has(t.id)).length}/{group.tasks.length} done
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    {group.tasks.map((task) => {
-                      const isDone = completedTasks.has(task.id);
-                      const isOverdue = isPastWeek && !isDone;
-                      const dailyTask = weekSchedule?.dailyTasks?.find((dt) => dt.day === task.dayNum);
-
-                      return (
-                        <div
-                          key={task.id}
-                          className={`bg-card border rounded-xl overflow-hidden shadow-card transition-all ${
-                            isDone
-                              ? "border-accent/30 bg-accent/5"
-                              : isOverdue
-                              ? "border-destructive/30 bg-destructive/5"
-                              : "border-border"
-                          }`}
-                        >
-                          {/* Task header */}
-                          <div className="p-4 flex items-start gap-3">
-                            <Checkbox
-                              checked={isDone}
-                              onCheckedChange={() => !isFutureWeek && toggleTask(task.id)}
-                              disabled={isFutureWeek}
-                              className="mt-0.5"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className={`font-medium text-sm ${isDone ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                                  {task.title}
-                                </span>
-                                {task.isGroupTask && (
-                                  <Badge variant="secondary" className="text-[10px]">Group</Badge>
-                                )}
-                                {isDone && (
-                                  <CheckCircle className="w-3.5 h-3.5 text-accent" />
-                                )}
-                              </div>
-                              {task.deliverable && (
-                                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                                  <FileText className="w-3 h-3" />
-                                  Deliverable: {task.deliverable}
-                                </p>
-                              )}
-                              {task.deadline && (
-                                <p className={`text-xs mt-0.5 flex items-center gap-1 ${
-                                  isOverdue ? "text-destructive" : "text-muted-foreground"
-                                }`}>
-                                  <Clock className="w-3 h-3" />
-                                  {task.deadline}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Expanded daily task details */}
-                          {dailyTask && !isDone && (
-                            <div className="px-4 pb-4 pt-0 ml-9 border-t border-border mt-0">
-                              <div className="pt-3 space-y-2">
-                                {dailyTask.client && (
-                                  <p className="text-xs text-foreground">
-                                    <span className="font-semibold">Client:</span> {dailyTask.client}
-                                    {dailyTask.clientIndustry && ` (${dailyTask.clientIndustry})`}
-                                  </p>
-                                )}
-                                {dailyTask.campaignGoal && (
-                                  <p className="text-xs text-muted-foreground">
-                                    <span className="font-semibold text-foreground">Goal:</span> {dailyTask.campaignGoal}
-                                  </p>
-                                )}
-                                {dailyTask.deliverableDetails && dailyTask.deliverableDetails.length > 0 && (
-                                  <div>
-                                    <p className="text-xs font-semibold text-foreground mb-1">Requirements:</p>
-                                    <ul className="text-xs text-muted-foreground space-y-0.5 list-disc list-inside">
-                                      {dailyTask.deliverableDetails.map((detail, i) => (
-                                        <li key={i}>{detail}</li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
-                                {dailyTask.note && (
-                                  <p className="text-xs text-muted-foreground italic bg-secondary/30 rounded-md p-2">
-                                    💡 {dailyTask.note}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ));
-            })()}
-          </div>
-
-          {/* Week complete celebration */}
-          {weekProgress === 100 && (
-            <div className="mt-6 bg-accent/10 border border-accent/30 rounded-xl p-6 text-center animate-fade-in">
-              <Trophy className="w-8 h-8 text-accent mx-auto mb-2" />
-              <h3 className="font-semibold text-foreground">Week {selectedWeek} Complete!</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                All tasks completed. {selectedWeek < currentWeek ? "Great job!" : "Move on to the next week when it unlocks."}
-              </p>
-              {selectedWeek < schedule.length && selectedWeek < currentWeek && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-3"
-                  onClick={() => setSelectedWeek(Math.min(selectedWeek + 1, currentWeek))}
-                >
-                  View Next Week <ChevronRight className="w-3.5 h-3.5 ml-1" />
-                </Button>
-              )}
+          ) : (
+            <div className="flex items-center justify-center h-full text-muted-foreground">
+              <div className="text-center">
+                <CalendarDays className="w-10 h-10 mx-auto mb-3 opacity-40" />
+                <p className="text-sm">Select a task from the weekly schedule to get started</p>
+              </div>
             </div>
           )}
 
           {/* Mobile week nav */}
-          <div className="md:hidden flex items-center justify-between mt-6 gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={selectedWeek <= 1}
-              onClick={() => setSelectedWeek((w) => Math.max(1, w - 1))}
-            >
-              <ChevronLeft className="w-4 h-4 mr-1" /> Previous
-            </Button>
-            <span className="text-sm text-muted-foreground">Week {selectedWeek}/{schedule.length}</span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={selectedWeek >= currentWeek}
-              onClick={() => setSelectedWeek((w) => Math.min(currentWeek, w + 1))}
-            >
-              Next <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
+          <div className="md:hidden mt-6 space-y-2">
+            {schedule.map((week) => {
+              const wTasks = allTasks.filter((t) => t.weekNum === week.week);
+              const isLocked = week.week > currentWeek;
+              const isExpanded = expandedWeeks.has(week.week);
+              return (
+                <div key={week.week} className="border border-border rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => !isLocked && toggleWeekExpand(week.week)}
+                    disabled={isLocked}
+                    className={`w-full flex items-center gap-2 p-3 text-left text-sm ${isLocked ? "opacity-50" : ""}`}
+                  >
+                    <span className="font-medium flex-1">Week {week.week}: {week.title}</span>
+                    {!isLocked && (isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />)}
+                  </button>
+                  {isExpanded && !isLocked && (
+                    <div className="px-3 pb-3 space-y-1">
+                      {wTasks.map((task) => (
+                        <button
+                          key={task.id}
+                          onClick={() => setActiveTaskId(task.id)}
+                          className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-left ${
+                            task.id === activeTaskId ? "bg-primary/10" : "hover:bg-secondary"
+                          }`}
+                        >
+                          {completedTasks.has(task.id)
+                            ? <CheckCircle className="w-3.5 h-3.5 text-accent shrink-0" />
+                            : <div className="w-3.5 h-3.5 rounded-full border-2 border-muted-foreground/40 shrink-0" />
+                          }
+                          <span className={completedTasks.has(task.id) ? "line-through opacity-60" : ""}>
+                            {task.dayNum ? `Day ${task.dayNum}: ` : ""}{task.title}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </main>
       </div>
