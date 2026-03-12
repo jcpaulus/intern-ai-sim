@@ -140,16 +140,23 @@ const PerformanceReport = () => {
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Navigation */}
+        <div className="flex gap-3 mb-8">
+          <Button variant="outline" size="lg" asChild>
+            <Link to="/dashboard"><ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard</Link>
+          </Button>
+          <Button variant="hero" size="lg" className="flex-1" asChild>
+            <Link to="/roles">Start New Simulation <ArrowRight className="w-4 h-4 ml-1" /></Link>
+          </Button>
+        </div>
+
+        {/* Download / Share */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button variant="hero" size="lg">
+          <Button variant="outline" size="lg">
             <Download className="w-5 h-5 mr-2" /> Download PDF Report
           </Button>
-          <Button variant="outline" size="lg">
+          <Button variant="secondary" size="lg">
             <Linkedin className="w-5 h-5 mr-2" /> Share to LinkedIn
-          </Button>
-          <Button variant="secondary" size="lg" asChild>
-            <Link to="/roles">Start New Simulation</Link>
           </Button>
         </div>
       </div>
