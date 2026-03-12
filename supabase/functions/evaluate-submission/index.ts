@@ -9,7 +9,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { submission, taskTitle, taskBrief, fileContent, fileName } = await req.json();
+    const { submission, taskTitle, taskBrief, fileContent, fileName, evaluationCriteria } = await req.json();
 
     if ((!submission || submission.trim().length === 0) && !fileContent) {
       return new Response(JSON.stringify({ error: "No submission provided" }), {
@@ -32,14 +32,22 @@ serve(async (req) => {
       submissionSection = `INTERN'S TEXT ANSWER:\n"""\n${submission}\n"""`;
     }
 
+    // Build evaluation criteria section
+    let criteriaSection = "";
+    if (evaluationCriteria && Array.isArray(evaluationCriteria) && evaluationCriteria.length > 0) {
+      criteriaSection = "\n\nEVALUATION CRITERIA (evaluate against these specific criteria):\n" +
+        evaluationCriteria.map((c: any, i: number) => `${i + 1}. ${c.name} (Weight: ${c.weight}/5) — ${c.description}`).join("\n");
+    }
+
     const userMessage = `TASK: "${taskTitle}"
 
 TASK INSTRUCTIONS:
 ${taskBrief}
+${criteriaSection}
 
 ${submissionSection}
 
-Evaluate this submission against the task instructions. Be specific and reference their actual work.`;
+Evaluate this submission against the task instructions and evaluation criteria. Be specific and reference their actual work.`;
 
     // Use tool calling for reliable structured output
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

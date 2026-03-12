@@ -1,5 +1,11 @@
 // Shared schedule generation for internship weeks
 
+export interface EvaluationCriterion {
+  name: string;
+  description: string;
+  weight: number; // 1-5
+}
+
 export interface DailyTask {
   day: number;
   title: string;
@@ -15,6 +21,7 @@ export interface DailyTask {
   deliverableDetails?: string[];
   deadline?: string;
   note?: string;
+  evaluationCriteria?: EvaluationCriterion[];
 }
 
 export interface WeekSchedule {
@@ -44,6 +51,11 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
       ],
       deadline: "End of day — confirm completion with your manager via Slack",
       note: "No deliverable submission today. Focus on absorbing information and getting comfortable with the team.",
+      evaluationCriteria: [
+        { name: "Completeness", description: "All onboarding items addressed and confirmed", weight: 5 },
+        { name: "Attention to Detail", description: "Demonstrates thorough review of brand guidelines and company materials", weight: 3 },
+        { name: "Professionalism", description: "Communication tone and formatting are workplace-appropriate", weight: 2 },
+      ],
     },
     {
       day: 2,
@@ -58,6 +70,12 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
       ],
       deadline: "5:00 PM — submit your orientation notes via Slack DM to your manager",
       note: "Ask questions freely today — this is your chance to understand how the team operates.",
+      evaluationCriteria: [
+        { name: "Clarity of Observations", description: "Key takeaways are clearly articulated and well-organized", weight: 4 },
+        { name: "Depth of Understanding", description: "Notes show genuine comprehension of team dynamics and workflows", weight: 4 },
+        { name: "Actionable Insights", description: "Identifies specific areas where they can contribute", weight: 3 },
+        { name: "Professional Writing", description: "Grammar, structure, and tone are workplace-ready", weight: 2 },
+      ],
     },
     {
       day: 3,
@@ -79,6 +97,13 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
       ],
       deadline: "5:00 PM — to be reviewed during tomorrow's team check-in",
       note: "Let your manager know if you need clarification before getting started.",
+      evaluationCriteria: [
+        { name: "Research Quality", description: "Audit is based on actual data points — engagement metrics, posting patterns, and audience behavior", weight: 5 },
+        { name: "Analytical Depth", description: "Goes beyond surface observations to identify trends and root causes", weight: 5 },
+        { name: "Actionability", description: "Recommendations are specific, feasible, and tied to campaign goals", weight: 4 },
+        { name: "Use of Data", description: "Includes concrete numbers, percentages, or comparisons to support claims", weight: 4 },
+        { name: "Presentation & Structure", description: "Report is well-organized with clear sections and professional formatting", weight: 3 },
+      ],
     },
     {
       day: 4,
@@ -95,6 +120,13 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
       ],
       deadline: "4:00 PM — present findings during the afternoon team huddle",
       note: "Use the audit from Day 3 as your baseline for comparison.",
+      evaluationCriteria: [
+        { name: "Competitor Identification", description: "Selected competitors are relevant direct competitors with justification", weight: 4 },
+        { name: "Comparative Analysis", description: "Meaningful side-by-side comparison with specific metrics and examples", weight: 5 },
+        { name: "Strategic Thinking", description: "Identifies actionable opportunities and competitive advantages", weight: 5 },
+        { name: "Evidence-Based Claims", description: "All assertions backed by observable data or examples", weight: 4 },
+        { name: "Clarity", description: "Brief is concise, well-structured, and easy to present", weight: 3 },
+      ],
     },
     {
       day: 5,
@@ -111,6 +143,13 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
       ],
       deadline: "3:00 PM — submit via Asana; weekly status report due by 3:00 PM per company policy",
       note: "Your manager will review the calendar and provide feedback at the start of Week 2.",
+      evaluationCriteria: [
+        { name: "Content Strategy Alignment", description: "Calendar directly supports the campaign goal and target audience", weight: 5 },
+        { name: "Creativity & Variety", description: "Mix of content types shows creative thinking and platform awareness", weight: 4 },
+        { name: "Completeness", description: "All 7 days covered with post type, caption, visual suggestion, and platform", weight: 5 },
+        { name: "Integration of Research", description: "Competitor analysis insights are visibly incorporated", weight: 4 },
+        { name: "Self-Reflection Quality", description: "Honest, specific reflection showing growth mindset", weight: 3 },
+      ],
     },
   ],
 };
