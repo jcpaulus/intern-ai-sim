@@ -293,7 +293,14 @@ const Dashboard = () => {
                     </div>
 
                     {/* Action */}
-                    {step.link && (
+                    {step.link && step.status === "completed" && (
+                      <Button variant="ghost" size="sm" asChild className="shrink-0 self-center text-muted-foreground">
+                        <Link to={step.link}>
+                          View <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                        </Link>
+                      </Button>
+                    )}
+                    {step.link && step.status !== "completed" && (
                       <Button variant="outline" size="sm" asChild className="shrink-0 self-center">
                         <Link to={step.link}>
                           Continue <ChevronRight className="w-3.5 h-3.5 ml-1" />
