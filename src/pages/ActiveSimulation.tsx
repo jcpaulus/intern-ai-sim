@@ -204,6 +204,7 @@ const ActiveSimulation = () => {
   const activeDailyTask = activeWeekSchedule?.dailyTasks?.find((dt) => dt.day === activeTask?.dayNum);
   const isActiveTaskDone = activeTask ? completedTasks.has(activeTask.id) : false;
   const isActiveWeekFuture = activeTask ? activeTask.weekNum > currentWeek : false;
+  const isActiveTaskDeadlinePassed = activeTask ? activeTask.weekNum < currentWeek : false;
 
   // Reset panel when task changes
   useEffect(() => {
