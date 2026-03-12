@@ -116,7 +116,7 @@ const SimulationSetup = () => {
               {durations.map((d) => (
                 <button
                   key={d.value}
-                  onClick={() => setDuration(d.value)}
+                  onClick={() => { setDuration(d.value); saveSetup({ duration: d.value }); }}
                   className={`p-4 rounded-xl border text-center transition-all ${
                     duration === d.value ? "border-primary bg-primary/10" : "border-border bg-card hover:border-muted-foreground"
                   }`}
