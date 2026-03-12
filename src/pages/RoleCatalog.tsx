@@ -31,6 +31,7 @@ const roles = [
 ];
 
 const RoleCatalog = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background">
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
