@@ -793,7 +793,7 @@ const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
                     )}
                     <Button
                       onClick={handleSubmitForEvaluation}
-                      disabled={isEvaluating || (!submissionText.trim() && !submissionFile)}
+                      disabled={isEvaluating || isOverLimit || (!submissionText.trim() && !submissionFile)}
                       className="ml-auto"
                     >
                       {isEvaluating ? (
