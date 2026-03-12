@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useProgress, STEPS } from "@/hooks/useProgress";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -25,8 +26,21 @@ const quizSteps = [
 const Onboarding = () => {
   const navigate = useNavigate();
   const { user, refreshProfile } = useAuth();
+  const { saveProgress, getStep, loading: progressLoading } = useProgress();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [restored, setRestored] = useState(false);
+
+  // Restore saved progress
+  useEffect(() => {
+    if (progressLoading || restored) return;
+    const saved = getStep(STEPS.ONBOARDING);
+    if (saved?.metadata) {
+      if (saved.metadata.step != null) setStep(saved.metadata.step);
+      if (Array.isArray(saved.metadata.answers)) setAnswers(saved.metadata.answers);
+    }
+    setRestored(true);
+  }, [progressLoading, restored, getStep]);
 
   const progress = ((step + 1) / quizSteps.length) * 100;
   const current = quizSteps[step];
@@ -36,11 +50,15 @@ const Onboarding = () => {
     const next = [...answers];
     next[step] = option;
     setAnswers(next);
+    // Save partial progress
+    saveProgress(STEPS.ONBOARDING, "in_progress", { step, answers: next });
   };
 
   const handleNext = async () => {
     if (step < quizSteps.length - 1) {
-      setStep(step + 1);
+      const nextStep = step + 1;
+      setStep(nextStep);
+      saveProgress(STEPS.ONBOARDING, "in_progress", { step: nextStep, answers });
     } else {
       // Mark onboarding as completed
       const { error } = await supabase
@@ -52,6 +70,7 @@ const Onboarding = () => {
         toast.error("Failed to save onboarding status.");
         return;
       }
+      await saveProgress(STEPS.ONBOARDING, "completed", { step, answers });
       await refreshProfile();
       navigate("/roles");
     }
@@ -89,7 +108,7 @@ const Onboarding = () => {
 
           <div className="flex gap-3">
             {step > 0 && (
-              <Button variant="outline" onClick={() => setStep(step - 1)}>
+              <Button variant="outline" onClick={() => { setStep(step - 1); saveProgress(STEPS.ONBOARDING, "in_progress", { step: step - 1, answers }); }}>
                 <ArrowLeft className="w-4 h-4 mr-1" /> Back
               </Button>
             )}

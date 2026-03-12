@@ -79,8 +79,8 @@ const RoleCatalog = () => {
                   <span key={s} className="text-xs bg-secondary text-muted-foreground px-2 py-1 rounded-md">{s}</span>
                 ))}
               </div>
-              <Button variant="hero" className="w-full" asChild>
-                <Link to={`/simulation/setup/${role.id}`}>Start Simulation</Link>
+              <Button variant="hero" className="w-full" onClick={() => handleSelectRole(role.id)}>
+                Start Simulation
               </Button>
             </div>
           ))}
