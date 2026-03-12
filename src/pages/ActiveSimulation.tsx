@@ -951,7 +951,7 @@ const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
 
               {/* Action */}
               <div className="flex items-center gap-3">
-                {!isActiveWeekFuture && (
+                {!isActiveWeekFuture && !(isActiveTaskDone && isActiveTaskDeadlinePassed) && (
                   <Button
                     variant={isActiveTaskDone ? "outline" : "default"}
                     onClick={() => toggleTask(activeTask.id)}
@@ -961,7 +961,7 @@ const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
                       className="mr-2"
                       onCheckedChange={() => {}}
                     />
-                    {isActiveTaskDone ? "Mark Incomplete" : "Mark Complete"}
+                    {isActiveTaskDone ? "Redo Task" : "Mark Complete"}
                   </Button>
                 )}
                 {(() => {
