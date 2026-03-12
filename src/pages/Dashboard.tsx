@@ -243,7 +243,7 @@ const Dashboard = () => {
 
   journeySteps.push({
     id: "simulation",
-    label: "My Tasks",
+    label: "Your Tasks",
     description: durationWeeks ? `${durationWeeks}-week internship — work on tasks and submit deliverables` : "Work on tasks and submit your deliverables",
     icon: Briefcase,
     status: getStatus(simulationDone, orientationDone),
