@@ -569,6 +569,176 @@ const ActiveSimulation = () => {
                 </div>
               )}
 
+              {/* Evaluation Criteria */}
+              {activeTask.evaluationCriteria && activeTask.evaluationCriteria.length > 0 && (
+                <div className="bg-card border border-border rounded-xl p-5 mb-6">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                    <Target className="w-4 h-4 text-primary" />
+                    Evaluation Criteria
+                  </h3>
+                  <div className="space-y-2">
+                    {activeTask.evaluationCriteria.map((criterion, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <div className="flex gap-0.5 mt-0.5 shrink-0">
+                          {Array.from({ length: 5 }).map((_, s) => (
+                            <Star
+                              key={s}
+                              className={`w-3 h-3 ${s < criterion.weight ? "text-primary fill-primary" : "text-muted-foreground/30"}`}
+                            />
+                          ))}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{criterion.name}</p>
+                          <p className="text-xs text-muted-foreground">{criterion.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Submission Input */}
+              {!isActiveWeekFuture && (
+                <div className="bg-card border border-border rounded-xl p-5 mb-6">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                    <Send className="w-4 h-4 text-primary" />
+                    Submit Your Deliverable
+                  </h3>
+                  <Textarea
+                    placeholder="Type your submission here..."
+                    value={submissionText}
+                    onChange={(e) => setSubmissionText(e.target.value)}
+                    className="min-h-[120px] mb-3"
+                    disabled={isEvaluating}
+                  />
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileSelect}
+                      accept=".pdf,.txt,.docx"
+                      className="hidden"
+                    />
+                    {submissionFile ? (
+                      <div className="flex items-center gap-2 bg-secondary rounded-lg px-3 py-1.5 text-sm">
+                        <FileText className="w-3.5 h-3.5 text-primary" />
+                        <span className="truncate max-w-[200px]">{submissionFile.name}</span>
+                        <button onClick={() => setSubmissionFile(null)} className="text-muted-foreground hover:text-foreground">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isEvaluating}
+                      >
+                        <Upload className="w-3.5 h-3.5 mr-1" /> Attach File
+                      </Button>
+                    )}
+                    <Button
+                      onClick={handleSubmitForEvaluation}
+                      disabled={isEvaluating || (!submissionText.trim() && !submissionFile)}
+                      className="ml-auto"
+                    >
+                      {isEvaluating ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-1 animate-spin" /> Evaluating...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-1" /> Submit for Evaluation
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">Supports text input and PDF/TXT/DOCX uploads (max 10MB)</p>
+                </div>
+              )}
+
+              {/* Feedback Display */}
+              {feedback[activeTask.id] && (
+                <div className="bg-card border border-border rounded-xl p-5 mb-6 animate-fade-in">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
+                    <TrendingUp className="w-4 h-4 text-primary" />
+                    Evaluation Feedback
+                    <Badge variant={feedback[activeTask.id].hiring_decision === "Hire" ? "default" : "secondary"} className="ml-auto">
+                      {feedback[activeTask.id].hiring_decision}
+                    </Badge>
+                  </h3>
+
+                  {/* Overall Score */}
+                  <div className="flex items-center gap-3 mb-4 p-3 bg-secondary/30 rounded-lg">
+                    <div className="text-3xl font-bold text-foreground">{feedback[activeTask.id].score}/10</div>
+                    <div className="flex-1">
+                      <Progress value={feedback[activeTask.id].score * 10} className="h-2" />
+                      <p className="text-xs text-muted-foreground mt-1">Overall Score</p>
+                    </div>
+                  </div>
+
+                  {/* Dimension Scores */}
+                  {feedback[activeTask.id].scores && (
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      {Object.entries(feedback[activeTask.id].scores).map(([key, val]: [string, any]) => (
+                        <div key={key} className="bg-secondary/20 rounded-lg p-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-medium text-foreground capitalize">{key.replace(/_/g, " ")}</span>
+                            <span className="text-xs font-bold text-primary">{val.score}/10</span>
+                          </div>
+                          <Progress value={val.score * 10} className="h-1.5 mt-1" />
+                          <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{val.reason}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Strengths */}
+                  {feedback[activeTask.id].strengths?.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-xs font-semibold text-foreground flex items-center gap-1 mb-2">
+                        <ThumbsUp className="w-3.5 h-3.5 text-accent" /> Strengths
+                      </h4>
+                      <ul className="space-y-1.5">
+                        {feedback[activeTask.id].strengths.map((s: any, i: number) => (
+                          <li key={i} className="text-xs text-muted-foreground bg-accent/5 border border-accent/10 rounded-md p-2">
+                            <span className="font-medium text-foreground">{s.point}</span>
+                            {s.quote && <span className="block italic mt-0.5">"{s.quote}"</span>}
+                            {s.why && <span className="block mt-0.5 text-muted-foreground">{s.why}</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Improvements */}
+                  {feedback[activeTask.id].improvements?.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-xs font-semibold text-foreground flex items-center gap-1 mb-2">
+                        <ThumbsDown className="w-3.5 h-3.5 text-destructive" /> Areas for Improvement
+                      </h4>
+                      <ul className="space-y-1.5">
+                        {feedback[activeTask.id].improvements.map((imp: any, i: number) => (
+                          <li key={i} className="text-xs text-muted-foreground bg-destructive/5 border border-destructive/10 rounded-md p-2">
+                            <span className="font-medium text-foreground">{imp.point}</span>
+                            {imp.quote && <span className="block italic mt-0.5">"{imp.quote}"</span>}
+                            {imp.suggestion && <span className="block mt-0.5 text-primary">💡 {imp.suggestion}</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Recommendation */}
+                  {feedback[activeTask.id].recommendation && (
+                    <div className="bg-secondary/30 rounded-lg p-3 text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">Recommendation: </span>
+                      {feedback[activeTask.id].recommendation}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Action */}
               <div className="flex items-center gap-3">
                 {!isActiveWeekFuture && (
