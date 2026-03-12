@@ -317,100 +317,135 @@ const ActiveSimulation = () => {
             <Progress value={weekProgress} className="h-2" />
           </div>
 
-          {/* Task List */}
-          <div className="space-y-3">
-            {weekTasks.map((task) => {
-              const isDone = completedTasks.has(task.id);
-              const isOverdue = isPastWeek && !isDone;
-              const dailyTask = weekSchedule?.dailyTasks?.find((dt) => dt.day === task.dayNum);
+          {/* Task List — grouped by day */}
+          <div className="space-y-6">
+            {(() => {
+              // Group tasks by day (or "general" if no day)
+              const groups: { label: string; sortKey: number; tasks: typeof weekTasks }[] = [];
+              const dayMap = new Map<number | "general", typeof weekTasks>();
 
-              return (
-                <div
-                  key={task.id}
-                  className={`bg-card border rounded-xl overflow-hidden shadow-card transition-all ${
-                    isDone
-                      ? "border-accent/30 bg-accent/5"
-                      : isOverdue
-                      ? "border-destructive/30 bg-destructive/5"
-                      : "border-border"
-                  }`}
-                >
-                  {/* Task header */}
-                  <div className="p-4 flex items-start gap-3">
-                    <Checkbox
-                      checked={isDone}
-                      onCheckedChange={() => !isFutureWeek && toggleTask(task.id)}
-                      disabled={isFutureWeek}
-                      className="mt-0.5"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`font-medium text-sm ${isDone ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                          {task.dayNum != null && (
-                            <span className="text-primary font-bold mr-1.5">Day {task.dayNum}</span>
-                          )}
-                          {task.title}
-                        </span>
-                        {task.isGroupTask && (
-                          <Badge variant="secondary" className="text-[10px]">Group</Badge>
-                        )}
-                        {isDone && (
-                          <CheckCircle className="w-3.5 h-3.5 text-accent" />
-                        )}
-                      </div>
-                      {task.deliverable && (
-                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                          <FileText className="w-3 h-3" />
-                          Deliverable: {task.deliverable}
-                        </p>
-                      )}
-                      {task.deadline && (
-                        <p className={`text-xs mt-0.5 flex items-center gap-1 ${
-                          isOverdue ? "text-destructive" : "text-muted-foreground"
-                        }`}>
-                          <Clock className="w-3 h-3" />
-                          {task.deadline}
-                        </p>
-                      )}
-                    </div>
+              for (const task of weekTasks) {
+                const key = task.dayNum ?? "general";
+                if (!dayMap.has(key)) dayMap.set(key, []);
+                dayMap.get(key)!.push(task);
+              }
+
+              dayMap.forEach((tasks, key) => {
+                groups.push({
+                  label: key === "general" ? "General Tasks" : `Day ${key}`,
+                  sortKey: key === "general" ? 999 : key,
+                  tasks,
+                });
+              });
+
+              groups.sort((a, b) => a.sortKey - b.sortKey);
+
+              return groups.map((group) => (
+                <div key={group.label}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <CalendarDays className="w-4 h-4 text-primary" />
+                    <h2 className="text-sm font-semibold text-foreground tracking-wide uppercase">
+                      {group.label}
+                    </h2>
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-xs text-muted-foreground">
+                      {group.tasks.filter((t) => completedTasks.has(t.id)).length}/{group.tasks.length} done
+                    </span>
                   </div>
+                  <div className="space-y-3">
+                    {group.tasks.map((task) => {
+                      const isDone = completedTasks.has(task.id);
+                      const isOverdue = isPastWeek && !isDone;
+                      const dailyTask = weekSchedule?.dailyTasks?.find((dt) => dt.day === task.dayNum);
 
-                  {/* Expanded daily task details */}
-                  {dailyTask && !isDone && (
-                    <div className="px-4 pb-4 pt-0 ml-9 border-t border-border mt-0">
-                      <div className="pt-3 space-y-2">
-                        {dailyTask.client && (
-                          <p className="text-xs text-foreground">
-                            <span className="font-semibold">Client:</span> {dailyTask.client}
-                            {dailyTask.clientIndustry && ` (${dailyTask.clientIndustry})`}
-                          </p>
-                        )}
-                        {dailyTask.campaignGoal && (
-                          <p className="text-xs text-muted-foreground">
-                            <span className="font-semibold text-foreground">Goal:</span> {dailyTask.campaignGoal}
-                          </p>
-                        )}
-                        {dailyTask.deliverableDetails && dailyTask.deliverableDetails.length > 0 && (
-                          <div>
-                            <p className="text-xs font-semibold text-foreground mb-1">Requirements:</p>
-                            <ul className="text-xs text-muted-foreground space-y-0.5 list-disc list-inside">
-                              {dailyTask.deliverableDetails.map((detail, i) => (
-                                <li key={i}>{detail}</li>
-                              ))}
-                            </ul>
+                      return (
+                        <div
+                          key={task.id}
+                          className={`bg-card border rounded-xl overflow-hidden shadow-card transition-all ${
+                            isDone
+                              ? "border-accent/30 bg-accent/5"
+                              : isOverdue
+                              ? "border-destructive/30 bg-destructive/5"
+                              : "border-border"
+                          }`}
+                        >
+                          {/* Task header */}
+                          <div className="p-4 flex items-start gap-3">
+                            <Checkbox
+                              checked={isDone}
+                              onCheckedChange={() => !isFutureWeek && toggleTask(task.id)}
+                              disabled={isFutureWeek}
+                              className="mt-0.5"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className={`font-medium text-sm ${isDone ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                                  {task.title}
+                                </span>
+                                {task.isGroupTask && (
+                                  <Badge variant="secondary" className="text-[10px]">Group</Badge>
+                                )}
+                                {isDone && (
+                                  <CheckCircle className="w-3.5 h-3.5 text-accent" />
+                                )}
+                              </div>
+                              {task.deliverable && (
+                                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                  <FileText className="w-3 h-3" />
+                                  Deliverable: {task.deliverable}
+                                </p>
+                              )}
+                              {task.deadline && (
+                                <p className={`text-xs mt-0.5 flex items-center gap-1 ${
+                                  isOverdue ? "text-destructive" : "text-muted-foreground"
+                                }`}>
+                                  <Clock className="w-3 h-3" />
+                                  {task.deadline}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                        )}
-                        {dailyTask.note && (
-                          <p className="text-xs text-muted-foreground italic bg-secondary/30 rounded-md p-2">
-                            💡 {dailyTask.note}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
+
+                          {/* Expanded daily task details */}
+                          {dailyTask && !isDone && (
+                            <div className="px-4 pb-4 pt-0 ml-9 border-t border-border mt-0">
+                              <div className="pt-3 space-y-2">
+                                {dailyTask.client && (
+                                  <p className="text-xs text-foreground">
+                                    <span className="font-semibold">Client:</span> {dailyTask.client}
+                                    {dailyTask.clientIndustry && ` (${dailyTask.clientIndustry})`}
+                                  </p>
+                                )}
+                                {dailyTask.campaignGoal && (
+                                  <p className="text-xs text-muted-foreground">
+                                    <span className="font-semibold text-foreground">Goal:</span> {dailyTask.campaignGoal}
+                                  </p>
+                                )}
+                                {dailyTask.deliverableDetails && dailyTask.deliverableDetails.length > 0 && (
+                                  <div>
+                                    <p className="text-xs font-semibold text-foreground mb-1">Requirements:</p>
+                                    <ul className="text-xs text-muted-foreground space-y-0.5 list-disc list-inside">
+                                      {dailyTask.deliverableDetails.map((detail, i) => (
+                                        <li key={i}>{detail}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                                {dailyTask.note && (
+                                  <p className="text-xs text-muted-foreground italic bg-secondary/30 rounded-md p-2">
+                                    💡 {dailyTask.note}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              );
-            })}
+              ));
+            })()}
           </div>
 
           {/* Week complete celebration */}
