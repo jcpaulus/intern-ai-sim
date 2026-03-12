@@ -164,7 +164,7 @@ const Dashboard = () => {
       description: "Work on tasks and submit your deliverables",
       icon: Briefcase,
       status: getStatus(simulationDone, orientationDone),
-      link: orientationDone && !simulationDone ? "/simulation/active" : undefined,
+      link: orientationDone ? "/simulation/active" : undefined,
       detail: simulationDone ? `${totalRuns} submission${totalRuns !== 1 ? "s" : ""}` : undefined,
     },
     {
