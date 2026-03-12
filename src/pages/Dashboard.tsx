@@ -244,134 +244,69 @@ const Dashboard = () => {
 
             {/* Journey Steps */}
             <div className="bg-card border border-border rounded-xl shadow-card mb-10 overflow-hidden">
-              {/* Day 1 Group Header */}
-              {(() => {
-                const day1Steps = journeySteps.slice(0, 4);
-                const day1AllDone = day1Steps.every(s => s.status === "completed");
-                const day1CompletedCount = day1Steps.filter(s => s.status === "completed").length;
+              {journeySteps.map((step, i) => {
+                const Icon = step.icon;
+                const isLast = i === journeySteps.length - 1;
                 return (
-                  <>
-                    <div className="px-5 py-3 bg-secondary/40 border-b border-border flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Day 1 — Getting Started</span>
-                      </div>
-                      <Badge variant={day1AllDone ? "default" : "secondary"} className="text-[10px]">
-                        {day1AllDone ? "Complete" : `${day1CompletedCount}/${day1Steps.length}`}
-                      </Badge>
+                  <div
+                    key={step.id}
+                    className={`flex items-start gap-4 p-5 relative transition-colors ${
+                      step.status === "current" ? "bg-primary/5" : ""
+                    } ${!isLast ? "border-b border-border" : ""}`}
+                  >
+                    {/* Status icon */}
+                    <div className="shrink-0 mt-0.5">
+                      {step.status === "completed" ? (
+                        <div className="w-9 h-9 rounded-full bg-accent/15 flex items-center justify-center">
+                          <CheckCircle className="w-5 h-5 text-accent" />
+                        </div>
+                      ) : step.status === "current" ? (
+                        <div className="w-9 h-9 rounded-full bg-primary/15 border-2 border-primary flex items-center justify-center">
+                          <Icon className="w-4 h-4 text-primary" />
+                        </div>
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center">
+                          <Circle className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                      )}
                     </div>
-                    {day1Steps.map((step, i) => {
-                      const Icon = step.icon;
-                      const isLastInGroup = i === day1Steps.length - 1;
-                      return (
-                        <div
-                          key={step.id}
-                          className={`flex items-start gap-4 p-5 pl-8 relative transition-colors ${
-                            step.status === "current" ? "bg-primary/5" : ""
-                          } ${!isLastInGroup ? "border-b border-border/50" : "border-b border-border"}`}
-                        >
-                          <div className="shrink-0 mt-0.5">
-                            {step.status === "completed" ? (
-                              <div className="w-9 h-9 rounded-full bg-accent/15 flex items-center justify-center">
-                                <CheckCircle className="w-5 h-5 text-accent" />
-                              </div>
-                            ) : step.status === "current" ? (
-                              <div className="w-9 h-9 rounded-full bg-primary/15 border-2 border-primary flex items-center justify-center">
-                                <Icon className="w-4 h-4 text-primary" />
-                              </div>
-                            ) : (
-                              <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center">
-                                <Circle className="w-4 h-4 text-muted-foreground" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className={`font-semibold text-sm ${
-                                step.status === "upcoming" ? "text-muted-foreground" : "text-foreground"
-                              }`}>{step.label}</span>
-                              {step.status === "completed" && (
-                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Done</Badge>
-                              )}
-                              {step.status === "current" && (
-                                <Badge className="text-[10px] px-1.5 py-0 bg-primary text-primary-foreground">Current</Badge>
-                              )}
-                            </div>
-                            <p className={`text-xs mt-0.5 ${
-                              step.status === "upcoming" ? "text-muted-foreground/60" : "text-muted-foreground"
-                            }`}>{step.description}</p>
-                            {step.detail && (
-                              <p className="text-xs text-accent mt-1 font-medium">{step.detail}</p>
-                            )}
-                          </div>
-                          {step.link && (
-                            <Button variant="outline" size="sm" asChild className="shrink-0 self-center">
-                              <Link to={step.link}>
-                                Continue <ChevronRight className="w-3.5 h-3.5 ml-1" />
-                              </Link>
-                            </Button>
-                          )}
-                        </div>
-                      );
-                    })}
 
-                    {/* Remaining steps (outside Day 1) */}
-                    {journeySteps.slice(4).map((step, i) => {
-                      const Icon = step.icon;
-                      const isLast = i === journeySteps.length - 5;
-                      return (
-                        <div
-                          key={step.id}
-                          className={`flex items-start gap-4 p-5 relative transition-colors ${
-                            step.status === "current" ? "bg-primary/5" : ""
-                          } ${!isLast ? "border-b border-border" : ""}`}
-                        >
-                          <div className="shrink-0 mt-0.5">
-                            {step.status === "completed" ? (
-                              <div className="w-9 h-9 rounded-full bg-accent/15 flex items-center justify-center">
-                                <CheckCircle className="w-5 h-5 text-accent" />
-                              </div>
-                            ) : step.status === "current" ? (
-                              <div className="w-9 h-9 rounded-full bg-primary/15 border-2 border-primary flex items-center justify-center">
-                                <Icon className="w-4 h-4 text-primary" />
-                              </div>
-                            ) : (
-                              <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center">
-                                <Circle className="w-4 h-4 text-muted-foreground" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className={`font-semibold text-sm ${
-                                step.status === "upcoming" ? "text-muted-foreground" : "text-foreground"
-                              }`}>{step.label}</span>
-                              {step.status === "completed" && (
-                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Done</Badge>
-                              )}
-                              {step.status === "current" && (
-                                <Badge className="text-[10px] px-1.5 py-0 bg-primary text-primary-foreground">Current</Badge>
-                              )}
-                            </div>
-                            <p className={`text-xs mt-0.5 ${
-                              step.status === "upcoming" ? "text-muted-foreground/60" : "text-muted-foreground"
-                            }`}>{step.description}</p>
-                            {step.detail && (
-                              <p className="text-xs text-accent mt-1 font-medium">{step.detail}</p>
-                            )}
-                          </div>
-                          {step.link && (
-                            <Button variant="outline" size="sm" asChild className="shrink-0 self-center">
-                              <Link to={step.link}>
-                                Continue <ChevronRight className="w-3.5 h-3.5 ml-1" />
-                              </Link>
-                            </Button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className={`font-semibold text-sm ${
+                          step.status === "upcoming" ? "text-muted-foreground" : "text-foreground"
+                        }`}>
+                          {step.label}
+                        </span>
+                        {step.status === "completed" && (
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Done</Badge>
+                        )}
+                        {step.status === "current" && (
+                          <Badge className="text-[10px] px-1.5 py-0 bg-primary text-primary-foreground">Current</Badge>
+                        )}
+                      </div>
+                      <p className={`text-xs mt-0.5 ${
+                        step.status === "upcoming" ? "text-muted-foreground/60" : "text-muted-foreground"
+                      }`}>
+                        {step.description}
+                      </p>
+                      {step.detail && (
+                        <p className="text-xs text-accent mt-1 font-medium">{step.detail}</p>
+                      )}
+                    </div>
+
+                    {/* Action */}
+                    {step.link && (
+                      <Button variant="outline" size="sm" asChild className="shrink-0 self-center">
+                        <Link to={step.link}>
+                          Continue <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
                 );
-              })()}
+              })}
             </div>
 
             {/* Stats */}
