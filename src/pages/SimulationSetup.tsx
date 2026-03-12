@@ -135,7 +135,7 @@ const SimulationSetup = () => {
                {levels.map((l) => (
                  <button
                    key={l.value}
-                   onClick={() => setLevel(l.value)}
+                   onClick={() => { setLevel(l.value); saveSetup({ level: l.value }); }}
                    className={`p-4 rounded-xl border text-center transition-all ${
                      level === l.value ? "border-primary bg-primary/10" : "border-border bg-card hover:border-muted-foreground"
                    }`}
