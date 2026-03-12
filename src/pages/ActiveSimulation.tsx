@@ -1,15 +1,19 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Zap, CheckCircle, Clock, AlertCircle, ChevronRight, ChevronLeft,
   CalendarDays, Lock, Trophy, FileText, ChevronDown, ChevronUp,
+  Upload, X, Send, Loader2, Star, Target, TrendingUp, ThumbsUp, ThumbsDown,
 } from "lucide-react";
 import { useProgress, STEPS } from "@/hooks/useProgress";
-import { generateSchedule, type WeekSchedule, type DailyTask } from "@/data/schedule";
+import { generateSchedule, type WeekSchedule, type DailyTask, type EvaluationCriterion } from "@/data/schedule";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // ── Helpers ──
 
