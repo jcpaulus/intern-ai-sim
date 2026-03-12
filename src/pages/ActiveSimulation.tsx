@@ -305,8 +305,18 @@ const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
         return;
       }
 
-      setFeedback((prev) => ({ ...prev, [activeTask.id]: data.feedback }));
+      const updatedFeedback = { ...feedback, [activeTask.id]: data.feedback };
+      setFeedback(updatedFeedback);
       toast.success("Submission evaluated!");
+
+      // Persist feedback to progress metadata
+      saveProgress(STEPS.SIMULATION, "in_progress", {
+        roleId,
+        companyId: company.id,
+        completedTasks: Array.from(completedTasks),
+        currentWeek,
+        feedback: updatedFeedback,
+      });
 
       // Auto-mark as complete
       if (!completedTasks.has(activeTask.id)) {
