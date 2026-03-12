@@ -110,52 +110,48 @@ const Dashboard = () => {
   const orientationStep = getStep(STEPS.ORIENTATION);
   const setupStep = getStep(STEPS.SIMULATION_SETUP);
 
+  // Bundled: Onboarding + Role Selection + Configure Simulation = "Get Started"
+  const getStartedDone = onboardingDone && roleSelected && setupDone;
+  const getStartedLink = !onboardingDone
+    ? "/onboarding"
+    : !roleSelected
+    ? "/roles"
+    : !setupDone && setupStep?.metadata?.roleId
+    ? `/simulation/setup/${setupStep.metadata.roleId}`
+    : !setupDone
+    ? "/roles"
+    : undefined;
+
+  const getStartedDetail = getStartedDone
+    ? "Completed"
+    : !onboardingDone
+    ? getStep(STEPS.ONBOARDING)?.status === "in_progress" ? "In progress — complete your quiz" : "Start with the onboarding quiz"
+    : !roleSelected
+    ? "Choose an internship role"
+    : !setupDone
+    ? setupStep?.status === "in_progress" ? "In progress — finish configuring" : "Configure your simulation"
+    : undefined;
+
   const getStatus = (done: boolean, prevDone: boolean): "completed" | "current" | "upcoming" =>
     done ? "completed" : prevDone ? "current" : "upcoming";
 
   const journeySteps: JourneyStep[] = [
     {
-      id: "onboarding",
-      label: "Onboarding Quiz",
-      description: "Tell us about your interests and experience",
+      id: "get-started",
+      label: "Get Started",
+      description: "Complete onboarding, choose a role, and configure your simulation",
       icon: ClipboardList,
-      status: getStatus(onboardingDone, true),
-      link: onboardingDone ? undefined : "/onboarding",
-      detail: onboardingDone ? "Completed" : getStep(STEPS.ONBOARDING)?.status === "in_progress" ? "In progress — pick up where you left off" : undefined,
-    },
-    {
-      id: "role-selection",
-      label: "Choose a Role",
-      description: "Browse and pick an internship role",
-      icon: Compass,
-      status: getStatus(roleSelected, onboardingDone),
-      link: onboardingDone && !roleSelected ? "/roles" : undefined,
-      detail: totalRuns > 0
-        ? `${uniqueRoles} role${uniqueRoles !== 1 ? "s" : ""} tried`
-        : undefined,
-    },
-    {
-      id: "simulation-setup",
-      label: "Configure Simulation",
-      description: "Set duration, level, and company",
-      icon: Building2,
-      status: getStatus(setupDone, roleSelected),
-      link: roleSelected && !setupDone && setupStep?.metadata?.roleId
-        ? `/simulation/setup/${setupStep.metadata.roleId}`
-        : roleSelected && !setupDone
-        ? "/roles"
-        : undefined,
-      detail: setupDone && setupStep?.metadata?.selectedCompany
-        ? `Company: ${companyNames[setupStep.metadata.selectedCompany] ?? setupStep.metadata.selectedCompany}`
-        : setupStep?.status === "in_progress" ? "In progress" : undefined,
+      status: getStatus(getStartedDone, true),
+      link: getStartedDone ? undefined : getStartedLink,
+      detail: getStartedDetail,
     },
     {
       id: "orientation",
-      label: "Internship Orientation",
-      description: "Meet your team and review policies",
+      label: "Day 1 — Orientation",
+      description: "Meet your team, review policies, and begin your internship",
       icon: Building2,
-      status: getStatus(orientationDone, setupDone),
-      link: setupDone && !orientationDone ? "/simulation/orientation" : undefined,
+      status: getStatus(orientationDone, getStartedDone),
+      link: getStartedDone && !orientationDone ? "/simulation/orientation" : undefined,
       detail: orientationDone
         ? "Completed"
         : orientationStep?.status === "in_progress" && orientationStep?.metadata?.completedSections
@@ -164,7 +160,7 @@ const Dashboard = () => {
     },
     {
       id: "simulation",
-      label: "Complete Simulation",
+      label: "My Tasks",
       description: "Work on tasks and submit your deliverables",
       icon: Briefcase,
       status: getStatus(simulationDone, orientationDone),
