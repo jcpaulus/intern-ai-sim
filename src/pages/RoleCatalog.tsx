@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Zap, BarChart3, PenTool, TrendingUp } from "lucide-react";
+import { Zap, BarChart3, PenTool, TrendingUp, ArrowLeft } from "lucide-react";
 
 const roles = [
   {
