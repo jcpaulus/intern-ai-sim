@@ -97,6 +97,13 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
       ],
       deadline: "5:00 PM — to be reviewed during tomorrow's team check-in",
       note: "Let your manager know if you need clarification before getting started.",
+      evaluationCriteria: [
+        { name: "Research Quality", description: "Audit is based on actual data points — engagement metrics, posting patterns, and audience behavior", weight: 5 },
+        { name: "Analytical Depth", description: "Goes beyond surface observations to identify trends and root causes", weight: 5 },
+        { name: "Actionability", description: "Recommendations are specific, feasible, and tied to campaign goals", weight: 4 },
+        { name: "Use of Data", description: "Includes concrete numbers, percentages, or comparisons to support claims", weight: 4 },
+        { name: "Presentation & Structure", description: "Report is well-organized with clear sections and professional formatting", weight: 3 },
+      ],
     },
     {
       day: 4,
