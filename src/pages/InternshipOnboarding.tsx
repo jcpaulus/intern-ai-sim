@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useProgress, STEPS } from "@/hooks/useProgress";
+import { useAuth } from "@/hooks/useAuth";
+import { selectResponsibilities } from "@/data/responsibilities";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -398,6 +400,7 @@ const InternshipOnboarding = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { saveProgress, getStep, loading: progressLoading } = useProgress();
+  const { user } = useAuth();
   const simState = location.state as SimState | null;
 
   // Try to restore simState from progress metadata if not in location.state
@@ -434,6 +437,11 @@ const InternshipOnboarding = () => {
   const team = companyTeams[company.id] || companyTeams["nexora"];
   const weeks = durationWeeks[duration] || 1;
   const schedule = generateSchedule(weeks, roleTitle, roleId, company.id);
+
+  // Dynamically select responsibilities based on duration, company, and manager style
+  const assignedResponsibilities = roleId === "marketing-associate"
+    ? selectResponsibilities(weeks, company.id, managerStyle, `${user?.id || "anon"}-${company.id}`)
+    : null;
 
   const progressPercent = ((completedSections.size) / sections.length) * 100;
 
@@ -631,15 +639,42 @@ const InternshipOnboarding = () => {
                     <p className="text-muted-foreground leading-relaxed">{jobDesc.summary}</p>
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-3">Key Responsibilities</h3>
-                    <ul className="space-y-2">
-                      {jobDesc.responsibilities.map((r, i) => (
-                        <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
-                          <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-                          {r}
-                        </li>
-                      ))}
-                    </ul>
+                    <h3 className="font-semibold mb-3">Your Key Responsibilities</h3>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      {assignedResponsibilities
+                        ? `${assignedResponsibilities.length} responsibilities assigned for your ${weeks}-week internship, tailored to ${company.name} and your ${managerStyle} manager.`
+                        : "Core responsibilities for your role."
+                      }
+                    </p>
+                    {assignedResponsibilities ? (
+                      <div className="space-y-3">
+                        {/* Group by category */}
+                        {Array.from(new Set(assignedResponsibilities.map(r => r.category))).map((category) => (
+                          <div key={category}>
+                            <h4 className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">{category}</h4>
+                            <ul className="space-y-2 mb-4">
+                              {assignedResponsibilities
+                                .filter(r => r.category === category)
+                                .map((r) => (
+                                  <li key={r.id} className="flex items-start gap-3 text-sm text-muted-foreground bg-secondary/30 rounded-lg p-3">
+                                    <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
+                                    {r.text}
+                                  </li>
+                                ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <ul className="space-y-2">
+                        {jobDesc.responsibilities.map((r, i) => (
+                          <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                            <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 shrink-0" />
+                            {r}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                   <div className="bg-secondary/50 rounded-lg p-5">
                     <h3 className="font-semibold mb-2">Manager Style</h3>
