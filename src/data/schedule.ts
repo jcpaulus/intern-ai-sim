@@ -31,12 +31,6 @@ export interface DailyTask {
   evaluationCriteria?: EvaluationCriterion[];
   resources?: TaskResource[];
   backgroundInfo?: string;
-  realCompanyReference?: {
-    name: string;
-    website: string;
-    description: string;
-    socialLinks?: { platform: string; url: string }[];
-  };
   exampleData?: string[];
 }
 
@@ -141,7 +135,7 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
         "Two recommended content ideas that could improve engagement in the next phase of the campaign",
       ],
       deadline: "5:00 PM — to be reviewed during tomorrow's team check-in",
-      note: "Use the real companies below as stand-ins for FitLife Wellness. Audit their public social media profiles — all data is publicly accessible.",
+      note: "FitLife Wellness is a fictional company. Use the publicly accessible social media profiles below as study references to understand how real brands in the fitness and wellness space approach content strategy.",
       evaluationCriteria: [
         { name: "Research Quality", description: "Audit is based on actual data points — engagement metrics, posting patterns, and audience behavior", weight: 5 },
         { name: "Analytical Depth", description: "Goes beyond surface observations to identify trends and root causes", weight: 5 },
@@ -149,23 +143,11 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
         { name: "Use of Data", description: "Includes concrete numbers, percentages, or comparisons to support claims", weight: 4 },
         { name: "Presentation & Structure", description: "Report is well-organized with clear sections and professional formatting", weight: 3 },
       ],
-      backgroundInfo: "For this task, use real fitness & wellness brands as your reference companies. Their social media profiles are publicly accessible. Analyze their actual posts, engagement metrics (likes, comments, shares visible on each post), and content strategy. Below are real companies you can audit directly.",
-      realCompanyReference: {
-        name: "Peloton",
-        website: "https://www.onepeloton.com",
-        description: "Leading connected fitness company offering live and on-demand workouts — strong social media presence targeting young professionals.",
-        socialLinks: [
-          { platform: "Instagram", url: "https://www.instagram.com/onepeloton/" },
-          { platform: "TikTok", url: "https://www.tiktok.com/@onepeloton" },
-          { platform: "LinkedIn", url: "https://www.linkedin.com/company/peloton-interactive/" },
-          { platform: "X (Twitter)", url: "https://x.com/onepeloton" },
-        ],
-      },
+      backgroundInfo: "FitLife Wellness is a fictional client. To practice a real audit, study publicly accessible social media profiles of wellness brands listed below for inspiration. Analyze their publicly visible posts, engagement metrics (likes, comments, shares), and content strategy — then apply your findings to build recommendations for the fictional FitLife Wellness brand.",
       resources: [
-        { label: "Peloton Instagram", url: "https://www.instagram.com/onepeloton/", type: "data", description: "Audit this profile: check post types, engagement, captions, and hashtags" },
-        { label: "Nike Training Instagram", url: "https://www.instagram.com/niketraining/", type: "data", description: "Secondary reference: Nike Training's content strategy for fitness audiences" },
-        { label: "Headspace Instagram", url: "https://www.instagram.com/headspace/", type: "data", description: "Wellness brand example — strong visual branding and engagement" },
-        { label: "Social Blade (Free Analytics)", url: "https://socialblade.com/", type: "tool", description: "Free tool to check follower growth, posting frequency, and engagement estimates" },
+        { label: "Study Reference: Fitness Brand on Instagram", url: "https://www.instagram.com/explore/tags/fitnessmotivation/", type: "data", description: "Browse fitness-related public posts to understand content trends, engagement patterns, and audience behavior" },
+        { label: "Study Reference: Wellness Brand on Instagram", url: "https://www.instagram.com/explore/tags/wellnessjourney/", type: "data", description: "Explore wellness hashtags to see what content resonates with health-conscious audiences" },
+        { label: "Social Blade (Free Analytics)", url: "https://socialblade.com/", type: "tool", description: "Free tool to check follower growth, posting frequency, and engagement estimates for any public account" },
         { label: "Not Just Analytics", url: "https://www.notjustanalytics.com/", type: "tool", description: "Free Instagram analytics — check engagement rates, best posting times, hashtag performance" },
         { label: "Google Sheets (Audit Template)", url: "https://docs.google.com/spreadsheets/create", type: "template", description: "Create a spreadsheet to organize your audit data: platform, post type, engagement, date, notes" },
         { label: "Social Media Audit Guide (Hootsuite)", url: "https://blog.hootsuite.com/social-media-audit-template/", type: "reference", description: "Hootsuite's step-by-step social media audit guide with free template" },
@@ -175,7 +157,7 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
         "Engagement Rate Formula: (Likes + Comments + Shares) / Followers × 100. Industry average for fitness: 1.5–3.5% on Instagram",
         "Content types to categorize: Reels/Videos, Carousels, Single Image, Stories, Text Posts, User-Generated Content (UGC)",
         "Audit spreadsheet columns: Post Date, Platform, Content Type, Caption Theme, Likes, Comments, Shares, Engagement Rate, Notes",
-        "Hashtag categories to analyze: Branded (#PelotonCommunity), Industry (#FitnessMotivation), Niche (#DeskToFit), Trending",
+        "Hashtag categories to analyze: Branded, Industry (#FitnessMotivation), Niche (#DeskToFit), Trending",
         "Posting frequency benchmarks: Instagram 3-5x/week, LinkedIn 2-3x/week, TikTok 3-7x/week (source: Sprout Social 2024)",
       ],
     },
@@ -193,7 +175,7 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
         "Note any gaps in competitor strategies that represent opportunities for FitLife",
       ],
       deadline: "4:00 PM — present findings during the afternoon team huddle",
-      note: "Use the real competitor brands below. All their social media data is publicly accessible for analysis.",
+      note: "FitLife Wellness is fictional. Research 3 real fitness/wellness brands of your choosing using publicly accessible social media profiles to practice competitive analysis, then apply findings to your FitLife recommendations.",
       evaluationCriteria: [
         { name: "Competitor Identification", description: "Selected competitors are relevant direct competitors with justification", weight: 4 },
         { name: "Comparative Analysis", description: "Meaningful side-by-side comparison with specific metrics and examples", weight: 5 },
@@ -201,32 +183,20 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
         { name: "Evidence-Based Claims", description: "All assertions backed by observable data or examples", weight: 4 },
         { name: "Clarity", description: "Brief is concise, well-structured, and easy to present", weight: 3 },
       ],
-      backgroundInfo: "Use these three real fitness/wellness companies as your competitor set. Analyze their publicly visible social media profiles, website positioning, and content strategy. All information needed is free and publicly available.",
-      realCompanyReference: {
-        name: "Peloton (Primary Reference as 'FitLife')",
-        website: "https://www.onepeloton.com",
-        description: "Use Peloton as the stand-in for FitLife Wellness. Then compare it against the three competitors listed in resources below.",
-        socialLinks: [
-          { platform: "Instagram", url: "https://www.instagram.com/onepeloton/" },
-        ],
-      },
+      backgroundInfo: "For this exercise, choose 3 real fitness or wellness brands and analyze their publicly visible social media profiles. Use these as practice competitors, then apply your insights to write recommendations for the fictional FitLife Wellness client. All information you need is freely and publicly available on social media platforms.",
       resources: [
-        { label: "Competitor 1: Noom", url: "https://www.instagram.com/noom/", type: "data", description: "Health & behavior change platform. Compare their content themes, engagement approach, and audience tone vs Peloton." },
-        { label: "Noom Website", url: "https://www.noom.com", type: "data", description: "Review their positioning, messaging, and target audience" },
-        { label: "Competitor 2: Gymshark", url: "https://www.instagram.com/gymshark/", type: "data", description: "Fitness apparel brand with massive social following. Study their UGC strategy and community building." },
-        { label: "Gymshark Website", url: "https://www.gymshark.com", type: "data", description: "Review their brand voice, athlete partnerships, and community approach" },
-        { label: "Competitor 3: Calm App", url: "https://www.instagram.com/calm/", type: "data", description: "Mental wellness app. Analyze their visual style, content mix, and how they target professionals." },
-        { label: "Calm Website", url: "https://www.calm.com", type: "data", description: "Study their positioning in the wellness space and B2B offerings" },
-        { label: "Social Blade (Compare accounts)", url: "https://socialblade.com/", type: "tool", description: "Compare follower counts, growth rates, and estimated engagement across all three competitors" },
+        { label: "Instagram Explore: Fitness", url: "https://www.instagram.com/explore/tags/fitness/", type: "data", description: "Browse public fitness content to discover brands worth analyzing for your competitor set" },
+        { label: "Instagram Explore: Wellness", url: "https://www.instagram.com/explore/tags/wellness/", type: "data", description: "Discover wellness brands and their content strategies through public hashtags" },
+        { label: "Social Blade (Compare accounts)", url: "https://socialblade.com/", type: "tool", description: "Compare follower counts, growth rates, and estimated engagement across competitors" },
         { label: "Google Sheets (Comparison Template)", url: "https://docs.google.com/spreadsheets/create", type: "template", description: "Create a side-by-side comparison: Brand, Followers, Engagement Rate, Content Mix, Strengths, Weaknesses" },
         { label: "Competitor Analysis Framework (HubSpot)", url: "https://blog.hubspot.com/marketing/competitive-analysis-kit", type: "reference", description: "Free competitor analysis template and methodology from HubSpot" },
         { label: "How to Do a Competitive Content Analysis", url: "https://contentmarketinginstitute.com/articles/competitive-content-analysis/", type: "reference", description: "Content Marketing Institute's guide to benchmarking competitor content" },
       ],
       exampleData: [
         "Comparison table columns: Brand Name, Instagram Followers, Avg. Engagement Rate, Primary Content Type, Posting Frequency, Unique Tactic, Weakness/Gap",
-        "Approximate follower counts (verify live): Peloton ~3.8M IG, Gymshark ~7M IG, Noom ~800K IG, Calm ~3M IG",
         "Content categories to compare: Educational, Motivational, UGC, Product-focused, Behind-the-scenes, Community-driven, Influencer partnerships",
         "Questions to answer: Who has the highest engagement per post? Which brand reposts user content most? Who uses video vs. static more effectively?",
+        "Tip: Choose brands of varying sizes (e.g. one large, one mid, one small) to see how strategy differs by scale",
       ],
     },
     {
@@ -251,7 +221,7 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
         { name: "Integration of Research", description: "Competitor analysis insights are visibly incorporated", weight: 4 },
         { name: "Self-Reflection Quality", description: "Honest, specific reflection showing growth mindset", weight: 3 },
       ],
-      backgroundInfo: "Content calendars are the backbone of social media marketing. Use the free templates and tools below to create a professional 7-day plan. Reference the Peloton/FitLife scenario from Days 3–4. All tools are free.",
+      backgroundInfo: "Content calendars are the backbone of social media marketing. Use the free templates and tools below to create a professional 7-day plan. Reference your audit and competitor research from Days 3–4. All tools are free.",
       resources: [
         { label: "Canva Content Calendar Template", url: "https://www.canva.com/templates/search/content-calendar/", type: "template", description: "Free, professional content calendar templates you can customize for your submission" },
         { label: "Google Sheets Calendar Template", url: "https://docs.google.com/spreadsheets/create", type: "template", description: "Build your own: Day, Platform, Post Type, Caption, Visual Description, Hashtags, Goal Alignment" },
