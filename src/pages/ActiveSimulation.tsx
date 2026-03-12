@@ -19,16 +19,34 @@ interface FeedbackData {
     actionability: { score: number; reason: string };
   };
   final_summary: string;
+  raw_text?: string;
 }
 
 const normalizeFeedback = (raw: unknown): FeedbackData | null => {
+  // Handle plain string feedback from API
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    return {
+      overall_score: 0,
+      strengths: [],
+      improvements: [],
+      scores: {
+        clarity: { score: 0, reason: "" },
+        depth_of_insight: { score: 0, reason: "" },
+        use_of_data: { score: 0, reason: "" },
+        actionability: { score: 0, reason: "" },
+      },
+      final_summary: raw,
+      raw_text: raw,
+    };
+  }
+
   if (!raw || typeof raw !== "object") return null;
   const data = raw as Record<string, any>;
   const scores = data.scores && typeof data.scores === "object" ? data.scores : {};
 
   const normalizeScore = (scoreData: any) => ({
     score: typeof scoreData?.score === "number" ? scoreData.score : 0,
-    reason: typeof scoreData?.reason === "string" ? scoreData.reason : "No reason provided",
+    reason: typeof scoreData?.reason === "string" ? scoreData.reason : "",
   });
 
   return {
@@ -41,7 +59,8 @@ const normalizeFeedback = (raw: unknown): FeedbackData | null => {
       use_of_data: normalizeScore(scores.use_of_data),
       actionability: normalizeScore(scores.actionability),
     },
-    final_summary: typeof data.final_summary === "string" ? data.final_summary : "Feedback tidak tersedia.",
+    final_summary: typeof data.final_summary === "string" ? data.final_summary : (typeof data.recommendation === "string" ? data.recommendation : ""),
+    raw_text: typeof raw === "string" ? raw : undefined,
   };
 };
 
@@ -605,62 +624,81 @@ const ActiveSimulation = () => {
                     <div className="font-semibold">Sarah Martinez</div>
                     <div className="text-xs text-muted-foreground">Feedback on Task 3</div>
                   </div>
-                  <div className="ml-auto flex gap-2">
-                    <Badge className="bg-accent/20 text-accent border-0">{feedback.overall_score}/10</Badge>
-                  </div>
+                  {feedback.overall_score > 0 && (
+                    <div className="ml-auto flex gap-2">
+                      <Badge className="bg-accent/20 text-accent border-0">{feedback.overall_score}/10</Badge>
+                    </div>
+                  )}
                 </div>
                 <div className="font-semibold">Re: Campaign Performance Report — Feedback</div>
               </div>
               <div className="p-5 text-sm leading-relaxed space-y-5">
-                {/* Scores */}
-                <div className="grid grid-cols-2 gap-3">
-                  {Object.entries(feedback.scores).map(([key, val]) => (
-                    <div key={key} className="bg-secondary/30 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-foreground capitalize">{key.replace(/_/g, " ")}</span>
-                        <span className="text-xs font-bold text-accent">{val.score}/10</span>
+                {/* If raw text feedback, show it directly */}
+                {feedback.raw_text ? (
+                  <div className="whitespace-pre-wrap text-foreground">{feedback.raw_text}</div>
+                ) : (
+                  <>
+                    {/* Scores */}
+                    {Object.values(feedback.scores).some(v => v.score > 0) && (
+                      <div className="grid grid-cols-2 gap-3">
+                        {Object.entries(feedback.scores).map(([key, val]) => (
+                          <div key={key} className="bg-secondary/30 rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs font-medium text-foreground capitalize">{key.replace(/_/g, " ")}</span>
+                              <span className="text-xs font-bold text-accent">{val.score}/10</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">{val.reason}</p>
+                          </div>
+                        ))}
                       </div>
-                      <p className="text-xs text-muted-foreground">{val.reason}</p>
-                    </div>
-                  ))}
-                </div>
+                    )}
 
-                {/* Strengths */}
-                <div>
-                  <h4 className="font-semibold text-foreground mb-2">✅ Strengths</h4>
-                  <div className="space-y-3">
-                    {feedback.strengths.map((s, i) => (
-                      <div key={i} className="border-l-2 border-accent pl-3">
-                        <p className="text-foreground font-medium text-sm">{s.point}</p>
-                        <p className="text-xs text-muted-foreground italic mt-1">"{s.quote}"</p>
-                        <p className="text-xs text-muted-foreground mt-1">{s.why}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Improvements */}
-                <div>
-                  <h4 className="font-semibold text-foreground mb-2">🔧 Areas for Improvement</h4>
-                  <div className="space-y-4">
-                    {feedback.improvements.map((imp, i) => (
-                      <div key={i} className="border-l-2 border-primary pl-3">
-                        <p className="text-foreground font-medium text-sm">{imp.point}</p>
-                        <p className="text-xs text-muted-foreground italic mt-1">Your words: "{imp.quote}"</p>
-                        <p className="text-xs text-muted-foreground mt-1">Why: {imp.why}</p>
-                        <div className="bg-secondary/50 rounded-md p-2 mt-2">
-                          <p className="text-xs text-foreground">💡 <span className="font-medium">Suggested revision:</span> {imp.suggestion}</p>
+                    {/* Strengths */}
+                    {feedback.strengths.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-foreground mb-2">✅ Strengths</h4>
+                        <div className="space-y-3">
+                          {feedback.strengths.map((s, i) => (
+                            <div key={i} className="border-l-2 border-accent pl-3">
+                              <p className="text-foreground font-medium text-sm">{s.point}</p>
+                              {s.quote && <p className="text-xs text-muted-foreground italic mt-1">"{s.quote}"</p>}
+                              {s.why && <p className="text-xs text-muted-foreground mt-1">{s.why}</p>}
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    )}
 
-                {/* Final Summary */}
-                <div className="bg-secondary/30 rounded-lg p-4 border border-border">
-                  <p className="text-sm text-foreground font-medium">{feedback.final_summary}</p>
-                  <p className="text-xs text-muted-foreground mt-2">— Sarah</p>
-                </div>
+                    {/* Improvements */}
+                    {feedback.improvements.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-foreground mb-2">🔧 Areas for Improvement</h4>
+                        <div className="space-y-4">
+                          {feedback.improvements.map((imp, i) => (
+                            <div key={i} className="border-l-2 border-primary pl-3">
+                              <p className="text-foreground font-medium text-sm">{imp.point}</p>
+                              {imp.quote && <p className="text-xs text-muted-foreground italic mt-1">Your words: "{imp.quote}"</p>}
+                              {imp.why && <p className="text-xs text-muted-foreground mt-1">Why: {imp.why}</p>}
+                              {imp.suggestion && (
+                                <div className="bg-secondary/50 rounded-md p-2 mt-2">
+                                  <p className="text-xs text-foreground">💡 <span className="font-medium">Suggested revision:</span> {imp.suggestion}</p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Final Summary */}
+                    {feedback.final_summary && (
+                      <div className="bg-secondary/30 rounded-lg p-4 border border-border">
+                        <p className="text-sm text-foreground font-medium">{feedback.final_summary}</p>
+                        <p className="text-xs text-muted-foreground mt-2">— Sarah</p>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
               <div className="p-5 border-t border-border flex gap-3">
                 <Button variant="hero" asChild>
