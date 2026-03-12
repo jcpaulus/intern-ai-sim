@@ -185,7 +185,7 @@ const Dashboard = () => {
   const stats = [
     { icon: BookOpen, label: "Simulations", value: totalRuns.toString() },
     { icon: CheckCircle, label: "Roles Tried", value: uniqueRoles.toString() },
-    { icon: Trophy, label: "Avg Score", value: avgScore != null ? `${avgScore}%` : "–" },
+    { icon: Trophy, label: "Performance", value: avgScore != null ? `${avgScore}%` : "–" },
   ];
 
   const formatDate = (dateStr: string) =>
