@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Zap, ArrowRight, ArrowLeft, Building2 } from "lucide-react";
+import { useProgress, STEPS } from "@/hooks/useProgress";
 
 const roleData: Record<string, { title: string; description: string }> = {
   "business-analyst": { title: "Business Analyst", description: "Analyze business requirements, identify process improvements, and communicate with stakeholders." },
@@ -40,12 +41,34 @@ const companies = [
 const SimulationSetup = () => {
   const { roleId } = useParams();
   const navigate = useNavigate();
+  const { saveProgress, getStep, loading: progressLoading } = useProgress();
   const role = roleData[roleId || ""] || roleData["business-analyst"];
 
   const [duration, setDuration] = useState("4");
   const [level, setLevel] = useState("intermediate");
   const [managerStyle, setManagerStyle] = useState("supportive");
   const [selectedCompany, setSelectedCompany] = useState("nexora");
+  const [restored, setRestored] = useState(false);
+
+  // Restore saved setup progress
+  useEffect(() => {
+    if (progressLoading || restored) return;
+    const saved = getStep(STEPS.SIMULATION_SETUP);
+    if (saved?.metadata && saved.status !== "completed") {
+      if (saved.metadata.duration) setDuration(saved.metadata.duration);
+      if (saved.metadata.level) setLevel(saved.metadata.level);
+      if (saved.metadata.managerStyle) setManagerStyle(saved.metadata.managerStyle);
+      if (saved.metadata.selectedCompany) setSelectedCompany(saved.metadata.selectedCompany);
+    }
+    setRestored(true);
+  }, [progressLoading, restored, getStep]);
+
+  // Auto-save setup changes
+  const saveSetup = (overrides: Record<string, any> = {}) => {
+    saveProgress(STEPS.SIMULATION_SETUP, "in_progress", {
+      roleId, duration, level, managerStyle, selectedCompany, ...overrides,
+    });
+  };
 
   const durations = [
     { value: "2", label: "2 Weeks", tasks: "10 tasks" },
@@ -93,7 +116,7 @@ const SimulationSetup = () => {
               {durations.map((d) => (
                 <button
                   key={d.value}
-                  onClick={() => setDuration(d.value)}
+                  onClick={() => { setDuration(d.value); saveSetup({ duration: d.value }); }}
                   className={`p-4 rounded-xl border text-center transition-all ${
                     duration === d.value ? "border-primary bg-primary/10" : "border-border bg-card hover:border-muted-foreground"
                   }`}
@@ -112,7 +135,7 @@ const SimulationSetup = () => {
                {levels.map((l) => (
                  <button
                    key={l.value}
-                   onClick={() => setLevel(l.value)}
+                   onClick={() => { setLevel(l.value); saveSetup({ level: l.value }); }}
                    className={`p-4 rounded-xl border text-center transition-all ${
                      level === l.value ? "border-primary bg-primary/10" : "border-border bg-card hover:border-muted-foreground"
                    }`}
@@ -133,7 +156,7 @@ const SimulationSetup = () => {
               {companies.map((c) => (
                 <button
                   key={c.id}
-                  onClick={() => setSelectedCompany(c.id)}
+                  onClick={() => { setSelectedCompany(c.id); saveSetup({ selectedCompany: c.id }); }}
                   className={`w-full p-4 rounded-xl border text-left transition-all ${
                     selectedCompany === c.id ? "border-primary bg-primary/10" : "border-border bg-card hover:border-muted-foreground"
                   }`}
@@ -156,7 +179,7 @@ const SimulationSetup = () => {
               {styles.map((s) => (
                 <button
                   key={s.value}
-                  onClick={() => setManagerStyle(s.value)}
+                  onClick={() => { setManagerStyle(s.value); saveSetup({ managerStyle: s.value }); }}
                   className={`w-full p-4 rounded-xl border text-left transition-all ${
                     managerStyle === s.value ? "border-primary bg-primary/10" : "border-border bg-card hover:border-muted-foreground"
                   }`}
@@ -175,6 +198,9 @@ const SimulationSetup = () => {
             </Button>
             <Button variant="hero" size="lg" className="flex-1 text-lg py-6" onClick={() => {
               const company = companies.find(c => c.id === selectedCompany)!;
+              saveProgress(STEPS.SIMULATION_SETUP, "completed", {
+                roleId, duration, level, managerStyle, selectedCompany,
+              });
               navigate("/simulation/orientation", {
                 state: {
                   roleId: roleId || "marketing-associate",

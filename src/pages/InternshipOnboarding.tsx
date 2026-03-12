@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useProgress, STEPS } from "@/hooks/useProgress";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -396,17 +397,37 @@ const sections = [
 const InternshipOnboarding = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { saveProgress, getStep, loading: progressLoading } = useProgress();
   const simState = location.state as SimState | null;
 
-  const roleId = simState?.roleId || "marketing-associate";
-  const roleTitle = simState?.roleTitle || "Marketing Associate";
-  const company = simState?.company || { id: "brightwave", name: "BrightWave Marketing", industry: "Media/Advertising", size: "200 employees", description: "A creative marketing agency.", culture: "Creative, data-driven" };
-  const duration = simState?.duration || "1";
-  const level = simState?.level || "intermediate";
-  const managerStyle = simState?.managerStyle || "supportive";
+  // Try to restore simState from progress metadata if not in location.state
+  const savedStep = getStep(STEPS.ORIENTATION);
+  const restoredState = savedStep?.metadata?.simState as SimState | undefined;
+  const effectiveState = simState || restoredState || null;
+
+  const roleId = effectiveState?.roleId || "marketing-associate";
+  const roleTitle = effectiveState?.roleTitle || "Marketing Associate";
+  const company = effectiveState?.company || { id: "brightwave", name: "BrightWave Marketing", industry: "Media/Advertising", size: "200 employees", description: "A creative marketing agency.", culture: "Creative, data-driven" };
+  const duration = effectiveState?.duration || "1";
+  const level = effectiveState?.level || "intermediate";
+  const managerStyle = effectiveState?.managerStyle || "supportive";
 
   const [currentSection, setCurrentSection] = useState(0);
   const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
+  const [restored, setRestored] = useState(false);
+
+  // Restore orientation progress
+  useEffect(() => {
+    if (progressLoading || restored) return;
+    const saved = getStep(STEPS.ORIENTATION);
+    if (saved?.metadata && saved.status !== "completed") {
+      if (saved.metadata.currentSection != null) setCurrentSection(saved.metadata.currentSection);
+      if (Array.isArray(saved.metadata.completedSections)) {
+        setCompletedSections(new Set(saved.metadata.completedSections));
+      }
+    }
+    setRestored(true);
+  }, [progressLoading, restored, getStep]);
 
   const jobDesc = roleJobDescriptions[roleId] || roleJobDescriptions["marketing-associate"];
   const policies = companyPolicies[company.id] || companyPolicies["nexora"];
@@ -420,15 +441,26 @@ const InternshipOnboarding = () => {
     const updated = new Set(completedSections);
     updated.add(currentSection);
     setCompletedSections(updated);
+    const nextSection = currentSection < sections.length - 1 ? currentSection + 1 : currentSection;
     if (currentSection < sections.length - 1) {
-      setCurrentSection(currentSection + 1);
+      setCurrentSection(nextSection);
     }
+    // Save orientation progress
+    saveProgress(STEPS.ORIENTATION, "in_progress", {
+      currentSection: nextSection,
+      completedSections: Array.from(updated),
+      simState: effectiveState,
+    });
   };
 
   const allComplete = completedSections.size === sections.length;
 
   const startSimulation = () => {
-    navigate("/simulation/active", { state: simState });
+    saveProgress(STEPS.ORIENTATION, "completed", {
+      completedSections: Array.from(completedSections),
+      simState: effectiveState,
+    });
+    navigate("/simulation/active", { state: effectiveState });
   };
 
   return (

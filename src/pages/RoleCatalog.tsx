@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Zap, BarChart3, PenTool, TrendingUp, ArrowLeft } from "lucide-react";
+import { useProgress, STEPS } from "@/hooks/useProgress";
 
 const roles = [
   {
@@ -32,6 +33,13 @@ const roles = [
 
 const RoleCatalog = () => {
   const navigate = useNavigate();
+  const { saveProgress } = useProgress();
+
+  const handleSelectRole = (roleId: string) => {
+    saveProgress(STEPS.ROLE_SELECTION, "completed", { roleId });
+    navigate(`/simulation/setup/${roleId}`);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
@@ -71,8 +79,8 @@ const RoleCatalog = () => {
                   <span key={s} className="text-xs bg-secondary text-muted-foreground px-2 py-1 rounded-md">{s}</span>
                 ))}
               </div>
-              <Button variant="hero" className="w-full" asChild>
-                <Link to={`/simulation/setup/${role.id}`}>Start Simulation</Link>
+              <Button variant="hero" className="w-full" onClick={() => handleSelectRole(role.id)}>
+                Start Simulation
               </Button>
             </div>
           ))}
