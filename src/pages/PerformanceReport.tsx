@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Zap, Download, Linkedin, Star } from "lucide-react";
+import { Zap, Download, Linkedin, Star, ArrowLeft, ArrowRight } from "lucide-react";
 
 const skillScores = [
   { skill: "Technical Skills", score: 8 },
