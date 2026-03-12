@@ -147,7 +147,7 @@ const Dashboard = () => {
     },
     {
       id: "orientation",
-      label: "Day 1 — Orientation",
+      label: "Orientation",
       description: "Meet your team, review policies, and begin your internship",
       icon: Building2,
       status: getStatus(orientationDone, getStartedDone),
@@ -166,16 +166,6 @@ const Dashboard = () => {
       status: getStatus(simulationDone, orientationDone),
       link: orientationDone ? "/simulation/active" : undefined,
       detail: simulationDone ? `${totalRuns} submission${totalRuns !== 1 ? "s" : ""}` : undefined,
-    },
-    {
-      id: "feedback",
-      label: "AI Feedback & Score",
-      description: "Receive your performance evaluation",
-      icon: MessageSquare,
-      status: getStatus(feedbackDone, simulationDone),
-      detail: feedbackDone && latestFeedback?.score != null
-        ? `Latest: ${latestFeedback.score}/10`
-        : undefined,
     },
   ];
 
