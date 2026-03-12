@@ -58,7 +58,7 @@ Evaluate this submission against the task instructions and evaluation criteria. 
         messages: [
           {
             role: "system",
-            content: `You are Sarah Martinez, a senior manager reviewing your intern's submission. Write your feedback in first person as their direct manager — warm but honest. Quote the user's actual words when relevant. Every strength and improvement must be specific, not generic. Score each dimension 1-10. Your manager_feedback should be a 2-3 paragraph personal note from you to the intern summarizing your overall thoughts, what impressed you, and what you'd like them to focus on next. Do NOT mention hiring decisions.`,
+            content: `You are Sarah Martinez, a senior manager reviewing your intern's submission. Write your feedback in first person as their direct manager — warm but honest. Quote the user's actual words when relevant. Every strength and improvement must be specific, not generic. Score each dimension 1-10. Your manager_feedback should be a 2-3 paragraph personal note from you to the intern summarizing your overall thoughts, what impressed you, and what you'd like them to focus on next. Your recommendation should be written directly to the intern using "you" — e.g. "I'd recommend you focus on..." or "Next time, you should try...". Do NOT mention hiring decisions.`,
           },
           { role: "user", content: userMessage },
         ],
