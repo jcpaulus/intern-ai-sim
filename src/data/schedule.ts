@@ -31,14 +31,6 @@ export interface DailyTask {
   evaluationCriteria?: EvaluationCriterion[];
   resources?: TaskResource[];
   backgroundInfo?: string;
-  realCompanyReference?: {
-    name: string;
-    website: string;
-    description: string;
-    socialLinks?: { platform: string; url: string }[];
-  };
-  exampleData?: string[];
-}
 
 export interface WeekSchedule {
   week: number;
