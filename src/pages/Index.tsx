@@ -13,7 +13,7 @@ const LandingHero = () => (
     <div className="relative z-10 text-center max-w-4xl mx-auto px-6 animate-fade-in">
       <div className="inline-flex items-center gap-2 bg-secondary/50 border border-border rounded-full px-4 py-1.5 mb-8">
         <Sparkles className="w-4 h-4 text-accent" />
-        <span className="text-sm text-muted-foreground">AI-Powered Internship Simulations</span>
+        <span className="text-sm text-muted-foreground">AI-Powered Internship Simulator</span>
       </div>
       <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
         The AI Internship That Gets You Hired{" "}
