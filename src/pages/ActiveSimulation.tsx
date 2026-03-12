@@ -987,8 +987,8 @@ const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
                   }
                   return null;
                 })()}
-                <Button variant="outline" size="sm" className="ml-auto" asChild>
-                  <Link to="/dashboard">Exit</Link>
+                <Button variant="outline" size="sm" className="ml-auto" onClick={() => window.history.back()}>
+                  <ArrowLeft className="w-4 h-4 mr-1" /> Back
                 </Button>
               </div>
 
