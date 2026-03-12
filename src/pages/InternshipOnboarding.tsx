@@ -438,6 +438,11 @@ const InternshipOnboarding = () => {
   const weeks = durationWeeks[duration] || 1;
   const schedule = generateSchedule(weeks, roleTitle, roleId, company.id);
 
+  // Dynamically select responsibilities based on duration, company, and manager style
+  const assignedResponsibilities = roleId === "marketing-associate"
+    ? selectResponsibilities(weeks, company.id, managerStyle, `${user?.id || "anon"}-${company.id}`)
+    : null;
+
   const progressPercent = ((completedSections.size) / sections.length) * 100;
 
   const markCompleteAndNext = () => {
