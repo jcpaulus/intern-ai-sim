@@ -33,6 +33,13 @@ const roles = [
 
 const RoleCatalog = () => {
   const navigate = useNavigate();
+  const { saveProgress } = useProgress();
+
+  const handleSelectRole = (roleId: string) => {
+    saveProgress(STEPS.ROLE_SELECTION, "completed", { roleId });
+    navigate(`/simulation/setup/${roleId}`);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
