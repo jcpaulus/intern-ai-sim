@@ -213,46 +213,24 @@ const Dashboard = () => {
     },
   ];
 
-  // Add week-by-week steps if duration is known and orientation is done
-  if (durationWeeks && orientationDone) {
-    for (let w = 1; w <= durationWeeks; w++) {
-      // Count tasks for this week from completedTasks (format: w{N}-d{D} or w{N}-i{I})
-      const weekTasksCompleted = simCompletedTaskIds.filter(id => id.startsWith(`w${w}-`)).length;
-      const isWeekAccessible = w <= currentSimWeek;
-      const prevWeekDone = w === 1 ? orientationDone : journeySteps[journeySteps.length - 1]?.status === "completed";
+  // Single "My Tasks" step with week progress detail
+  const myTasksDetail = (() => {
+    if (simulationDone) return `All tasks completed`;
+    if (completedTaskCount > 0 && durationWeeks) return `${completedTaskCount} tasks done — Week ${currentSimWeek}/${durationWeeks}`;
+    if (completedTaskCount > 0) return `${completedTaskCount} tasks completed`;
+    if (orientationDone) return "Ready to start";
+    return undefined;
+  })();
 
-      // A week is "completed" if it has at least one completed task and the week has passed or all tasks done
-      // Since we don't know total tasks per week here, mark complete if week < currentSimWeek and has tasks done
-      const weekDone = w < currentSimWeek || (simulationDone && w <= durationWeeks);
-      const weekStatus: "completed" | "current" | "upcoming" = 
-        weekDone && weekTasksCompleted > 0 ? "completed" 
-        : isWeekAccessible ? "current" 
-        : "upcoming";
-
-      journeySteps.push({
-        id: `week-${w}`,
-        label: `Week ${w}`,
-        description: w === currentSimWeek ? "Current week — complete your assigned tasks" : `Week ${w} tasks`,
-        icon: Briefcase,
-        status: weekStatus,
-        link: isWeekAccessible ? "/simulation/active" : undefined,
-        detail: weekTasksCompleted > 0 
-          ? `${weekTasksCompleted} task${weekTasksCompleted !== 1 ? "s" : ""} completed` 
-          : isWeekAccessible ? "In progress" : undefined,
-      });
-    }
-  } else {
-    // Fallback: single "My Tasks" step when no duration is set yet
-    journeySteps.push({
-      id: "simulation",
-      label: "My Tasks",
-      description: "Work on tasks and submit your deliverables",
-      icon: Briefcase,
-      status: getStatus(simulationDone, orientationDone),
-      link: orientationDone ? "/simulation/active" : undefined,
-      detail: simulationDone ? `${totalRuns} submission${totalRuns !== 1 ? "s" : ""}` : undefined,
-    });
-  }
+  journeySteps.push({
+    id: "simulation",
+    label: "My Tasks",
+    description: durationWeeks ? `${durationWeeks}-week internship — work on tasks and submit deliverables` : "Work on tasks and submit your deliverables",
+    icon: Briefcase,
+    status: getStatus(simulationDone, orientationDone),
+    link: orientationDone ? "/simulation/active" : undefined,
+    detail: myTasksDetail,
+  });
 
   const completedCount = journeySteps.filter(s => s.status === "completed").length;
   const overallProgress = Math.round((completedCount / journeySteps.length) * 100);
