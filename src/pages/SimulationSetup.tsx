@@ -156,7 +156,7 @@ const SimulationSetup = () => {
               {companies.map((c) => (
                 <button
                   key={c.id}
-                  onClick={() => setSelectedCompany(c.id)}
+                  onClick={() => { setSelectedCompany(c.id); saveSetup({ selectedCompany: c.id }); }}
                   className={`w-full p-4 rounded-xl border text-left transition-all ${
                     selectedCompany === c.id ? "border-primary bg-primary/10" : "border-border bg-card hover:border-muted-foreground"
                   }`}
