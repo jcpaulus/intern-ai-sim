@@ -100,6 +100,8 @@ const statusIcon = {
 
 const ActiveSimulation = () => {
   const location = useLocation();
+  const { saveProgress, getStep, loading: progressLoading } = useProgress();
+
   const simState = location.state as {
     roleId?: string;
     roleTitle?: string;
@@ -109,9 +111,22 @@ const ActiveSimulation = () => {
     managerStyle?: string;
   } | null;
 
-  const roleId = simState?.roleId || "marketing-analyst";
-  const roleTitle = simState?.roleTitle || "Marketing Analyst";
-  const company = simState?.company || { id: "nexora", name: "Nexora", industry: "Fintech Startup", size: "50 employees", description: "A fast-growing digital payments startup.", culture: "Move fast, data-driven" };
+  // Restore simState from progress if not in location.state
+  const savedOrientation = getStep(STEPS.ORIENTATION);
+  const restoredState = savedOrientation?.metadata?.simState as typeof simState | undefined;
+  const effectiveState = simState || restoredState || null;
+
+  const roleId = effectiveState?.roleId || "marketing-analyst";
+  const roleTitle = effectiveState?.roleTitle || "Marketing Analyst";
+  const company = effectiveState?.company || { id: "nexora", name: "Nexora", industry: "Fintech Startup", size: "50 employees", description: "A fast-growing digital payments startup.", culture: "Move fast, data-driven" };
+
+  // Save simulation as in_progress on mount
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    if (progressLoading || mounted) return;
+    setMounted(true);
+    saveProgress(STEPS.SIMULATION, "in_progress", { roleId, companyId: company.id });
+  }, [progressLoading, mounted]);
 
   const [submission, setSubmission] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
