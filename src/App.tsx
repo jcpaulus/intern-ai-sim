@@ -55,6 +55,9 @@ const App = () => (
               <Route path="/simulation/orientation" element={
                 <ProtectedRoute><InternshipOnboarding /></ProtectedRoute>
               } />
+              <Route path="/bootcamp" element={
+                <ProtectedRoute><WorkplaceLiteracyBootcamp /></ProtectedRoute>
+              } />
               <Route path="/simulation/active" element={
                 <ProtectedRoute><ActiveSimulation /></ProtectedRoute>
               } />
