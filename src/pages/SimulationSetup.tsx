@@ -41,12 +41,34 @@ const companies = [
 const SimulationSetup = () => {
   const { roleId } = useParams();
   const navigate = useNavigate();
+  const { saveProgress, getStep, loading: progressLoading } = useProgress();
   const role = roleData[roleId || ""] || roleData["business-analyst"];
 
   const [duration, setDuration] = useState("4");
   const [level, setLevel] = useState("intermediate");
   const [managerStyle, setManagerStyle] = useState("supportive");
   const [selectedCompany, setSelectedCompany] = useState("nexora");
+  const [restored, setRestored] = useState(false);
+
+  // Restore saved setup progress
+  useEffect(() => {
+    if (progressLoading || restored) return;
+    const saved = getStep(STEPS.SIMULATION_SETUP);
+    if (saved?.metadata && saved.status !== "completed") {
+      if (saved.metadata.duration) setDuration(saved.metadata.duration);
+      if (saved.metadata.level) setLevel(saved.metadata.level);
+      if (saved.metadata.managerStyle) setManagerStyle(saved.metadata.managerStyle);
+      if (saved.metadata.selectedCompany) setSelectedCompany(saved.metadata.selectedCompany);
+    }
+    setRestored(true);
+  }, [progressLoading, restored, getStep]);
+
+  // Auto-save setup changes
+  const saveSetup = (overrides: Record<string, any> = {}) => {
+    saveProgress(STEPS.SIMULATION_SETUP, "in_progress", {
+      roleId, duration, level, managerStyle, selectedCompany, ...overrides,
+    });
+  };
 
   const durations = [
     { value: "2", label: "2 Weeks", tasks: "10 tasks" },
