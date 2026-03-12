@@ -162,9 +162,29 @@ const ActiveSimulation = () => {
   const toggleTask = (taskId: string) => {
     setCompletedTasks((prev) => {
       const next = new Set(prev);
-      if (next.has(taskId)) next.delete(taskId);
+      const isUncompleting = next.has(taskId);
+      if (isUncompleting) next.delete(taskId);
       else next.add(taskId);
       persistTasks(next);
+
+      // If marking incomplete, clear feedback so user can re-submit
+      if (isUncompleting) {
+        setFeedback((prevFb) => {
+          const updated = { ...prevFb };
+          delete updated[taskId];
+          // Persist cleared feedback
+          saveProgress(STEPS.SIMULATION, "in_progress", {
+            roleId,
+            companyId: company.id,
+            completedTasks: Array.from(next),
+            currentWeek,
+            feedback: updated,
+          });
+          return updated;
+        });
+        setSubmissionText("");
+        setSubmissionFile(null);
+      }
       return next;
     });
   };
@@ -184,6 +204,7 @@ const ActiveSimulation = () => {
   const activeDailyTask = activeWeekSchedule?.dailyTasks?.find((dt) => dt.day === activeTask?.dayNum);
   const isActiveTaskDone = activeTask ? completedTasks.has(activeTask.id) : false;
   const isActiveWeekFuture = activeTask ? activeTask.weekNum > currentWeek : false;
+  const isActiveTaskDeadlinePassed = activeTask ? activeTask.weekNum < currentWeek : false;
 
   // Reset panel when task changes
   useEffect(() => {
@@ -930,7 +951,7 @@ const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
 
               {/* Action */}
               <div className="flex items-center gap-3">
-                {!isActiveWeekFuture && (
+                {!isActiveWeekFuture && !(isActiveTaskDone && isActiveTaskDeadlinePassed) && (
                   <Button
                     variant={isActiveTaskDone ? "outline" : "default"}
                     onClick={() => toggleTask(activeTask.id)}
@@ -940,7 +961,7 @@ const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
                       className="mr-2"
                       onCheckedChange={() => {}}
                     />
-                    {isActiveTaskDone ? "Mark Incomplete" : "Mark Complete"}
+                    {isActiveTaskDone ? "Redo Task" : "Mark Complete"}
                   </Button>
                 )}
                 {(() => {
