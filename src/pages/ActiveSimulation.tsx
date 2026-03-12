@@ -25,6 +25,7 @@ interface TaskItem {
   deliverable?: string;
   deadline?: string;
   isGroupTask: boolean;
+  evaluationCriteria?: EvaluationCriterion[];
 }
 
 function buildTaskList(schedule: WeekSchedule[]): TaskItem[] {
