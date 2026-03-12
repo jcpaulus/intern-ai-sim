@@ -120,6 +120,13 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
       ],
       deadline: "4:00 PM — present findings during the afternoon team huddle",
       note: "Use the audit from Day 3 as your baseline for comparison.",
+      evaluationCriteria: [
+        { name: "Competitor Identification", description: "Selected competitors are relevant direct competitors with justification", weight: 4 },
+        { name: "Comparative Analysis", description: "Meaningful side-by-side comparison with specific metrics and examples", weight: 5 },
+        { name: "Strategic Thinking", description: "Identifies actionable opportunities and competitive advantages", weight: 5 },
+        { name: "Evidence-Based Claims", description: "All assertions backed by observable data or examples", weight: 4 },
+        { name: "Clarity", description: "Brief is concise, well-structured, and easy to present", weight: 3 },
+      ],
     },
     {
       day: 5,
