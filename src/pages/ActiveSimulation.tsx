@@ -895,9 +895,9 @@ const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
 
                   {/* Recommendation */}
                   {feedback[activeTask.id].recommendation && (
-                    <div className="bg-secondary/30 rounded-lg p-3 text-sm text-muted-foreground mb-4">
-                      <span className="font-medium text-foreground">Recommendation: </span>
-                      {feedback[activeTask.id].recommendation}
+                    <div className="bg-secondary/30 rounded-lg p-4 text-sm text-muted-foreground mb-4 border-l-4 border-accent">
+                      <p className="font-medium text-foreground mb-1">💬 My recommendation for you:</p>
+                      <p>{feedback[activeTask.id].recommendation}</p>
                     </div>
                   )}
 
