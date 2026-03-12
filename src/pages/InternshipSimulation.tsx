@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Zap, Loader2, Send, Sparkles, CheckCircle, AlertTriangle, Upload, FileText, X, BarChart3, Lightbulb } from "lucide-react";
+import { Zap, Loader2, Send, Sparkles, CheckCircle, AlertTriangle, Upload, FileText, X, BarChart3, Lightbulb, ArrowLeft } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
