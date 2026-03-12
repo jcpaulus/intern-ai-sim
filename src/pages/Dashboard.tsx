@@ -512,6 +512,12 @@ const Dashboard = () => {
             )}
           </>
         )}
+        {/* Bottom Back Button */}
+        <div className="mt-10 flex justify-start">
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-4 h-4 mr-1" /> Back
+          </Button>
+        </div>
       </div>
     </div>
   );
