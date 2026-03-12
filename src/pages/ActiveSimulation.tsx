@@ -183,6 +183,105 @@ const ActiveSimulation = () => {
   const isActiveTaskDone = activeTask ? completedTasks.has(activeTask.id) : false;
   const isActiveWeekFuture = activeTask ? activeTask.weekNum > currentWeek : false;
 
+  // Submission state
+  const [submissionText, setSubmissionText] = useState("");
+  const [submissionFile, setSubmissionFile] = useState<File | null>(null);
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [feedback, setFeedback] = useState<Record<string, any>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const ext = "." + file.name.split(".").pop()?.toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      toast.error(`Unsupported file type. Use: ${ALLOWED_EXTENSIONS.join(", ")}`);
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File too large. Maximum 10MB.");
+      return;
+    }
+    setSubmissionFile(file);
+  };
+
+  const readFileAsText = async (file: File): Promise<string> => {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (ext === "txt") {
+      return await file.text();
+    }
+    // For PDF/DOCX, send as base64
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = (reader.result as string).split(",")[1];
+        resolve(`[File:${ext}:${file.name}]\n${base64}`);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleSubmitForEvaluation = async () => {
+    if (!activeTask) return;
+    if (!submissionText.trim() && !submissionFile) {
+      toast.error("Please enter text or upload a file to submit.");
+      return;
+    }
+
+    setIsEvaluating(true);
+    try {
+      let fileContent: string | undefined;
+      let fileName: string | undefined;
+      if (submissionFile) {
+        fileContent = await readFileAsText(submissionFile);
+        fileName = submissionFile.name;
+      }
+
+      // Build task brief from deliverable details
+      const taskBrief = activeDailyTask
+        ? [
+            activeDailyTask.deliverable && `Deliverable: ${activeDailyTask.deliverable}`,
+            activeDailyTask.campaignGoal && `Goal: ${activeDailyTask.campaignGoal}`,
+            activeDailyTask.deliverableDetails?.map((d, i) => `${i + 1}. ${d}`).join("\n"),
+          ].filter(Boolean).join("\n\n")
+        : activeTask.deliverable || activeTask.title;
+
+      const { data, error } = await supabase.functions.invoke("evaluate-submission", {
+        body: {
+          submission: submissionText,
+          taskTitle: activeTask.title,
+          taskBrief,
+          fileContent,
+          fileName,
+          evaluationCriteria: activeTask.evaluationCriteria,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      setFeedback((prev) => ({ ...prev, [activeTask.id]: data.feedback }));
+      toast.success("Submission evaluated!");
+
+      // Auto-mark as complete
+      if (!completedTasks.has(activeTask.id)) {
+        toggleTask(activeTask.id);
+      }
+    } catch (err: any) {
+      console.error("Evaluation error:", err);
+      toast.error(err.message || "Failed to evaluate submission. Please try again.");
+    } finally {
+      setIsEvaluating(false);
+    }
+  };
+
   // Overall progress
   const totalCompleted = allTasks.filter((t) => completedTasks.has(t.id)).length;
   const overallProgress = allTasks.length > 0 ? (totalCompleted / allTasks.length) * 100 : 0;
