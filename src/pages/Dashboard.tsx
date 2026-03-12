@@ -252,7 +252,8 @@ const Dashboard = () => {
   });
 
   const completedCount = journeySteps.filter(s => s.status === "completed").length;
-  const overallProgress = Math.round((completedCount / journeySteps.length) * 100);
+  // Progress based on tasks completed vs total tasks
+  const taskProgress = totalTaskCount > 0 ? Math.round((completedTaskCount / totalTaskCount) * 100) : 0;
 
   const stats = [
     { icon: BookOpen, label: "Completed Internships", value: completedInternships.toString() },
