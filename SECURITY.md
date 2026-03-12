@@ -1,7 +1,7 @@
 # Security Policy
 
-This document describes how to report security vulnerabilities for Internly
-(jcpaulus/intern-ai-sim) and what to expect during triage and remediation.
+This document describes how to report security vulnerabilities for INTERNLY
+and what to expect during triage and remediation.
 
 ## Supported Versions
 
