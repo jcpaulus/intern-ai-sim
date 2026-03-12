@@ -159,34 +159,37 @@ const ActiveSimulation = () => {
     [saveProgress, roleId, company.id, currentWeek]
   );
 
+  const [taskRefreshKey, setTaskRefreshKey] = useState(0);
+
   const toggleTask = (taskId: string) => {
+    const wasCompleted = completedTasks.has(taskId);
+
     setCompletedTasks((prev) => {
       const next = new Set(prev);
-      const isUncompleting = next.has(taskId);
-      if (isUncompleting) next.delete(taskId);
+      if (wasCompleted) next.delete(taskId);
       else next.add(taskId);
       persistTasks(next);
-
-      // If marking incomplete, clear feedback so user can re-submit
-      if (isUncompleting) {
-        setFeedback((prevFb) => {
-          const updated = { ...prevFb };
-          delete updated[taskId];
-          // Persist cleared feedback
-          saveProgress(STEPS.SIMULATION, "in_progress", {
-            roleId,
-            companyId: company.id,
-            completedTasks: Array.from(next),
-            currentWeek,
-            feedback: updated,
-          });
-          return updated;
-        });
-        setSubmissionText("");
-        setSubmissionFile(null);
-      }
       return next;
     });
+
+    // If redoing task, clear feedback and reset submission form
+    if (wasCompleted) {
+      setFeedback((prevFb) => {
+        const updated = { ...prevFb };
+        delete updated[taskId];
+        saveProgress(STEPS.SIMULATION, "in_progress", {
+          roleId,
+          companyId: company.id,
+          completedTasks: Array.from(completedTasks).filter(id => id !== taskId),
+          currentWeek,
+          feedback: updated,
+        });
+        return updated;
+      });
+      setSubmissionText("");
+      setSubmissionFile(null);
+      setTaskRefreshKey(k => k + 1);
+    }
   };
 
   const toggleWeekExpand = (weekNum: number) => {
