@@ -143,6 +143,13 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
       ],
       deadline: "3:00 PM — submit via Asana; weekly status report due by 3:00 PM per company policy",
       note: "Your manager will review the calendar and provide feedback at the start of Week 2.",
+      evaluationCriteria: [
+        { name: "Content Strategy Alignment", description: "Calendar directly supports the campaign goal and target audience", weight: 5 },
+        { name: "Creativity & Variety", description: "Mix of content types shows creative thinking and platform awareness", weight: 4 },
+        { name: "Completeness", description: "All 7 days covered with post type, caption, visual suggestion, and platform", weight: 5 },
+        { name: "Integration of Research", description: "Competitor analysis insights are visibly incorporated", weight: 4 },
+        { name: "Self-Reflection Quality", description: "Honest, specific reflection showing growth mindset", weight: 3 },
+      ],
     },
   ],
 };
