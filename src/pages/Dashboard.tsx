@@ -151,7 +151,7 @@ const Dashboard = () => {
       description: "Meet your team, review policies, and begin your internship",
       icon: Building2,
       status: getStatus(orientationDone, getStartedDone),
-      link: getStartedDone && !orientationDone ? "/simulation/orientation" : undefined,
+      link: getStartedDone ? "/simulation/orientation" : undefined,
       detail: orientationDone
         ? "Completed"
         : orientationStep?.status === "in_progress" && orientationStep?.metadata?.completedSections
