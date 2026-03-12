@@ -754,9 +754,17 @@ const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
                     placeholder="Type your submission here..."
                     value={submissionText}
                     onChange={(e) => setSubmissionText(e.target.value)}
-                    className="min-h-[120px] mb-3"
+                    className={`min-h-[120px] mb-1 ${isOverLimit ? "border-destructive focus-visible:ring-destructive" : ""}`}
                     disabled={isEvaluating}
                   />
+                  <div className="flex justify-between items-center mb-3">
+                    <p className={`text-xs ${isOverLimit ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                      {currentWordCount}/{activeWordLimit} words
+                    </p>
+                    {isOverLimit && (
+                      <p className="text-xs text-destructive">Exceeds word limit — please shorten your response</p>
+                    )}
+                  </div>
                   <div className="flex items-center gap-3 flex-wrap">
                     <input
                       type="file"
