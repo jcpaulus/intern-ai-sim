@@ -19,16 +19,34 @@ interface FeedbackData {
     actionability: { score: number; reason: string };
   };
   final_summary: string;
+  raw_text?: string;
 }
 
 const normalizeFeedback = (raw: unknown): FeedbackData | null => {
+  // Handle plain string feedback from API
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    return {
+      overall_score: 0,
+      strengths: [],
+      improvements: [],
+      scores: {
+        clarity: { score: 0, reason: "" },
+        depth_of_insight: { score: 0, reason: "" },
+        use_of_data: { score: 0, reason: "" },
+        actionability: { score: 0, reason: "" },
+      },
+      final_summary: raw,
+      raw_text: raw,
+    };
+  }
+
   if (!raw || typeof raw !== "object") return null;
   const data = raw as Record<string, any>;
   const scores = data.scores && typeof data.scores === "object" ? data.scores : {};
 
   const normalizeScore = (scoreData: any) => ({
     score: typeof scoreData?.score === "number" ? scoreData.score : 0,
-    reason: typeof scoreData?.reason === "string" ? scoreData.reason : "No reason provided",
+    reason: typeof scoreData?.reason === "string" ? scoreData.reason : "",
   });
 
   return {
@@ -41,7 +59,8 @@ const normalizeFeedback = (raw: unknown): FeedbackData | null => {
       use_of_data: normalizeScore(scores.use_of_data),
       actionability: normalizeScore(scores.actionability),
     },
-    final_summary: typeof data.final_summary === "string" ? data.final_summary : "Feedback tidak tersedia.",
+    final_summary: typeof data.final_summary === "string" ? data.final_summary : (typeof data.recommendation === "string" ? data.recommendation : ""),
+    raw_text: typeof raw === "string" ? raw : undefined,
   };
 };
 
