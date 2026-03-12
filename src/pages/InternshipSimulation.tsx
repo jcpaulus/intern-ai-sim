@@ -159,11 +159,9 @@ const InternshipSimulation = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          submission: answer,
-          taskTitle: task.title,
-          taskBrief: task.brief,
-          fileContent,
-          fileName,
+          user: "Johanes",
+          task: `${task.title}\n\n${task.brief}`,
+          answer: [answer.trim(), fileContent].filter(Boolean).join("\n\n---\n\n"),
         }),
       });
 

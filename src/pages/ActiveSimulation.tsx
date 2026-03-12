@@ -343,12 +343,10 @@ const ActiveSimulation = () => {
         const res = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            submission: submission.trim() || undefined,
-            taskTitle: currentTask.title,
-            taskBrief,
-            fileContent,
-            fileName,
+        body: JSON.stringify({
+            user: "Johanes",
+            task: `${currentTask.title}\n\n${taskBrief}`,
+            answer: [submission.trim(), fileContent].filter(Boolean).join("\n\n---\n\n"),
           }),
         });
 
