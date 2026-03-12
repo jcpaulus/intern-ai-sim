@@ -70,6 +70,12 @@ export const detailedDailyTasks: Record<string, DailyTask[]> = {
       ],
       deadline: "5:00 PM — submit your orientation notes via Slack DM to your manager",
       note: "Ask questions freely today — this is your chance to understand how the team operates.",
+      evaluationCriteria: [
+        { name: "Clarity of Observations", description: "Key takeaways are clearly articulated and well-organized", weight: 4 },
+        { name: "Depth of Understanding", description: "Notes show genuine comprehension of team dynamics and workflows", weight: 4 },
+        { name: "Actionable Insights", description: "Identifies specific areas where they can contribute", weight: 3 },
+        { name: "Professional Writing", description: "Grammar, structure, and tone are workplace-ready", weight: 2 },
+      ],
     },
     {
       day: 3,
