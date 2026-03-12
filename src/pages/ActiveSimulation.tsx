@@ -408,6 +408,8 @@ const ActiveSimulation = () => {
 
       if (feedbackResult) {
         toast.success("Feedback received and saved!");
+        saveProgress(STEPS.SIMULATION, "completed", { roleId, companyId: company.id });
+        saveProgress(STEPS.FEEDBACK, "completed", { roleId, companyId: company.id });
       } else if (edgeFunctionError) {
         toast.error("AI feedback failed: " + edgeFunctionError);
         setShowFeedback(false);
