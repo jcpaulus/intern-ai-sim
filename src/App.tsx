@@ -21,6 +21,7 @@ import InternshipSimulation from "./pages/InternshipSimulation";
 import InternshipOnboarding from "./pages/InternshipOnboarding";
 import Profile from "./pages/Profile";
 import SimulationHistory from "./pages/SimulationHistory";
+import WorkplaceLiteracyBootcamp from "./pages/WorkplaceLiteracyBootcamp";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
