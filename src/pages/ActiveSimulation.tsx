@@ -189,9 +189,6 @@ const ActiveSimulation = () => {
     });
   };
 
-  // Whether the active task's deadline has passed (week is in the past)
-  const isActiveTaskDeadlinePassed = activeTask ? activeTask.weekNum < currentWeek : false;
-
   const toggleWeekExpand = (weekNum: number) => {
     setExpandedWeeks((prev) => {
       const next = new Set(prev);
