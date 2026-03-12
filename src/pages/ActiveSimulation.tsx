@@ -9,9 +9,10 @@ import {
   Zap, CheckCircle, Clock, AlertCircle, ChevronRight, ChevronLeft,
   CalendarDays, Lock, Trophy, FileText, ChevronDown, ChevronUp,
   Upload, X, Send, Loader2, Star, Target, TrendingUp, ThumbsUp, ThumbsDown,
+  ExternalLink, BookOpen, Info, Database, Wrench, Layout, Lightbulb,
 } from "lucide-react";
 import { useProgress, STEPS } from "@/hooks/useProgress";
-import { generateSchedule, type WeekSchedule, type DailyTask, type EvaluationCriterion } from "@/data/schedule";
+import { generateSchedule, type WeekSchedule, type DailyTask, type EvaluationCriterion, type TaskResource } from "@/data/schedule";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
