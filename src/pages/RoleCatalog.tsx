@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Zap, BarChart3, PenTool, TrendingUp, ArrowLeft } from "lucide-react";
 import { useProgress, STEPS } from "@/hooks/useProgress";
+import { useAuth } from "@/hooks/useAuth";
 
 const roles = [
   {
@@ -34,8 +35,13 @@ const roles = [
 const RoleCatalog = () => {
   const navigate = useNavigate();
   const { saveProgress } = useProgress();
+  const { user } = useAuth();
 
   const handleSelectRole = (roleId: string) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
     saveProgress(STEPS.ROLE_SELECTION, "completed", { roleId });
     navigate(`/simulation/setup/${roleId}`);
   };
@@ -49,10 +55,16 @@ const RoleCatalog = () => {
             <span className="text-xl font-bold">Internly</span>
           </Link>
           <div className="flex items-center gap-4">
-            <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Dashboard</Link>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/login">Sign Out</Link>
-            </Button>
+            {user ? (
+              <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Dashboard</Link>
+            ) : (
+              <>
+                <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Login</Link>
+                <Button variant="hero" size="sm" asChild>
+                  <Link to="/signup">Get Started</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </nav>
