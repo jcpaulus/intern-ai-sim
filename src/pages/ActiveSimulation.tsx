@@ -108,6 +108,7 @@ const ActiveSimulation = () => {
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
   const [initialized, setInitialized] = useState(false);
+  const [activePanel, setActivePanel] = useState<"resources" | "tips" | "criteria" | null>(null);
 
   // Restore completed tasks
   useEffect(() => {
