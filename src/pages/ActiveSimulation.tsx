@@ -185,6 +185,11 @@ const ActiveSimulation = () => {
   const isActiveTaskDone = activeTask ? completedTasks.has(activeTask.id) : false;
   const isActiveWeekFuture = activeTask ? activeTask.weekNum > currentWeek : false;
 
+  // Reset panel when task changes
+  useEffect(() => {
+    setActivePanel(null);
+  }, [activeTaskId]);
+
   // Submission state
   const [submissionText, setSubmissionText] = useState("");
   const [submissionFile, setSubmissionFile] = useState<File | null>(null);
