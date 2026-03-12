@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Zap, Loader2, Send, Sparkles, CheckCircle, AlertTriangle, Upload, FileText, X, BarChart3, Lightbulb } from "lucide-react";
+import { Zap, Loader2, Send, Sparkles, CheckCircle, AlertTriangle, Upload, FileText, X, BarChart3, Lightbulb, ArrowLeft } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -509,6 +509,12 @@ const InternshipSimulation = () => {
             )}
           </CardContent>
         </Card>
+        {/* Bottom Back Button */}
+        <div className="mt-10 flex justify-start">
+          <Button variant="outline" onClick={() => window.history.back()}>
+            <ArrowLeft className="w-4 h-4 mr-1" /> Back
+          </Button>
+        </div>
       </div>
     </div>
   );

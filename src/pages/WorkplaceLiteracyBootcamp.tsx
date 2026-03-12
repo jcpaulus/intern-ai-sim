@@ -473,8 +473,8 @@ const WorkplaceLiteracyBootcamp = () => {
 
         {/* Bottom action */}
         <div className="mt-10 flex items-center justify-between">
-          <Button variant="ghost" onClick={handleSkip}>
-            Skip Bootcamp
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-4 h-4 mr-1" /> Back
           </Button>
           <Button
             variant="default"

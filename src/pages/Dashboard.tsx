@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import {
   Zap, Play, BarChart3, CheckCircle, BookOpen, Trophy, User, History,
-  Building2, Clock, Loader2, ArrowRight, ClipboardList, Compass, Briefcase,
+  Building2, Clock, Loader2, ArrowRight, ArrowLeft, ClipboardList, Compass, Briefcase,
   MessageSquare, Circle, ChevronRight,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -512,6 +512,12 @@ const Dashboard = () => {
             )}
           </>
         )}
+        {/* Bottom Back Button */}
+        <div className="mt-10 flex justify-start">
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-4 h-4 mr-1" /> Back
+          </Button>
+        </div>
       </div>
     </div>
   );

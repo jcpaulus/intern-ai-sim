@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Zap, CheckCircle, Clock, AlertCircle, ChevronRight, ChevronLeft,
+  Zap, CheckCircle, Clock, AlertCircle, ChevronRight, ChevronLeft, ArrowLeft,
   CalendarDays, Lock, Trophy, FileText, ChevronDown, ChevronUp,
   Upload, X, Send, Loader2, Star, Target, TrendingUp, ThumbsUp, ThumbsDown,
   ExternalLink, BookOpen, Info, Database, Wrench, Layout, Lightbulb,
@@ -987,8 +987,8 @@ const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".docx"];
                   }
                   return null;
                 })()}
-                <Button variant="outline" size="sm" className="ml-auto" asChild>
-                  <Link to="/dashboard">Exit</Link>
+                <Button variant="outline" size="sm" className="ml-auto" onClick={() => window.history.back()}>
+                  <ArrowLeft className="w-4 h-4 mr-1" /> Back
                 </Button>
               </div>
 

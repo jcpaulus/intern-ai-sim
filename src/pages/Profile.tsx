@@ -121,6 +121,13 @@ const Profile = () => {
             </Button>
           </form>
         </div>
+
+        {/* Bottom Back Button */}
+        <div className="mt-10 flex justify-start">
+          <Button variant="outline" onClick={() => window.history.back()}>
+            <ArrowLeft className="w-4 h-4 mr-1" /> Back
+          </Button>
+        </div>
       </div>
     </div>
   );
