@@ -24,7 +24,7 @@ const roles = [
   },
   {
     id: "operations-assistant",
-    title: "Operations Assistant",
+    title: "Operations Associate",
     icon: PenTool,
     skills: ["Process management", "Data entry", "Schedule optimization"],
     difficulty: "Beginner",
