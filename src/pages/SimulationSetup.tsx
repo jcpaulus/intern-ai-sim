@@ -179,7 +179,7 @@ const SimulationSetup = () => {
               {styles.map((s) => (
                 <button
                   key={s.value}
-                  onClick={() => setManagerStyle(s.value)}
+                  onClick={() => { setManagerStyle(s.value); saveSetup({ managerStyle: s.value }); }}
                   className={`w-full p-4 rounded-xl border text-left transition-all ${
                     managerStyle === s.value ? "border-primary bg-primary/10" : "border-border bg-card hover:border-muted-foreground"
                   }`}
