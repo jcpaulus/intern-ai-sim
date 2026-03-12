@@ -129,7 +129,7 @@ const Dashboard = () => {
     : !roleSelected
     ? "Choose an internship role"
     : !setupDone
-    ? setupStep?.status === "in_progress" ? "In progress — finish configuring" : "Configure your simulation"
+    ? setupStep?.status === "in_progress" ? "In progress — finish configuring" : "Configure simulation"
     : undefined;
 
   const getStatus = (done: boolean, prevDone: boolean): "completed" | "current" | "upcoming" =>
@@ -139,10 +139,10 @@ const Dashboard = () => {
     {
       id: "get-started",
       label: "Get Started",
-      description: "Complete onboarding, choose a role, and configure your simulation",
+      description: "Complete onboarding, choose a role, and configure simulation",
       icon: ClipboardList,
       status: getStatus(getStartedDone, true),
-      link: getStartedDone ? undefined : getStartedLink,
+      link: !onboardingDone ? "/onboarding" : !roleSelected ? "/roles" : setupStep?.metadata?.roleId ? `/simulation/setup/${setupStep.metadata.roleId}` : "/roles",
       detail: getStartedDetail,
     },
     {
@@ -151,7 +151,7 @@ const Dashboard = () => {
       description: "Meet your team, review policies, and begin your internship",
       icon: Building2,
       status: getStatus(orientationDone, getStartedDone),
-      link: getStartedDone && !orientationDone ? "/simulation/orientation" : undefined,
+      link: getStartedDone ? "/simulation/orientation" : undefined,
       detail: orientationDone
         ? "Completed"
         : orientationStep?.status === "in_progress" && orientationStep?.metadata?.completedSections
@@ -164,7 +164,7 @@ const Dashboard = () => {
       description: "Work on tasks and submit your deliverables",
       icon: Briefcase,
       status: getStatus(simulationDone, orientationDone),
-      link: orientationDone && !simulationDone ? "/simulation/active" : undefined,
+      link: orientationDone ? "/simulation/active" : undefined,
       detail: simulationDone ? `${totalRuns} submission${totalRuns !== 1 ? "s" : ""}` : undefined,
     },
     {
@@ -293,7 +293,14 @@ const Dashboard = () => {
                     </div>
 
                     {/* Action */}
-                    {step.link && (
+                    {step.link && step.status === "completed" && (
+                      <Button variant="ghost" size="sm" asChild className="shrink-0 self-center text-muted-foreground">
+                        <Link to={step.link}>
+                          View <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                        </Link>
+                      </Button>
+                    )}
+                    {step.link && step.status !== "completed" && (
                       <Button variant="outline" size="sm" asChild className="shrink-0 self-center">
                         <Link to={step.link}>
                           Continue <ChevronRight className="w-3.5 h-3.5 ml-1" />
