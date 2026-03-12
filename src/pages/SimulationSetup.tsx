@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Zap, ArrowRight, Building2 } from "lucide-react";
+import { Zap, ArrowRight, ArrowLeft, Building2 } from "lucide-react";
 
 const roleData: Record<string, { title: string; description: string }> = {
   "business-analyst": { title: "Business Analyst", description: "Analyze business requirements, identify process improvements, and communicate with stakeholders." },
