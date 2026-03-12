@@ -1,445 +1,192 @@
-import { useState, useRef, useCallback, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Zap, Send, Lightbulb, MessageCircle, Upload, CheckCircle, Clock, AlertCircle, X, FileText, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Zap, CheckCircle, Clock, AlertCircle, ChevronRight, ChevronLeft,
+  CalendarDays, Lock, Trophy, FileText,
+} from "lucide-react";
 import { useProgress, STEPS } from "@/hooks/useProgress";
+import { generateSchedule, type WeekSchedule, type DailyTask } from "@/data/schedule";
 
-interface FeedbackData {
-  overall_score: number;
-  strengths: { point: string; quote: string; why: string }[];
-  improvements: { point: string; quote: string; why: string; suggestion: string }[];
-  scores: {
-    clarity: { score: number; reason: string };
-    depth_of_insight: { score: number; reason: string };
-    use_of_data: { score: number; reason: string };
-    actionability: { score: number; reason: string };
-  };
-  final_summary: string;
-  raw_text?: string;
+// ── Helpers ──
+
+interface TaskItem {
+  id: string;
+  weekNum: number;
+  dayNum?: number;
+  title: string;
+  deliverable?: string;
+  deadline?: string;
+  isGroupTask: boolean;
 }
 
-const normalizeFeedback = (raw: unknown): FeedbackData | null => {
-  // Handle plain string feedback from API
-  if (typeof raw === "string" && raw.trim().length > 0) {
-    return {
-      overall_score: 0,
-      strengths: [],
-      improvements: [],
-      scores: {
-        clarity: { score: 0, reason: "" },
-        depth_of_insight: { score: 0, reason: "" },
-        use_of_data: { score: 0, reason: "" },
-        actionability: { score: 0, reason: "" },
-      },
-      final_summary: raw,
-      raw_text: raw,
-    };
+/** Build a flat list of trackable tasks from the generated schedule */
+function buildTaskList(schedule: WeekSchedule[]): TaskItem[] {
+  const tasks: TaskItem[] = [];
+
+  for (const week of schedule) {
+    // If daily tasks exist for this week, use those as the primary tasks
+    if (week.dailyTasks && week.dailyTasks.length > 0) {
+      for (const dt of week.dailyTasks) {
+        tasks.push({
+          id: `w${week.week}-d${dt.day}`,
+          weekNum: week.week,
+          dayNum: dt.day,
+          title: dt.title,
+          deliverable: dt.deliverable,
+          deadline: dt.deadline,
+          isGroupTask: false,
+        });
+      }
+    } else {
+      // Use generic weekly items (skip the group task line—it's added separately)
+      week.items.forEach((item, idx) => {
+        const isGroup = item.startsWith("📋");
+        tasks.push({
+          id: `w${week.week}-i${idx}`,
+          weekNum: week.week,
+          dayNum: undefined,
+          title: isGroup ? item.replace("📋 Group Task: ", "") : item,
+          deliverable: undefined,
+          deadline: `End of Week ${week.week}`,
+          isGroupTask: isGroup,
+        });
+      });
+    }
   }
-
-  if (!raw || typeof raw !== "object") return null;
-  const data = raw as Record<string, any>;
-  const scores = data.scores && typeof data.scores === "object" ? data.scores : {};
-
-  const normalizeScore = (scoreData: any) => ({
-    score: typeof scoreData?.score === "number" ? scoreData.score : 0,
-    reason: typeof scoreData?.reason === "string" ? scoreData.reason : "",
-  });
-
-  return {
-    overall_score: typeof data.overall_score === "number" ? data.overall_score : 0,
-    strengths: Array.isArray(data.strengths) ? data.strengths : [],
-    improvements: Array.isArray(data.improvements) ? data.improvements : [],
-    scores: {
-      clarity: normalizeScore(scores.clarity),
-      depth_of_insight: normalizeScore(scores.depth_of_insight),
-      use_of_data: normalizeScore(scores.use_of_data),
-      actionability: normalizeScore(scores.actionability),
-    },
-    final_summary: typeof data.final_summary === "string" ? data.final_summary : (typeof data.recommendation === "string" ? data.recommendation : ""),
-    raw_text: typeof raw === "string" ? raw : undefined,
-  };
-};
-
-const ALLOWED_TYPES = [
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "image/png",
-  "image/jpeg",
-];
-const ALLOWED_EXTENSIONS = [".pdf", ".doc", ".docx", ".png", ".jpg", ".jpeg"];
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-
-interface FileUploadState {
-  file: File;
-  progress: number;
-  status: "pending" | "uploading" | "success" | "error";
-  error?: string;
-  storagePath?: string;
+  return tasks;
 }
 
-const tasks = [
-  { id: 1, title: "Competitive Analysis Brief", status: "reviewed" as const },
-  { id: 2, title: "Social Media Content Calendar", status: "submitted" as const },
-  { id: 3, title: "Campaign Performance Report", status: "active" as const },
-  { id: 4, title: "Email Marketing Draft", status: "pending" as const },
-  { id: 5, title: "Brand Positioning Summary", status: "pending" as const },
-];
-
-const statusIcon = {
-  reviewed: <CheckCircle className="w-4 h-4 text-accent" />,
-  submitted: <Clock className="w-4 h-4 text-primary" />,
-  active: <AlertCircle className="w-4 h-4 text-accent" />,
-  pending: <div className="w-4 h-4 rounded-full border border-muted-foreground" />,
-};
+/** Determine the simulated "current week" based on orientation completion date */
+function getCurrentWeek(orientationCompletedAt?: string, totalWeeks?: number): number {
+  if (!orientationCompletedAt) return 1;
+  const start = new Date(orientationCompletedAt);
+  const now = new Date();
+  const diffMs = now.getTime() - start.getTime();
+  const diffWeeks = Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000)) + 1;
+  return Math.min(Math.max(diffWeeks, 1), totalWeeks || 12);
+}
 
 const ActiveSimulation = () => {
-  const location = useLocation();
   const { saveProgress, getStep, loading: progressLoading } = useProgress();
 
-  const simState = location.state as {
+  // Restore simulation state
+  const savedOrientation = getStep(STEPS.ORIENTATION);
+  const savedSimulation = getStep(STEPS.SIMULATION);
+  const simState = savedOrientation?.metadata?.simState as {
     roleId?: string;
     roleTitle?: string;
     company?: { id: string; name: string; industry: string; size: string; description: string; culture: string };
     duration?: string;
     level?: string;
     managerStyle?: string;
-  } | null;
+  } | undefined;
 
-  // Restore simState from progress if not in location.state
-  const savedOrientation = getStep(STEPS.ORIENTATION);
-  const restoredState = savedOrientation?.metadata?.simState as typeof simState | undefined;
-  const effectiveState = simState || restoredState || null;
+  const roleId = simState?.roleId || "marketing-associate";
+  const roleTitle = simState?.roleTitle || "Marketing Associate";
+  const company = simState?.company || {
+    id: "brightwave", name: "BrightWave Marketing",
+    industry: "Media/Advertising", size: "200 employees",
+    description: "A creative marketing agency.", culture: "Creative, data-driven",
+  };
+  const durationWeeks = simState?.duration ? parseInt(simState.duration) : 2;
 
-  const roleId = effectiveState?.roleId || "marketing-analyst";
-  const roleTitle = effectiveState?.roleTitle || "Marketing Analyst";
-  const company = effectiveState?.company || { id: "nexora", name: "Nexora", industry: "Fintech Startup", size: "50 employees", description: "A fast-growing digital payments startup.", culture: "Move fast, data-driven" };
+  // Generate schedule & tasks
+  const schedule = useMemo(
+    () => generateSchedule(durationWeeks, roleTitle, roleId, company.id),
+    [durationWeeks, roleTitle, roleId, company.id]
+  );
+  const allTasks = useMemo(() => buildTaskList(schedule), [schedule]);
 
-  // Save simulation as in_progress on mount
-  const [mounted, setMounted] = useState(false);
+  // Current week (simulated)
+  const orientationCompletedAt = savedOrientation?.status === "completed" ? savedOrientation.updated_at : undefined;
+  const currentWeek = getCurrentWeek(orientationCompletedAt, durationWeeks);
+
+  // Selected week for viewing
+  const [selectedWeek, setSelectedWeek] = useState(currentWeek);
+
+  // Completed task IDs (persisted in user_progress metadata)
+  const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
+  const [initialized, setInitialized] = useState(false);
+
+  // Restore completed tasks from progress
   useEffect(() => {
-    if (progressLoading || mounted) return;
-    setMounted(true);
-    saveProgress(STEPS.SIMULATION, "in_progress", { roleId, companyId: company.id });
-  }, [progressLoading, mounted]);
-
-  const [submission, setSubmission] = useState("");
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [showChat, setShowChat] = useState(false);
-  const [chatMessage, setChatMessage] = useState("");
-  const [hintsUsed, setHintsUsed] = useState(0);
-  const [fileStates, setFileStates] = useState<FileUploadState[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [feedback, setFeedback] = useState<FeedbackData | null>(null);
-  const [loadingFeedback, setLoadingFeedback] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const dropZoneRef = useRef<HTMLDivElement>(null);
-
-  const currentTask = tasks[2];
-  const progress = (2 / 5) * 100;
-  const currentTaskId = "task-3";
-
-  const validateFile = (file: File): string | null => {
-    if (file.size > MAX_FILE_SIZE) {
-      return `File "${file.name}" terlalu besar. Maksimal 10MB.`;
+    if (progressLoading || initialized) return;
+    const saved = savedSimulation?.metadata?.completedTasks;
+    if (Array.isArray(saved)) {
+      setCompletedTasks(new Set(saved));
     }
-    const ext = "." + file.name.split(".").pop()?.toLowerCase();
-    if (!ALLOWED_EXTENSIONS.includes(ext) && !ALLOWED_TYPES.includes(file.type)) {
-      return `Format file "${file.name}" tidak didukung. Gunakan: PDF, DOCX, PNG, JPG.`;
-    }
-    return null;
-  };
+    setInitialized(true);
+  }, [progressLoading, initialized, savedSimulation]);
 
-  const addFiles = useCallback((newFiles: File[]) => {
-    const validFiles: FileUploadState[] = [];
-    for (const file of newFiles) {
-      const error = validateFile(file);
-      if (error) {
-        toast.error(error);
+  // Auto-close overdue tasks (past weeks)
+  useEffect(() => {
+    if (!initialized) return;
+    const overdueTasks = allTasks.filter(
+      (t) => t.weekNum < currentWeek && !completedTasks.has(t.id)
+    );
+    if (overdueTasks.length > 0) {
+      setCompletedTasks((prev) => {
+        const next = new Set(prev);
+        for (const t of overdueTasks) next.add(t.id);
+        return next;
+      });
+    }
+  }, [initialized, currentWeek, allTasks]);
+
+  // Persist completed tasks
+  const persistTasks = useCallback(
+    (tasks: Set<string>) => {
+      saveProgress(STEPS.SIMULATION, "in_progress", {
+        roleId,
+        companyId: company.id,
+        completedTasks: Array.from(tasks),
+        currentWeek,
+      });
+    },
+    [saveProgress, roleId, company.id, currentWeek]
+  );
+
+  const toggleTask = (taskId: string) => {
+    setCompletedTasks((prev) => {
+      const next = new Set(prev);
+      if (next.has(taskId)) {
+        next.delete(taskId);
       } else {
-        // Check for duplicate
-        if (fileStates.some(fs => fs.file.name === file.name && fs.file.size === file.size)) {
-          toast.error(`File "${file.name}" sudah ditambahkan.`);
-          continue;
-        }
-        validFiles.push({ file, progress: 0, status: "pending" });
+        next.add(taskId);
       }
-    }
-    if (validFiles.length > 0) {
-      setFileStates(prev => [...prev, ...validFiles]);
-    }
-  }, [fileStates]);
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    addFiles(Array.from(files));
-    if (fileInputRef.current) fileInputRef.current.value = "";
+      persistTasks(next);
+      return next;
+    });
   };
 
-  const removeFile = (index: number) => {
-    setFileStates(prev => prev.filter((_, i) => i !== index));
-  };
+  // Tasks for selected week
+  const weekTasks = allTasks.filter((t) => t.weekNum === selectedWeek);
+  const weekSchedule = schedule.find((w) => w.week === selectedWeek);
+  const weekCompletedCount = weekTasks.filter((t) => completedTasks.has(t.id)).length;
+  const weekProgress = weekTasks.length > 0 ? (weekCompletedCount / weekTasks.length) * 100 : 0;
 
-  // Drag & drop handlers
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }, []);
+  // Overall progress
+  const totalCompleted = allTasks.filter((t) => completedTasks.has(t.id)).length;
+  const overallProgress = allTasks.length > 0 ? (totalCompleted / allTasks.length) * 100 : 0;
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      addFiles(Array.from(files));
+  // Check if all tasks done → mark simulation complete
+  useEffect(() => {
+    if (!initialized) return;
+    if (allTasks.length > 0 && totalCompleted === allTasks.length) {
+      saveProgress(STEPS.SIMULATION, "completed", {
+        roleId,
+        companyId: company.id,
+        completedTasks: Array.from(completedTasks),
+      });
     }
-  }, [addFiles]);
+  }, [totalCompleted, allTasks.length, initialized]);
 
-  const uploadAllFiles = async (userId: string): Promise<boolean> => {
-    let allSuccess = true;
-    for (let i = 0; i < fileStates.length; i++) {
-      const fs = fileStates[i];
-      if (fs.status === "success") continue; // Already uploaded
-
-      // Update status to uploading
-      setFileStates(prev => prev.map((f, idx) => idx === i ? { ...f, status: "uploading" as const, progress: 10 } : f));
-
-      const storagePath = `${userId}/${currentTaskId}/${Date.now()}_${fs.file.name}`;
-
-      const { error } = await supabase.storage
-        .from("submissions")
-        .upload(storagePath, fs.file);
-
-      if (error) {
-        setFileStates(prev => prev.map((f, idx) => idx === i ? { ...f, status: "error" as const, error: error.message, progress: 0 } : f));
-        toast.error(`Gagal upload "${fs.file.name}": ${error.message}`);
-        allSuccess = false;
-        continue;
-      }
-
-      // Update progress to 70%
-      setFileStates(prev => prev.map((f, idx) => idx === i ? { ...f, progress: 70 } : f));
-
-      // Save metadata to DB
-      const { error: dbError } = await supabase
-        .from("submissions_files")
-        .insert({
-          user_id: userId,
-          task_id: currentTaskId,
-          file_name: fs.file.name,
-          file_path: storagePath,
-          file_size: fs.file.size,
-        });
-
-      if (dbError) {
-        setFileStates(prev => prev.map((f, idx) => idx === i ? { ...f, status: "error" as const, error: dbError.message, progress: 0 } : f));
-        toast.error(`Gagal menyimpan metadata "${fs.file.name}": ${dbError.message}`);
-        allSuccess = false;
-        continue;
-      }
-
-      // Success
-      setFileStates(prev => prev.map((f, idx) => idx === i ? { ...f, status: "success" as const, progress: 100, storagePath } : f));
-    }
-    return allSuccess;
-  };
-
-  const readFileAsText = async (file: File): Promise<string> => {
-    const ext = file.name.split(".").pop()?.toLowerCase();
-    if (ext === "txt") {
-      return await file.text();
-    }
-    // For PDF/DOCX/images, convert to base64
-    const buffer = await file.arrayBuffer();
-    const bytes = new Uint8Array(buffer);
-    let binary = "";
-    for (let i = 0; i < bytes.length; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return `[FILE:${ext}:${file.name}]\n${btoa(binary)}`;
-  };
-
-  const handleSubmit = async () => {
-    if (!submission.trim() && fileStates.length === 0) return;
-
-    setUploading(true);
-
-    try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-      if (userError) throw userError;
-
-      if (!user) {
-        toast.error("You must be logged in to submit.");
-        return;
-      }
-
-      // Upload files to storage
-      if (fileStates.length > 0) {
-        const success = await uploadAllFiles(user.id);
-        if (!success) {
-          toast.error("Some files failed to upload. Please try again.");
-          return;
-        }
-      }
-
-      // Extract file content for AI evaluation
-      let fileContent: string | undefined;
-      let fileName: string | undefined;
-
-      if (fileStates.length > 0) {
-        try {
-          const fileTexts: string[] = [];
-          for (const fs of fileStates) {
-            const text = await readFileAsText(fs.file);
-            fileTexts.push(`--- ${fs.file.name} ---\n${text}`);
-          }
-          fileContent = fileTexts.join("\n\n");
-          fileName = fileStates.map(fs => fs.file.name).join(", ");
-        } catch (parseErr: any) {
-          console.error("File parsing error:", parseErr);
-          toast.error("Failed to parse file content: " + (parseErr?.message || "Unknown error"));
-          return;
-        }
-      }
-
-      // Always trigger AI feedback if we have text or file content
-      setLoadingFeedback(true);
-      setShowFeedback(true);
-
-      const taskBrief = `You are a ${roleTitle} at ${company.name} (${company.industry}, ${company.size}). ${company.description} Culture: ${company.culture}. Create a campaign performance report for Q1 social media campaigns. Include: overview of key metrics (impressions, engagement rate, CTR), top 3 performing posts with analysis, and Q2 recommendations based on data.`;
-
-      let feedbackResult: any = null;
-      let edgeFunctionError: string | null = null;
-
-      // Insert immediately on Send (before edge function)
-      const initialInsertPayload = {
-        user_id: user.id,
-        role: roleId,
-        task: JSON.stringify({ title: currentTask.title, brief: taskBrief, company: company.name }),
-        answer: submission.trim() || (fileName ? `[File upload: ${fileName}]` : null),
-        feedback: null,
-        company: company.id,
-        duration_weeks: simState?.duration ? parseInt(simState.duration) : null,
-      } as any;
-      console.log("[handleSubmit] Initial insert into simulation_runs:", initialInsertPayload);
-
-      const { data: insertedRuns, error: initialInsertError } = await supabase
-        .from("simulation_runs")
-        .insert(initialInsertPayload)
-        .select("id")
-        .single();
-
-      if (initialInsertError || !insertedRuns?.id) {
-        console.error("[handleSubmit] simulation_runs initial insert FAILED:", initialInsertError?.message, initialInsertError?.details, initialInsertError?.hint);
-        toast.error("Failed to save submission: " + (initialInsertError?.message || "Unknown DB error"));
-        return;
-      }
-
-      const runId = insertedRuns.id;
-      console.log("[handleSubmit] simulation_runs initial insert SUCCESS:", insertedRuns);
-
-      try {
-        const API_URL = "https://fastapi-ai-backend-1.onrender.com/evaluate";
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            user: "Johanes",
-            task: `${currentTask.title}\n\n${taskBrief}`,
-            answer: [submission.trim(), fileContent].filter(Boolean).join("\n\n---\n\n"),
-          }),
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || data?.error) {
-          edgeFunctionError = data?.error || `API error ${res.status}`;
-          console.error("[handleSubmit] API error:", edgeFunctionError);
-        } else {
-          const safeFeedback = normalizeFeedback(data?.feedback);
-          if (safeFeedback) {
-            setFeedback(safeFeedback);
-            feedbackResult = data.feedback;
-          } else {
-            edgeFunctionError = "Invalid AI feedback format";
-            console.error("[handleSubmit] Could not normalize feedback:", data?.feedback);
-          }
-        }
-      } catch (fnErr: any) {
-        edgeFunctionError = fnErr?.message || "Unknown API error";
-        console.error("[handleSubmit] API exception:", fnErr);
-      }
-
-      // Update the same inserted row with feedback result (or error payload)
-      const feedbackUpdatePayload = {
-        feedback: feedbackResult
-          ? JSON.stringify(feedbackResult)
-          : JSON.stringify({ error: edgeFunctionError || "No feedback available" }),
-      };
-
-      const { data: updatedRun, error: updateError } = await supabase
-        .from("simulation_runs")
-        .update(feedbackUpdatePayload)
-        .eq("id", runId)
-        .select("id")
-        .single();
-
-      if (updateError) {
-        console.error("[handleSubmit] simulation_runs feedback update FAILED:", updateError.message, updateError.details, updateError.hint);
-      } else {
-        console.log("[handleSubmit] simulation_runs feedback update SUCCESS:", updatedRun);
-      }
-
-      if (feedbackResult) {
-        toast.success("Feedback received and saved!");
-        saveProgress(STEPS.SIMULATION, "completed", { roleId, companyId: company.id });
-        saveProgress(STEPS.FEEDBACK, "completed", { roleId, companyId: company.id });
-      } else if (edgeFunctionError) {
-        toast.error("AI feedback failed: " + edgeFunctionError);
-        setShowFeedback(false);
-      } else {
-        setShowFeedback(false);
-      }
-    } catch (err: any) {
-      console.error("[handleSubmit] Unexpected error:", err);
-      toast.error("Failed to submit: " + (err?.message || "Unknown error"));
-      setShowFeedback(false);
-    } finally {
-      setUploading(false);
-      setLoadingFeedback(false);
-    }
-  };
-
-  const getFileStatusIcon = (status: FileUploadState["status"]) => {
-    switch (status) {
-      case "uploading": return <Loader2 className="w-4 h-4 text-primary animate-spin" />;
-      case "success": return <CheckCircle className="w-4 h-4 text-accent" />;
-      case "error": return <AlertCircle className="w-4 h-4 text-destructive" />;
-      default: return <FileText className="w-4 h-4 text-muted-foreground" />;
-    }
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
+  const isPastWeek = selectedWeek < currentWeek;
+  const isFutureWeek = selectedWeek > currentWeek;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -452,15 +199,17 @@ const ActiveSimulation = () => {
               <span className="font-bold">Internly</span>
             </Link>
             <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Marketing Analyst</span>
+              <span>{roleTitle}</span>
               <span>•</span>
-              <span>5 days remaining</span>
+              <span>{company.name}</span>
+              <span>•</span>
+              <span>Week {currentWeek}/{durationWeeks}</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">2/5 tasks</span>
-              <Progress value={progress} className="w-32 h-2" />
+              <span className="text-muted-foreground">{totalCompleted}/{allTasks.length} tasks</span>
+              <Progress value={overallProgress} className="w-32 h-2" />
             </div>
             <Button variant="outline" size="sm" asChild>
               <Link to="/dashboard">Exit</Link>
@@ -470,285 +219,241 @@ const ActiveSimulation = () => {
       </nav>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - Task List */}
+        {/* Sidebar — Week Navigator */}
         <aside className="hidden md:flex w-72 border-r border-border bg-card flex-col">
           <div className="p-4 border-b border-border">
-            <h3 className="font-semibold text-sm">Tasks</h3>
+            <h3 className="font-semibold text-sm">Weekly Schedule</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">{durationWeeks}-week internship</p>
           </div>
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {tasks.map((task) => (
-              <button
-                key={task.id}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg text-left text-sm transition-colors ${
-                  task.status === "active" ? "bg-primary/10 border border-primary/30" : "hover:bg-secondary"
-                }`}
-              >
-                {statusIcon[task.status]}
-                <span className={task.status === "active" ? "text-foreground font-medium" : "text-muted-foreground"}>
-                  {task.id}. {task.title}
-                </span>
-              </button>
-            ))}
+            {schedule.map((week) => {
+              const wTasks = allTasks.filter((t) => t.weekNum === week.week);
+              const wDone = wTasks.filter((t) => completedTasks.has(t.id)).length;
+              const allDone = wDone === wTasks.length && wTasks.length > 0;
+              const isCurrentWeek = week.week === currentWeek;
+              const isLocked = week.week > currentWeek;
+              const isSelected = week.week === selectedWeek;
+
+              return (
+                <button
+                  key={week.week}
+                  onClick={() => !isLocked && setSelectedWeek(week.week)}
+                  disabled={isLocked}
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg text-left text-sm transition-colors ${
+                    isSelected
+                      ? "bg-primary/10 border border-primary/30"
+                      : isLocked
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-secondary"
+                  }`}
+                >
+                  {allDone ? (
+                    <CheckCircle className="w-4 h-4 text-accent shrink-0" />
+                  ) : isCurrentWeek ? (
+                    <AlertCircle className="w-4 h-4 text-primary shrink-0" />
+                  ) : isLocked ? (
+                    <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
+                  ) : (
+                    <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className={`font-medium truncate ${isLocked ? "text-muted-foreground" : "text-foreground"}`}>
+                      Week {week.week}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">{week.title}</div>
+                  </div>
+                  <Badge
+                    variant={allDone ? "default" : "secondary"}
+                    className="text-[10px] shrink-0"
+                  >
+                    {wDone}/{wTasks.length}
+                  </Badge>
+                </button>
+              );
+            })}
           </div>
         </aside>
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-6 md:p-10 max-w-4xl mx-auto w-full">
-          {/* Task Brief - Email Style */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden shadow-card mb-6 animate-fade-in">
-            <div className="p-5 border-b border-border">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-sm font-bold text-foreground">SM</div>
+          {/* Week Header */}
+          <div className="mb-6 animate-fade-in">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={selectedWeek <= 1}
+                  onClick={() => setSelectedWeek((w) => Math.max(1, w - 1))}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
                 <div>
-                  <div className="font-semibold">Sarah Martinez</div>
-                  <div className="text-xs text-muted-foreground">Marketing Manager • Nexus Digital</div>
+                  <h1 className="text-2xl font-bold">
+                    Week {selectedWeek}: {weekSchedule?.title}
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    {isPastWeek && "Completed week"}
+                    {!isPastWeek && !isFutureWeek && `Current week • ${weekTasks.length - weekCompletedCount} tasks remaining`}
+                    {isFutureWeek && "Upcoming — locked until deadline"}
+                  </p>
                 </div>
-                <Badge variant="secondary" className="ml-auto text-xs">Task 3/5</Badge>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={selectedWeek >= currentWeek}
+                  onClick={() => setSelectedWeek((w) => Math.min(currentWeek, w + 1))}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
               </div>
-              <div className="font-semibold text-lg">Re: Campaign Performance Report Needed</div>
+              {weekSchedule && (
+                <Badge variant="secondary" className="hidden md:flex items-center gap-1">
+                  <CalendarDays className="w-3 h-3" />
+                  Role: {weekSchedule.assignedRole}
+                </Badge>
+              )}
             </div>
-            <div className="p-5 text-sm leading-relaxed text-muted-foreground space-y-3">
-              <p>Hi there,</p>
-              <p>Great work on the content calendar — the team loved the thematic consistency across platforms.</p>
-              <p>For your next task, I need you to <span className="text-foreground font-medium">create a campaign performance report</span> for our Q1 social media campaigns. Here's what I'm looking for:</p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>Overview of key metrics (impressions, engagement rate, click-through rate)</li>
-                <li>Top 3 performing posts with analysis of why they worked</li>
-                <li>Recommendations for Q2 based on the data</li>
-              </ul>
-              <p>Use the sample data provided in the attached brief. I'd like this by <span className="text-foreground font-medium">end of day Friday</span>.</p>
-              <p>Let me know if you have questions!</p>
-              <p>Best,<br />Sarah</p>
-            </div>
+            <Progress value={weekProgress} className="h-2" />
           </div>
 
-          {/* Hint Button */}
-          <div className="flex items-center gap-3 mb-6">
+          {/* Task List */}
+          <div className="space-y-3">
+            {weekTasks.map((task) => {
+              const isDone = completedTasks.has(task.id);
+              const isOverdue = isPastWeek && !isDone;
+              const dailyTask = weekSchedule?.dailyTasks?.find((dt) => dt.day === task.dayNum);
+
+              return (
+                <div
+                  key={task.id}
+                  className={`bg-card border rounded-xl overflow-hidden shadow-card transition-all ${
+                    isDone
+                      ? "border-accent/30 bg-accent/5"
+                      : isOverdue
+                      ? "border-destructive/30 bg-destructive/5"
+                      : "border-border"
+                  }`}
+                >
+                  {/* Task header */}
+                  <div className="p-4 flex items-start gap-3">
+                    <Checkbox
+                      checked={isDone}
+                      onCheckedChange={() => !isFutureWeek && toggleTask(task.id)}
+                      disabled={isFutureWeek}
+                      className="mt-0.5"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`font-medium text-sm ${isDone ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                          {task.dayNum != null && (
+                            <span className="text-primary font-bold mr-1.5">Day {task.dayNum}</span>
+                          )}
+                          {task.title}
+                        </span>
+                        {task.isGroupTask && (
+                          <Badge variant="secondary" className="text-[10px]">Group</Badge>
+                        )}
+                        {isDone && (
+                          <CheckCircle className="w-3.5 h-3.5 text-accent" />
+                        )}
+                      </div>
+                      {task.deliverable && (
+                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                          <FileText className="w-3 h-3" />
+                          Deliverable: {task.deliverable}
+                        </p>
+                      )}
+                      {task.deadline && (
+                        <p className={`text-xs mt-0.5 flex items-center gap-1 ${
+                          isOverdue ? "text-destructive" : "text-muted-foreground"
+                        }`}>
+                          <Clock className="w-3 h-3" />
+                          {task.deadline}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expanded daily task details */}
+                  {dailyTask && !isDone && (
+                    <div className="px-4 pb-4 pt-0 ml-9 border-t border-border mt-0">
+                      <div className="pt-3 space-y-2">
+                        {dailyTask.client && (
+                          <p className="text-xs text-foreground">
+                            <span className="font-semibold">Client:</span> {dailyTask.client}
+                            {dailyTask.clientIndustry && ` (${dailyTask.clientIndustry})`}
+                          </p>
+                        )}
+                        {dailyTask.campaignGoal && (
+                          <p className="text-xs text-muted-foreground">
+                            <span className="font-semibold text-foreground">Goal:</span> {dailyTask.campaignGoal}
+                          </p>
+                        )}
+                        {dailyTask.deliverableDetails && dailyTask.deliverableDetails.length > 0 && (
+                          <div>
+                            <p className="text-xs font-semibold text-foreground mb-1">Requirements:</p>
+                            <ul className="text-xs text-muted-foreground space-y-0.5 list-disc list-inside">
+                              {dailyTask.deliverableDetails.map((detail, i) => (
+                                <li key={i}>{detail}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {dailyTask.note && (
+                          <p className="text-xs text-muted-foreground italic bg-secondary/30 rounded-md p-2">
+                            💡 {dailyTask.note}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Week complete celebration */}
+          {weekProgress === 100 && (
+            <div className="mt-6 bg-accent/10 border border-accent/30 rounded-xl p-6 text-center animate-fade-in">
+              <Trophy className="w-8 h-8 text-accent mx-auto mb-2" />
+              <h3 className="font-semibold text-foreground">Week {selectedWeek} Complete!</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                All tasks completed. {selectedWeek < currentWeek ? "Great job!" : "Move on to the next week when it unlocks."}
+              </p>
+              {selectedWeek < schedule.length && selectedWeek < currentWeek && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => setSelectedWeek(Math.min(selectedWeek + 1, currentWeek))}
+                >
+                  View Next Week <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Mobile week nav */}
+          <div className="md:hidden flex items-center justify-between mt-6 gap-2">
             <Button
               variant="outline"
               size="sm"
-              disabled={hintsUsed >= 2}
-              onClick={() => setHintsUsed(hintsUsed + 1)}
+              disabled={selectedWeek <= 1}
+              onClick={() => setSelectedWeek((w) => Math.max(1, w - 1))}
             >
-              <Lightbulb className="w-4 h-4 mr-1" />
-              Get Hint ({2 - hintsUsed} remaining)
+              <ChevronLeft className="w-4 h-4 mr-1" /> Previous
             </Button>
-            {hintsUsed > 0 && (
-              <span className="text-xs text-muted-foreground">Note: Each hint reduces your score by 10%</span>
-            )}
-          </div>
-
-          {/* Submission Area */}
-          {!showFeedback ? (
-            <div
-              ref={dropZoneRef}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              className={`bg-card border-2 rounded-xl p-5 shadow-card transition-colors ${
-                isDragging
-                  ? "border-primary border-dashed bg-primary/5"
-                  : "border-border"
-              }`}
+            <span className="text-sm text-muted-foreground">Week {selectedWeek}/{schedule.length}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={selectedWeek >= currentWeek}
+              onClick={() => setSelectedWeek((w) => Math.min(currentWeek, w + 1))}
             >
-              <h3 className="font-semibold mb-3">Your Submission</h3>
-              <Textarea
-                value={submission}
-                onChange={(e) => setSubmission(e.target.value)}
-                placeholder="Write your campaign performance report here..."
-                className="min-h-[200px] mb-4 bg-secondary/30 border-border"
-              />
-
-              {/* Drag & Drop Zone */}
-              {isDragging && (
-                <div className="mb-4 border-2 border-dashed border-primary rounded-lg p-8 text-center animate-fade-in">
-                  <Upload className="w-8 h-8 text-primary mx-auto mb-2" />
-                  <p className="text-sm text-primary font-medium">Lepaskan file di sini</p>
-                </div>
-              )}
-
-              {/* Attached Files List */}
-              {fileStates.length > 0 && (
-                <div className="mb-4 space-y-2">
-                  <p className="text-xs text-muted-foreground font-medium mb-1">
-                    {fileStates.length} file terlampir
-                  </p>
-                  {fileStates.map((fs, index) => (
-                    <div key={index} className="bg-secondary/30 rounded-lg px-3 py-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        {getFileStatusIcon(fs.status)}
-                        <span className="truncate flex-1">{fs.file.name}</span>
-                        <span className="text-xs text-muted-foreground">{formatFileSize(fs.file.size)}</span>
-                        {fs.status !== "uploading" && (
-                          <button onClick={() => removeFile(index)} className="text-muted-foreground hover:text-foreground transition-colors">
-                            <X className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                      {/* Progress bar per file */}
-                      {(fs.status === "uploading" || fs.status === "success") && (
-                        <div className="mt-2">
-                          <Progress value={fs.progress} className="h-1.5" />
-                        </div>
-                      )}
-                      {fs.status === "error" && fs.error && (
-                        <p className="text-xs text-destructive mt-1">{fs.error}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                className="hidden"
-                onChange={handleFileSelect}
-                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-              />
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="hero"
-                  onClick={handleSubmit}
-                  disabled={(!submission.trim() && fileStates.length === 0) || uploading}
-                >
-                  {uploading ? (
-                    <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Uploading...</>
-                  ) : (
-                    <><Send className="w-4 h-4 mr-1" /> Submit Work</>
-                  )}
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-                  <Upload className="w-4 h-4 mr-1" /> Attach File
-                </Button>
-                <span className="text-xs text-muted-foreground hidden md:inline">
-                  atau drag & drop file ke area ini
-                </span>
-              </div>
-            </div>
-          ) : loadingFeedback ? (
-            <div className="bg-card border border-border rounded-xl p-10 shadow-card animate-fade-in text-center">
-              <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">Sarah is reviewing your submission...</p>
-            </div>
-          ) : feedback ? (
-            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-card animate-fade-in">
-              <div className="p-5 border-b border-border">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-sm font-bold text-foreground">SM</div>
-                  <div>
-                    <div className="font-semibold">Sarah Martinez</div>
-                    <div className="text-xs text-muted-foreground">Feedback on Task 3</div>
-                  </div>
-                  {feedback.overall_score > 0 && (
-                    <div className="ml-auto flex gap-2">
-                      <Badge className="bg-accent/20 text-accent border-0">{feedback.overall_score}/10</Badge>
-                    </div>
-                  )}
-                </div>
-                <div className="font-semibold">Re: Campaign Performance Report — Feedback</div>
-              </div>
-              <div className="p-5 text-sm leading-relaxed space-y-5">
-                {/* If raw text feedback, show it directly */}
-                {feedback.raw_text ? (
-                  <div className="whitespace-pre-wrap text-foreground">{feedback.raw_text}</div>
-                ) : (
-                  <>
-                    {/* Scores */}
-                    {Object.values(feedback.scores).some(v => v.score > 0) && (
-                      <div className="grid grid-cols-2 gap-3">
-                        {Object.entries(feedback.scores).map(([key, val]) => (
-                          <div key={key} className="bg-secondary/30 rounded-lg p-3">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-xs font-medium text-foreground capitalize">{key.replace(/_/g, " ")}</span>
-                              <span className="text-xs font-bold text-accent">{val.score}/10</span>
-                            </div>
-                            <p className="text-xs text-muted-foreground">{val.reason}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Strengths */}
-                    {feedback.strengths.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold text-foreground mb-2">✅ Strengths</h4>
-                        <div className="space-y-3">
-                          {feedback.strengths.map((s, i) => (
-                            <div key={i} className="border-l-2 border-accent pl-3">
-                              <p className="text-foreground font-medium text-sm">{s.point}</p>
-                              {s.quote && <p className="text-xs text-muted-foreground italic mt-1">"{s.quote}"</p>}
-                              {s.why && <p className="text-xs text-muted-foreground mt-1">{s.why}</p>}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Improvements */}
-                    {feedback.improvements.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold text-foreground mb-2">🔧 Areas for Improvement</h4>
-                        <div className="space-y-4">
-                          {feedback.improvements.map((imp, i) => (
-                            <div key={i} className="border-l-2 border-primary pl-3">
-                              <p className="text-foreground font-medium text-sm">{imp.point}</p>
-                              {imp.quote && <p className="text-xs text-muted-foreground italic mt-1">Your words: "{imp.quote}"</p>}
-                              {imp.why && <p className="text-xs text-muted-foreground mt-1">Why: {imp.why}</p>}
-                              {imp.suggestion && (
-                                <div className="bg-secondary/50 rounded-md p-2 mt-2">
-                                  <p className="text-xs text-foreground">💡 <span className="font-medium">Suggested revision:</span> {imp.suggestion}</p>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Final Summary */}
-                    {feedback.final_summary && (
-                      <div className="bg-secondary/30 rounded-lg p-4 border border-border">
-                        <p className="text-sm text-foreground font-medium">{feedback.final_summary}</p>
-                        <p className="text-xs text-muted-foreground mt-2">— Sarah</p>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-              <div className="p-5 border-t border-border flex gap-3">
-                <Button variant="hero" asChild>
-                  <Link to="/simulation/active">Next Task →</Link>
-                </Button>
-                <Button variant="outline" onClick={() => setShowChat(!showChat)}>
-                  <MessageCircle className="w-4 h-4 mr-1" /> Ask Manager
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-card border border-border rounded-xl p-10 shadow-card text-center">
-              <p className="text-muted-foreground">Submit your work to receive AI feedback.</p>
-            </div>
-          )}
-
-          {/* Chat */}
-          {showChat && (
-            <div className="mt-4 bg-card border border-border rounded-xl p-5 shadow-card animate-fade-in">
-              <h3 className="font-semibold mb-3 text-sm">Chat with Sarah</h3>
-              <div className="flex gap-2">
-                <Textarea
-                  value={chatMessage}
-                  onChange={(e) => setChatMessage(e.target.value)}
-                  placeholder="Ask a follow-up question..."
-                  className="bg-secondary/30 border-border min-h-[60px]"
-                />
-                <Button variant="hero" size="icon" className="flex-shrink-0 h-auto">
-                  <Send className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          )}
+              Next <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
         </main>
       </div>
     </div>
