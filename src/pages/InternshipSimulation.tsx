@@ -386,113 +386,122 @@ const InternshipSimulation = () => {
           <CardContent>
             {feedback ? (
               <div className="space-y-6">
-                {/* Score + Hiring Decision */}
-                <div className="flex flex-wrap items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl gradient-hero flex items-center justify-center shadow-glow">
-                    <span className="text-3xl font-black text-foreground">{feedback.score ?? "–"}</span>
+                {/* Plain text feedback */}
+                {feedback.raw_text ? (
+                  <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed">
+                    {feedback.raw_text}
                   </div>
-                  <div>
-                    <p className="font-semibold text-lg">Score</p>
-                    <p className="text-sm text-muted-foreground">out of 10</p>
-                  </div>
-                  <div className="ml-auto">
-                    <Badge
-                      className={`text-sm px-4 py-1.5 font-bold ${
-                        feedback.hiring_decision === "Hire"
-                          ? "bg-accent/15 text-accent border-accent/30"
-                          : "bg-destructive/15 text-destructive border-destructive/30"
-                      }`}
-                    >
-                      {feedback.hiring_decision === "Hire" ? "✓ Hire" : "⚠ Needs Improvement"}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Dimension Scores */}
-                {feedback.scores && (
-                  <div className="space-y-3">
-                    <h4 className="font-semibold flex items-center gap-1.5 text-sm">
-                      <BarChart3 className="w-4 h-4 text-accent" /> Evaluation Breakdown
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {Object.entries(feedback.scores).map(([key, dim]: [string, any]) => (
-                        <div key={key} className="bg-secondary/30 rounded-lg p-3 space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                              {key.replace(/_/g, " ")}
-                            </span>
-                            <span className="text-sm font-bold">{dim?.score ?? "–"}/10</span>
-                          </div>
-                          <Progress value={(dim?.score ?? 0) * 10} className="h-1.5" />
-                          {dim?.reason && <p className="text-xs text-muted-foreground">{dim.reason}</p>}
-                        </div>
-                      ))}
+                ) : (
+                  <>
+                    {/* Score + Hiring Decision */}
+                    <div className="flex flex-wrap items-center gap-4">
+                      <div className="w-16 h-16 rounded-2xl gradient-hero flex items-center justify-center shadow-glow">
+                        <span className="text-3xl font-black text-foreground">{feedback.score ?? "–"}</span>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-lg">Score</p>
+                        <p className="text-sm text-muted-foreground">out of 10</p>
+                      </div>
+                      <div className="ml-auto">
+                        <Badge
+                          className={`text-sm px-4 py-1.5 font-bold ${
+                            feedback.hiring_decision === "Hire"
+                              ? "bg-accent/15 text-accent border-accent/30"
+                              : "bg-destructive/15 text-destructive border-destructive/30"
+                          }`}
+                        >
+                          {feedback.hiring_decision === "Hire" ? "✓ Hire" : "⚠ Needs Improvement"}
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                )}
 
-                {/* Strengths */}
-                {feedback.strengths?.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="font-semibold flex items-center gap-1.5 text-sm">
-                      <CheckCircle className="w-4 h-4 text-accent" /> Strengths
-                    </h4>
-                    <ul className="space-y-2">
-                      {feedback.strengths.map((s: any, i: number) => (
-                        <li key={i} className="bg-secondary/30 rounded-lg px-3 py-2 space-y-1">
-                          <span className="text-sm font-medium">{typeof s === "string" ? s : s.point}</span>
-                          {s.quote && <p className="text-xs text-muted-foreground italic">"{s.quote}"</p>}
-                          {s.why && <p className="text-xs text-muted-foreground">{s.why}</p>}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                    {/* Dimension Scores */}
+                    {feedback.scores && (
+                      <div className="space-y-3">
+                        <h4 className="font-semibold flex items-center gap-1.5 text-sm">
+                          <BarChart3 className="w-4 h-4 text-accent" /> Evaluation Breakdown
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {Object.entries(feedback.scores).map(([key, dim]: [string, any]) => (
+                            <div key={key} className="bg-secondary/30 rounded-lg p-3 space-y-1.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                  {key.replace(/_/g, " ")}
+                                </span>
+                                <span className="text-sm font-bold">{dim?.score ?? "–"}/10</span>
+                              </div>
+                              <Progress value={(dim?.score ?? 0) * 10} className="h-1.5" />
+                              {dim?.reason && <p className="text-xs text-muted-foreground">{dim.reason}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                {/* Improvements */}
-                {feedback.improvements?.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="font-semibold flex items-center gap-1.5 text-sm">
-                      <AlertTriangle className="w-4 h-4 text-destructive" /> Areas for Improvement
-                    </h4>
-                    <ul className="space-y-2">
-                      {feedback.improvements.map((imp: any, i: number) => (
-                        <li key={i} className="bg-secondary/30 rounded-lg px-3 py-2 space-y-1">
-                          <span className="text-sm font-medium">{typeof imp === "string" ? imp : imp.point}</span>
-                          {imp.quote && <p className="text-xs text-muted-foreground italic">"{imp.quote}"</p>}
-                          {imp.why && <p className="text-xs text-muted-foreground">{imp.why}</p>}
-                          {imp.suggestion && (
-                            <p className="text-xs text-accent font-medium">💡 {imp.suggestion}</p>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                    {/* Strengths */}
+                    {feedback.strengths?.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="font-semibold flex items-center gap-1.5 text-sm">
+                          <CheckCircle className="w-4 h-4 text-accent" /> Strengths
+                        </h4>
+                        <ul className="space-y-2">
+                          {feedback.strengths.map((s: any, i: number) => (
+                            <li key={i} className="bg-secondary/30 rounded-lg px-3 py-2 space-y-1">
+                              <span className="text-sm font-medium">{typeof s === "string" ? s : s.point}</span>
+                              {s.quote && <p className="text-xs text-muted-foreground italic">"{s.quote}"</p>}
+                              {s.why && <p className="text-xs text-muted-foreground">{s.why}</p>}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
-                {/* Suggested Improvements */}
-                {feedback.suggested_improvements?.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="font-semibold flex items-center gap-1.5 text-sm">
-                      <Lightbulb className="w-4 h-4 text-accent" /> Suggested Next Steps
-                    </h4>
-                    <ul className="space-y-1.5">
-                      {feedback.suggested_improvements.map((s: string, i: number) => (
-                        <li key={i} className="flex items-start gap-2 bg-primary/5 rounded-lg px-3 py-2 border border-primary/10">
-                          <span className="text-accent mt-0.5 shrink-0 text-sm font-bold">{i + 1}.</span>
-                          <span className="text-sm">{s}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                    {/* Improvements */}
+                    {feedback.improvements?.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="font-semibold flex items-center gap-1.5 text-sm">
+                          <AlertTriangle className="w-4 h-4 text-destructive" /> Areas for Improvement
+                        </h4>
+                        <ul className="space-y-2">
+                          {feedback.improvements.map((imp: any, i: number) => (
+                            <li key={i} className="bg-secondary/30 rounded-lg px-3 py-2 space-y-1">
+                              <span className="text-sm font-medium">{typeof imp === "string" ? imp : imp.point}</span>
+                              {imp.quote && <p className="text-xs text-muted-foreground italic">"{imp.quote}"</p>}
+                              {imp.why && <p className="text-xs text-muted-foreground">{imp.why}</p>}
+                              {imp.suggestion && (
+                                <p className="text-xs text-accent font-medium">💡 {imp.suggestion}</p>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
-                {/* Recommendation */}
-                {feedback.recommendation && (
-                  <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Recommendation</p>
-                    <p className="text-sm font-medium">{feedback.recommendation}</p>
-                  </div>
+                    {/* Suggested Improvements */}
+                    {feedback.suggested_improvements?.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="font-semibold flex items-center gap-1.5 text-sm">
+                          <Lightbulb className="w-4 h-4 text-accent" /> Suggested Next Steps
+                        </h4>
+                        <ul className="space-y-1.5">
+                          {feedback.suggested_improvements.map((s: string, i: number) => (
+                            <li key={i} className="flex items-start gap-2 bg-primary/5 rounded-lg px-3 py-2 border border-primary/10">
+                              <span className="text-accent mt-0.5 shrink-0 text-sm font-bold">{i + 1}.</span>
+                              <span className="text-sm">{s}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Recommendation */}
+                    {feedback.recommendation && (
+                      <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Recommendation</p>
+                        <p className="text-sm font-medium">{feedback.recommendation}</p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             ) : (
