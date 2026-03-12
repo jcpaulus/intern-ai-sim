@@ -217,7 +217,7 @@ const Dashboard = () => {
   if (durationWeeks && orientationDone) {
     for (let w = 1; w <= durationWeeks; w++) {
       // Count tasks for this week from completedTasks (format: w{N}-d{D} or w{N}-i{I})
-      const weekTasksCompleted = completedTaskIds.filter(id => id.startsWith(`w${w}-`)).length;
+      const weekTasksCompleted = simCompletedTaskIds.filter(id => id.startsWith(`w${w}-`)).length;
       const isWeekAccessible = w <= currentSimWeek;
       const prevWeekDone = w === 1 ? orientationDone : journeySteps[journeySteps.length - 1]?.status === "completed";
 
