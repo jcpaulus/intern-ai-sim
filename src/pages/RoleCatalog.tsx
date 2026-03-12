@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Zap, BarChart3, PenTool, TrendingUp } from "lucide-react";
+import { Zap, BarChart3, PenTool, TrendingUp, ArrowLeft } from "lucide-react";
 
 const roles = [
   {
@@ -31,6 +31,7 @@ const roles = [
 ];
 
 const RoleCatalog = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background">
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
@@ -75,6 +76,13 @@ const RoleCatalog = () => {
               </Button>
             </div>
           ))}
+        </div>
+
+        {/* Navigation */}
+        <div className="mt-12 flex justify-start">
+          <Button variant="outline" onClick={() => navigate("/dashboard")}>
+            <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
+          </Button>
         </div>
       </div>
     </div>

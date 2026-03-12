@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Zap, ArrowRight, Building2 } from "lucide-react";
+import { Zap, ArrowRight, ArrowLeft, Building2 } from "lucide-react";
 
 const roleData: Record<string, { title: string; description: string }> = {
   "business-analyst": { title: "Business Analyst", description: "Analyze business requirements, identify process improvements, and communicate with stakeholders." },
@@ -168,21 +168,27 @@ const SimulationSetup = () => {
             </div>
           </div>
 
-           <Button variant="hero" size="lg" className="w-full text-lg py-6" onClick={() => {
-             const company = companies.find(c => c.id === selectedCompany)!;
-             navigate("/simulation/orientation", {
-               state: {
-                 roleId: roleId || "marketing-associate",
-                 roleTitle: role.title,
-                 company,
-                 duration,
-                 level,
-                 managerStyle,
-               },
-             });
-           }}>
-            Begin Internship at {companies.find(c => c.id === selectedCompany)?.name} <ArrowRight className="w-5 h-5 ml-1" />
-          </Button>
+          {/* Navigation */}
+          <div className="flex gap-3">
+            <Button variant="outline" size="lg" className="py-6" onClick={() => navigate("/roles")}>
+              <ArrowLeft className="w-5 h-5 mr-1" /> Back to Roles
+            </Button>
+            <Button variant="hero" size="lg" className="flex-1 text-lg py-6" onClick={() => {
+              const company = companies.find(c => c.id === selectedCompany)!;
+              navigate("/simulation/orientation", {
+                state: {
+                  roleId: roleId || "marketing-associate",
+                  roleTitle: role.title,
+                  company,
+                  duration,
+                  level,
+                  managerStyle,
+                },
+              });
+            }}>
+              Begin Internship at {companies.find(c => c.id === selectedCompany)?.name} <ArrowRight className="w-5 h-5 ml-1" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
