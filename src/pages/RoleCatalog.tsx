@@ -77,6 +77,13 @@ const RoleCatalog = () => {
             </div>
           ))}
         </div>
+
+        {/* Navigation */}
+        <div className="mt-12 flex justify-start">
+          <Button variant="outline" onClick={() => navigate("/dashboard")}>
+            <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
+          </Button>
+        </div>
       </div>
     </div>
   );
