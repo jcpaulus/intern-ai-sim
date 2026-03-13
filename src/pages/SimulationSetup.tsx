@@ -192,11 +192,8 @@ const SimulationSetup = () => {
           </div>
 
           {/* Navigation */}
-          <div className="flex gap-3">
-            <Button variant="outline" size="lg" className="py-6" onClick={() => navigate("/roles")}>
-              <ArrowLeft className="w-5 h-5 mr-1" /> Back to Roles
-            </Button>
-            <Button variant="hero" size="lg" className="flex-1 text-lg py-6" onClick={() => {
+          <div className="flex justify-center">
+            <Button variant="hero" size="lg" className="text-lg py-6 w-full max-w-md" onClick={() => {
               const company = companies.find(c => c.id === selectedCompany)!;
               saveProgress(STEPS.SIMULATION_SETUP, "completed", {
                 roleId, duration, level, managerStyle, selectedCompany,
