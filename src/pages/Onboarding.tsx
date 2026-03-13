@@ -109,7 +109,7 @@ const Onboarding = () => {
           <div className="flex gap-3">
             {step > 0 && (
               <Button variant="outline" onClick={() => { setStep(step - 1); saveProgress(STEPS.ONBOARDING, "in_progress", { step: step - 1, answers }); }}>
-                <ArrowLeft className="w-4 h-4 mr-1" /> Back
+                <ArrowLeft className="w-4 h-4 mr-1" /> Previous
               </Button>
             )}
             <Button
